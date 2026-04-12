@@ -22,7 +22,7 @@ export default function CashFlowChart({ monthly }: Props) {
   };
 
   return (
-    <div className="bg-white/60 backdrop-blur rounded-2xl border border-walnut/10 p-4 md:p-5">
+    <div className="glass rounded-2xl p-4 md:p-5">
       <h3 className="text-base font-bold text-walnut mb-3">Cumulative Equity vs Distributions</h3>
       <ResponsiveContainer width="100%" height={280}>
         <LineChart data={data} margin={{ top: 5, right: 20, bottom: 5, left: 10 }}>

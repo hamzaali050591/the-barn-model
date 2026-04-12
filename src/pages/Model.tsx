@@ -3,6 +3,7 @@ import { DEFAULT_INPUTS } from '../utils/types';
 import type { ModelInputs } from '../utils/types';
 import { runModel } from '../utils/engine';
 import { fmtDollarFull, fmtPct } from '../utils/format';
+import { useReveal } from '../utils/useReveal';
 import KPICards from '../components/KPICards';
 import InputPanel from '../components/InputPanel';
 import AnnualTable from '../components/AnnualTable';
@@ -14,8 +15,9 @@ import NavBar from '../components/NavBar';
 export default function Model() {
   const [inputs, setInputs] = useState<ModelInputs>(DEFAULT_INPUTS);
   const results = useMemo(() => runModel(inputs), [inputs]);
+  const revealRef = useReveal();
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-cream" ref={revealRef}>
       <NavBar current="/model" />
 
       <main className="max-w-7xl mx-auto px-3 md:px-6 py-5 md:py-8">
@@ -45,7 +47,7 @@ export default function Model() {
             { label: 'Exit Proceeds', value: fmtDollarFull(results.exitProceeds) },
             { label: 'Stabilized CoC', value: fmtPct(results.stabilizedCoC) },
           ].map(item => (
-            <div key={item.label} className="bg-white/60 backdrop-blur rounded-xl border border-walnut/10 px-4 py-3 text-center">
+            <div key={item.label} className="glass rounded-xl px-4 py-3 text-center reveal">
               <div className="text-xs text-walnut-light font-medium">{item.label}</div>
               <div className="text-lg font-bold text-walnut mt-0.5">{item.value}</div>
             </div>

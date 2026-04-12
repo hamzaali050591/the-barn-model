@@ -10,7 +10,7 @@ export default function MonthlyDetail({ monthly }: Props) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="bg-white/60 backdrop-blur rounded-2xl border border-walnut/10">
+    <div className="glass rounded-2xl">
       <button
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between px-5 py-3 text-sm font-bold text-walnut hover:bg-walnut/5 transition-colors rounded-2xl"

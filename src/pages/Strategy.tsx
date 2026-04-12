@@ -1,8 +1,9 @@
 import NavBar from '../components/NavBar';
+import { useReveal } from '../utils/useReveal';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="mb-10">
+    <section className="mb-10 reveal">
       <h2 className="text-xl md:text-2xl font-bold text-walnut mb-4 pb-2 border-b border-walnut/10">
         {title}
       </h2>
@@ -13,7 +14,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function Card({ title, description, icon }: { title: string; description: string; icon?: string }) {
   return (
-    <div className="bg-white/60 backdrop-blur rounded-xl border border-walnut/10 p-5">
+    <div className="glass rounded-xl p-5 reveal">
       {icon && <div className="text-2xl mb-2">{icon}</div>}
       <h3 className="font-semibold text-walnut mb-1.5">{title}</h3>
       <p className="text-sm text-walnut-light leading-relaxed">{description}</p>
@@ -31,8 +32,10 @@ function Stat({ value, label }: { value: string; label: string }) {
 }
 
 export default function Strategy() {
+  const revealRef = useReveal();
+
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-cream" ref={revealRef}>
       <NavBar current="/strategy" />
 
       {/* Hero */}
@@ -97,7 +100,7 @@ export default function Strategy() {
 
         {/* Key Metrics */}
         <Section title="Richmond at a Glance">
-          <div className="bg-white/60 backdrop-blur rounded-2xl border border-walnut/10 p-6 md:p-8">
+          <div className="glass rounded-2xl p-6 md:p-8">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <Stat value="10,000" label="Square Feet" />
               <Stat value="11" label="Vendor Stalls" />
@@ -109,7 +112,7 @@ export default function Strategy() {
 
         {/* Capital Stack */}
         <Section title="Capital Stack">
-          <div className="bg-white/60 backdrop-blur rounded-2xl border border-walnut/10 overflow-hidden">
+          <div className="glass rounded-2xl overflow-hidden reveal">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-walnut/10 bg-walnut/5">
@@ -190,7 +193,7 @@ export default function Strategy() {
             Data-driven from Day 1. Every decision at every future location is powered by real operational data — not guesswork.
           </p>
           <div className="grid md:grid-cols-2 gap-4">
-            <div className="bg-white/60 backdrop-blur rounded-xl border border-walnut/10 p-5">
+            <div className="glass rounded-xl p-5">
               <h3 className="font-semibold text-walnut mb-3">Customer-Facing App</h3>
               <ul className="space-y-2 text-sm text-walnut-light">
                 <li>Order ahead from multiple vendors</li>
@@ -200,7 +203,7 @@ export default function Strategy() {
                 <li>Push notifications for events & new vendors</li>
               </ul>
             </div>
-            <div className="bg-white/60 backdrop-blur rounded-xl border border-walnut/10 p-5">
+            <div className="glass rounded-xl p-5">
               <h3 className="font-semibold text-walnut mb-3">Internal Operations</h3>
               <ul className="space-y-2 text-sm text-walnut-light">
                 <li>Real-time sales dashboards</li>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import NavBar from '../components/NavBar';
+import { useReveal } from '../utils/useReveal';
 
 interface Zone {
   name: string;
@@ -150,9 +151,10 @@ const designDecisions = [
 export default function LayoutPage() {
   const [expandedZone, setExpandedZone] = useState<number | null>(null);
   const [showDecisions, setShowDecisions] = useState(false);
+  const revealRef = useReveal();
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-cream" ref={revealRef}>
       <NavBar current="/layout" />
 
       <main className="max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-10">
@@ -162,8 +164,8 @@ export default function LayoutPage() {
         </div>
 
         {/* Floor Plan Schematic */}
-        <section className="mb-8">
-          <div className="bg-white/60 backdrop-blur rounded-2xl border border-walnut/10 p-4 md:p-6">
+        <section className="mb-8 reveal">
+          <div className="glass rounded-2xl p-4 md:p-6">
             <h2 className="text-lg font-bold text-walnut mb-4">Floor Plan</h2>
             <div className="bg-cream rounded-xl border border-walnut/10 p-3 md:p-5 font-mono text-[10px] md:text-xs leading-relaxed overflow-x-auto">
               <div className="min-w-[500px]">
@@ -281,7 +283,7 @@ export default function LayoutPage() {
           <h2 className="text-lg font-bold text-walnut mb-4">Space Allocation</h2>
 
           {/* Visual bar chart */}
-          <div className="bg-white/60 backdrop-blur rounded-2xl border border-walnut/10 p-4 md:p-6 mb-4">
+          <div className="glass rounded-2xl p-4 md:p-6 mb-4 reveal">
             <div className="flex rounded-xl overflow-hidden h-10 mb-4">
               {zones.map((z, i) => (
                 <div
@@ -308,8 +310,8 @@ export default function LayoutPage() {
             {zones.map((z, i) => (
               <div
                 key={i}
-                className={`bg-white/60 backdrop-blur rounded-xl border transition-all cursor-pointer ${
-                  expandedZone === i ? 'border-honey/50 shadow-sm' : 'border-walnut/10'
+                className={`glass rounded-xl transition-all cursor-pointer reveal ${
+                  expandedZone === i ? 'border-honey/50 !shadow-lg !shadow-honey/10' : ''
                 }`}
                 onClick={() => setExpandedZone(expandedZone === i ? null : i)}
               >
@@ -353,7 +355,7 @@ export default function LayoutPage() {
         {/* Seating breakdown */}
         <section className="mb-8">
           <h2 className="text-lg font-bold text-walnut mb-4">Seating Specifications</h2>
-          <div className="bg-white/60 backdrop-blur rounded-2xl border border-walnut/10 overflow-hidden">
+          <div className="glass rounded-2xl overflow-hidden reveal">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-walnut/10 bg-walnut/5">
@@ -402,7 +404,7 @@ export default function LayoutPage() {
           {showDecisions && (
             <div className="space-y-3">
               {designDecisions.map((d, i) => (
-                <div key={i} className="bg-white/60 backdrop-blur rounded-xl border border-walnut/10 p-4">
+                <div key={i} className="glass rounded-xl p-4 hover-lift">
                   <h3 className="font-semibold text-walnut text-sm mb-1">{d.q}</h3>
                   <p className="text-xs text-walnut-light leading-relaxed">{d.a}</p>
                 </div>

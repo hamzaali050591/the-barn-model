@@ -84,7 +84,7 @@ export default function AnnualTable({ monthly, holdMonths }: Props) {
   ];
 
   return (
-    <div className="bg-white/60 backdrop-blur rounded-2xl border border-walnut/10 overflow-x-auto">
+    <div className="glass rounded-2xl overflow-x-auto">
       <h3 className="text-base font-bold text-walnut px-5 pt-4 pb-2">Annual Breakdown</h3>
       <table className="w-full text-xs md:text-sm">
         <thead>
@@ -106,7 +106,7 @@ export default function AnnualTable({ monthly, holdMonths }: Props) {
           {metricRows.map((row, idx) => (
             <tr
               key={row.key}
-              className={`border-b border-walnut/5 ${
+              className={`border-b border-walnut/5 row-hover ${
                 row.key === 'postSalaryEBITDA' || row.key === 'netCashFlow'
                   ? 'bg-sage/5 font-semibold'
                   : ''

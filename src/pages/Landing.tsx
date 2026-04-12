@@ -47,33 +47,33 @@ export default function Landing() {
             alt="The Barn — Everybody's Welcome"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-walnut/50" />
+          <div className="absolute inset-0 bg-gradient-to-b from-walnut/40 via-walnut/50 to-walnut/70" />
         </div>
 
         {/* Content */}
         <div className="relative z-10 text-center max-w-3xl mx-auto">
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-cream tracking-tight mb-3">
+          <h1 className="fade-up fade-up-d1 text-4xl md:text-6xl lg:text-7xl font-bold text-cream tracking-tight mb-3">
             The Barn
           </h1>
-          <p className="text-lg md:text-2xl text-cream/80 font-light mb-2">
+          <p className="fade-up fade-up-d2 text-lg md:text-2xl text-cream/80 font-light mb-2">
             Where Neighborhoods Gather
           </p>
-          <div className="w-16 h-0.5 bg-honey mx-auto my-6" />
-          <p className="text-sm md:text-base text-cream/60 max-w-lg mx-auto mb-12">
+          <div className="fade-up fade-up-d2 w-16 h-0.5 bg-honey mx-auto my-6" />
+          <p className="fade-up fade-up-d3 text-sm md:text-base text-cream/60 max-w-lg mx-auto mb-12">
             A curated, tech-enabled food hall designed to be the community gathering place
             for Richmond and Fort Bend County.
           </p>
 
           {/* Navigation buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="fade-up fade-up-d4 flex flex-col sm:flex-row gap-4 justify-center items-center">
             {navButtons.map((btn) => (
               <button
                 key={btn.path}
                 onClick={() => navigate(btn.path)}
-                className="group w-full sm:w-56 bg-cream/10 backdrop-blur-sm border border-cream/20 rounded-2xl px-6 py-5 text-cream hover:bg-cream/20 hover:border-honey/50 hover:scale-105 transition-all duration-300 cursor-pointer"
+                className="group w-full sm:w-56 glass-dark rounded-2xl px-6 py-5 text-cream cursor-pointer"
               >
                 <div className="flex flex-col items-center gap-2">
-                  <div className="text-honey group-hover:scale-110 transition-transform">
+                  <div className="text-honey group-hover:scale-110 transition-transform duration-300 float-anim">
                     {btn.icon}
                   </div>
                   <span className="text-base font-semibold">{btn.label}</span>
@@ -86,7 +86,7 @@ export default function Landing() {
       </div>
 
       {/* Footer */}
-      <div className="relative z-10 bg-walnut/90 backdrop-blur py-4 text-center border-t border-cream/10">
+      <div className="relative z-10 nav-glass py-4 text-center border-t border-cream/10">
         <p className="text-cream/40 text-xs">
           The Barn &mdash; Everybody&rsquo;s Welcome &middot; Richmond, TX
         </p>

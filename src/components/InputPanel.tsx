@@ -90,7 +90,7 @@ export default function InputPanel({ inputs, onChange }: Props) {
   };
 
   return (
-    <div className="bg-white/60 backdrop-blur rounded-2xl border border-walnut/10 p-5 md:p-6">
+    <div className="glass rounded-2xl p-5 md:p-6">
       <h2 className="text-lg font-bold text-walnut mb-4">Assumptions</h2>
 
       <SliderInput

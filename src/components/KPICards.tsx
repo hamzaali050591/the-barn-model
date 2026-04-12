@@ -13,10 +13,10 @@ const cards = [
 ];
 
 const bgColors = [
-  'bg-sage/20 border-sage/40',
-  'bg-honey/20 border-honey/40',
-  'bg-terracotta/20 border-terracotta/40',
-  'bg-sage/20 border-sage/40',
+  'bg-sage/20 border-sage/30',
+  'bg-honey/20 border-honey/30',
+  'bg-terracotta/20 border-terracotta/30',
+  'bg-sage/20 border-sage/30',
 ];
 
 export default function KPICards({ results }: Props) {
@@ -25,7 +25,7 @@ export default function KPICards({ results }: Props) {
       {cards.map((card, i) => (
         <div
           key={card.key}
-          className={`rounded-xl border p-4 md:p-5 text-center ${bgColors[i]}`}
+          className={`glow-hover rounded-xl border p-4 md:p-5 text-center backdrop-blur-sm ${bgColors[i]}`}
         >
           <div className="text-xs md:text-sm font-medium text-walnut-light uppercase tracking-wider mb-1">
             {card.label}
