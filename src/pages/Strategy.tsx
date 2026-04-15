@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import NavBar from '../components/NavBar';
 import { useReveal } from '../utils/useReveal';
 
@@ -31,8 +32,150 @@ function Stat({ value, label }: { value: string; label: string }) {
   );
 }
 
+// ── Interactive cell ──
+function NumCell({
+  value,
+  onChange,
+  prefix,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+  prefix?: string;
+}) {
+  return (
+    <div className="inline-flex items-center gap-1">
+      {prefix && <span className="text-walnut-light text-xs">{prefix}</span>}
+      <input
+        type="number"
+        value={value}
+        onChange={e => onChange(Math.max(0, Number(e.target.value) || 0))}
+        className="w-20 bg-white/70 border border-walnut/20 rounded-md px-2 py-1 text-right tabular-nums text-walnut focus:outline-none focus:border-honey focus:ring-2 focus:ring-honey/20 transition-all"
+      />
+    </div>
+  );
+}
+
+const fmt$ = (n: number) => '$' + n.toLocaleString('en-US');
+
+// ── Scale Vision Timeline (tick marks 1-48 with opening circles) ──
+function TimelineVis({ locations }: { locations: { name: string; month: number }[] }) {
+  const months = 48;
+  const maxMonth = months;
+  return (
+    <div className="w-full py-10 px-4 md:px-6">
+      <div className="relative">
+        {/* Main line */}
+        <div className="absolute left-0 right-0 top-1/2 h-1 bg-walnut rounded-full" />
+
+        {/* Tick marks */}
+        <div className="relative flex justify-between items-center h-6">
+          {Array.from({ length: months }, (_, i) => {
+            const m = i + 1;
+            const isMajor = m === 1 || m % 12 === 0;
+            return (
+              <div
+                key={m}
+                className={`bg-walnut rounded-full ${
+                  isMajor ? 'w-0.5 h-4' : 'w-px h-2'
+                }`}
+                style={{ opacity: isMajor ? 1 : 0.5 }}
+              />
+            );
+          })}
+        </div>
+
+        {/* Year labels under major ticks */}
+        <div className="flex justify-between text-[10px] text-walnut-light font-medium mt-1">
+          {[1, 12, 24, 36, 48].map(m => (
+            <div key={m} className="text-center" style={{ position: 'absolute', left: `${((m - 1) / (maxMonth - 1)) * 100}%`, transform: 'translateX(-50%)' }}>
+              M{m}
+            </div>
+          ))}
+        </div>
+
+        {/* Location circles positioned above the line */}
+        <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2">
+          {locations.map((loc, i) => {
+            const pct = ((loc.month - 1) / (maxMonth - 1)) * 100;
+            const above = i % 2 === 0;
+            return (
+              <div
+                key={i}
+                className="absolute"
+                style={{ left: `${pct}%`, transform: 'translateX(-50%)' }}
+              >
+                {/* Vertical connector */}
+                <div
+                  className={`w-0.5 bg-honey/40 absolute left-1/2 -translate-x-1/2 ${above ? '-top-8' : 'top-7'}`}
+                  style={{ height: '22px' }}
+                />
+                {/* Circle */}
+                <div
+                  className={`w-12 h-12 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-lg absolute left-1/2 -translate-x-1/2 ${
+                    i === 0 ? 'bg-honey ring-4 ring-honey/30' : 'bg-walnut'
+                  } ${above ? '-top-[54px]' : 'top-7'}`}
+                >
+                  L{i + 1}
+                </div>
+                {/* Label */}
+                <div
+                  className={`absolute left-1/2 -translate-x-1/2 text-[10px] text-walnut-light font-medium whitespace-nowrap ${
+                    above ? '-top-20' : 'top-20'
+                  }`}
+                >
+                  <div className="text-center">
+                    <div className="font-semibold text-walnut">{loc.name}</div>
+                    <div>Mo {loc.month}</div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface VendorRow {
+  cat: string;
+  n: number;
+  rent: number;
+}
+
 export default function Strategy() {
   const revealRef = useReveal();
+
+  // Interactive vendor model
+  const [vendors, setVendors] = useState<VendorRow[]>([
+    { cat: 'Food Vendors', n: 8, rent: 7000 },
+    { cat: 'Health Bar', n: 1, rent: 6000 },
+    { cat: 'Desserts', n: 1, rent: 6000 },
+    { cat: 'Drinks', n: 2, rent: 6000 },
+  ]);
+
+  const updateVendor = (idx: number, field: 'n' | 'rent', value: number) => {
+    const next = [...vendors];
+    next[idx] = { ...next[idx], [field]: value };
+    setVendors(next);
+  };
+
+  // Calculations
+  const totalVendors = vendors.reduce((s, v) => s + v.n, 0);
+  const totalMonthlyRent = vendors.reduce((s, v) => s + v.n * v.rent, 0);
+  const totalAnnualRent = totalMonthlyRent * 12;
+  const totalDeposit = vendors.reduce((s, v) => s + v.n * v.rent * 2, 0);
+
+  // Scale Vision locations
+  const scaleLocations = [
+    { name: 'Richmond', month: 1 },
+    { name: 'Fulshear', month: 13 },
+    { name: 'Frisco', month: 17 },
+    { name: 'Plano', month: 21 },
+    { name: 'San Antonio', month: 25 },
+    { name: 'Location 6', month: 29 },
+    { name: 'Location 7', month: 33 },
+  ];
 
   return (
     <div className="min-h-screen bg-cream" ref={revealRef}>
@@ -81,7 +224,7 @@ export default function Strategy() {
           <div className="grid sm:grid-cols-2 gap-4">
             <Card
               title="Curated Culinary"
-              description="12 unique local vendors. No chains. Personally curated by the operator — relationship-driven, not open-call. Every stall is a draw on its own."
+              description={`${totalVendors} unique local vendors. No chains. Personally curated by the operator — relationship-driven, not open-call. Every stall is a draw on its own.`}
             />
             <Card
               title="Community Hub"
@@ -103,15 +246,18 @@ export default function Strategy() {
           <div className="glass rounded-2xl p-6 md:p-8">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <Stat value="10,000" label="Square Feet" />
-              <Stat value="12" label="Vendor Stalls" />
+              <Stat value={String(totalVendors)} label="Vendor Stalls" />
               <Stat value="160" label="Seats" />
-              <Stat value="$1.94M" label="Total Buildout" />
+              <Stat value="$1.5M" label="Total Buildout" />
             </div>
           </div>
         </Section>
 
-        {/* Vendor Model */}
+        {/* Vendor Model — Interactive */}
         <Section title="Vendor Model">
+          <p className="text-walnut-light text-sm mb-4">
+            Adjust vendor counts and rent to explore scenarios. Totals update live.
+          </p>
           <div className="glass rounded-2xl overflow-hidden mb-4 reveal">
             <table className="w-full text-sm">
               <thead>
@@ -123,31 +269,65 @@ export default function Strategy() {
                 </tr>
               </thead>
               <tbody>
-                {[
-                  { cat: 'Food Vendors', n: 8, rent: '$7,000', total: '$56,000' },
-                  { cat: 'Health Bar', n: 1, rent: '$6,000', total: '$6,000' },
-                  { cat: 'Desserts', n: 1, rent: '$6,000', total: '$6,000' },
-                  { cat: 'Drinks', n: 2, rent: '$6,000', total: '$12,000' },
-                ].map((row, i) => (
+                {vendors.map((row, i) => (
                   <tr key={i} className="border-b border-walnut/5 row-hover">
                     <td className="px-5 py-2.5 text-walnut">{row.cat}</td>
-                    <td className="px-5 py-2.5 text-center text-walnut">{row.n}</td>
-                    <td className="px-5 py-2.5 text-right text-walnut tabular-nums">{row.rent}</td>
-                    <td className="px-5 py-2.5 text-right font-semibold text-walnut tabular-nums">{row.total}</td>
+                    <td className="px-5 py-2.5 text-center text-walnut">
+                      <NumCell value={row.n} onChange={v => updateVendor(i, 'n', v)} />
+                    </td>
+                    <td className="px-5 py-2.5 text-right text-walnut tabular-nums">
+                      <NumCell value={row.rent} onChange={v => updateVendor(i, 'rent', v)} prefix="$" />
+                    </td>
+                    <td className="px-5 py-2.5 text-right font-semibold text-walnut tabular-nums">
+                      {fmt$(row.n * row.rent)}
+                    </td>
                   </tr>
                 ))}
-                <tr className="bg-honey/10">
-                  <td className="px-5 py-2.5 font-bold text-walnut">Total</td>
-                  <td className="px-5 py-2.5 text-center font-bold text-walnut">12</td>
-                  <td className="px-5 py-2.5"></td>
-                  <td className="px-5 py-2.5 text-right font-bold text-walnut tabular-nums">$80,000</td>
+                <tr className="bg-honey/10 border-t-2 border-honey/20">
+                  <td className="px-5 py-3 font-bold text-walnut">Total Monthly Rent</td>
+                  <td className="px-5 py-3 text-center font-bold text-walnut tabular-nums">{totalVendors}</td>
+                  <td className="px-5 py-3"></td>
+                  <td className="px-5 py-3 text-right font-bold text-walnut tabular-nums">{fmt$(totalMonthlyRent)}</td>
+                </tr>
+                <tr className="bg-honey/15">
+                  <td className="px-5 py-3 font-bold text-walnut">Total Annual Rent</td>
+                  <td className="px-5 py-3"></td>
+                  <td className="px-5 py-3"></td>
+                  <td className="px-5 py-3 text-right font-bold text-walnut tabular-nums">{fmt$(totalAnnualRent)}</td>
                 </tr>
               </tbody>
             </table>
           </div>
+
+          {/* Deposit calculation */}
+          <div className="glass rounded-2xl p-5 md:p-6 mb-4 reveal">
+            <h3 className="font-bold text-walnut mb-2">Vendor Deposits Collected at Lease Signing</h3>
+            <p className="text-xs text-walnut-light mb-4 leading-relaxed">
+              Each vendor pays 2× monthly rent upfront at lease signing — one month's rent applied toward Month 1 rent on launch,
+              plus an equal security deposit held by The Barn.
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="text-center">
+                <div className="text-xs text-walnut-light font-medium uppercase tracking-wider mb-1">Prepaid Month 1 Rent</div>
+                <div className="text-2xl font-bold text-walnut tabular-nums">{fmt$(totalMonthlyRent)}</div>
+                <div className="text-[10px] text-walnut-light mt-0.5">Applied at launch</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xs text-walnut-light font-medium uppercase tracking-wider mb-1">Security Deposits</div>
+                <div className="text-2xl font-bold text-walnut tabular-nums">{fmt$(totalMonthlyRent)}</div>
+                <div className="text-[10px] text-walnut-light mt-0.5">Held by The Barn</div>
+              </div>
+              <div className="text-center col-span-2 md:col-span-1 bg-honey/15 rounded-xl py-2 -m-1">
+                <div className="text-xs text-walnut font-medium uppercase tracking-wider mb-1">Total Collected</div>
+                <div className="text-2xl font-bold text-honey tabular-nums">{fmt$(totalDeposit)}</div>
+                <div className="text-[10px] text-walnut-light mt-0.5">{totalVendors} vendors × 2× monthly rent</div>
+              </div>
+            </div>
+          </div>
+
           <div className="grid sm:grid-cols-4 gap-3">
             <Card title="3-Year Leases" description="Stability and locked-in revenue with 6-month performance reviews." />
-            <Card title="$10K Deposit" description="$5K applied to Month 1 rent, $5K held as security deposit." />
+            <Card title="2× Rent Deposit" description="One month's rent prepaid to month 1, plus equal security deposit held by The Barn." />
             <Card title="Rolling Waitlist" description="3-4 pre-vetted backup vendors ready to step in at all times." />
             <Card title="Independent Ops" description="Vendors manage staff & permits. The Barn handles common areas & marketing." />
           </div>
@@ -182,32 +362,43 @@ export default function Strategy() {
           </div>
         </Section>
 
-        {/* Growth Vision */}
+        {/* Scale Vision with Timeline */}
         <Section title="Scale Vision">
           <p className="text-walnut-light leading-relaxed mb-6">
             The Barn — Richmond is the proof of concept. The long-term vision is 7 locations across
             emerging Texas suburbs over 4 years, each running on the same tech infrastructure, brand identity,
             and operating model. Data from Richmond informs decisions at every future site.
           </p>
-          <div className="bg-white/60 backdrop-blur rounded-2xl border border-walnut/10 p-6">
+
+          {/* Circle row (locations) */}
+          <div className="glass rounded-2xl p-6 mb-4">
             <div className="flex flex-wrap justify-center gap-4 md:gap-8">
-              {['Richmond', 'Fulshear', 'Frisco', 'Plano', 'San Antonio', 'Location 6', 'Location 7'].map((city, i) => (
-                <div key={city} className="text-center">
+              {scaleLocations.map((loc, i) => (
+                <div key={loc.name} className="text-center">
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold mb-1 ${
-                    i === 0 ? 'bg-honey text-white' : 'bg-walnut/10 text-walnut-light'
+                    i === 0 ? 'bg-honey text-white ring-4 ring-honey/20' : 'bg-walnut/10 text-walnut-light'
                   }`}>
                     L{i + 1}
                   </div>
-                  <div className="text-xs text-walnut-light">{city}</div>
+                  <div className="text-xs text-walnut-light">{loc.name}</div>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Timeline tick-mark visual */}
+          <div className="glass rounded-2xl p-4 md:p-6 reveal overflow-x-auto">
+            <h3 className="text-sm font-bold text-walnut mb-1">Opening Timeline</h3>
+            <p className="text-xs text-walnut-light mb-2">Month-by-month rollout across 48 months (4 years)</p>
+            <div className="min-w-[700px]">
+              <TimelineVis locations={scaleLocations} />
             </div>
           </div>
         </Section>
 
         {/* Brand Identity */}
         <Section title="Brand Identity">
-          <div className="bg-white/60 backdrop-blur rounded-2xl border border-walnut/10 p-6">
+          <div className="glass rounded-2xl p-6">
             <p className="text-walnut-light italic mb-6 text-center">
               "The house in the neighborhood where everyone ends up. The door's always open."
             </p>

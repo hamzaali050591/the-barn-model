@@ -1,16 +1,41 @@
 import type { ModelInputs, MonthlyRow, ModelOutputs } from './types';
 import { xirrFromMonthly } from './xirr';
 
+/** Derived capital stack amounts (per location) */
+export function capitalStack(inputs: ModelInputs) {
+  const tiTotal = inputs.sqft * inputs.tiPSF;
+  const investorEquityPerLocation = Math.max(0, inputs.capex - tiTotal);
+  const lpInvestment = Math.max(0, investorEquityPerLocation - inputs.gpInvestment);
+  return { tiTotal, investorEquityPerLocation, lpInvestment };
+}
+
+/** Vendor aggregates */
+export function vendorTotals(inputs: ModelInputs) {
+  const numVendors = inputs.vendors.reduce((s, v) => s + v.count, 0);
+  const monthlyVendorRentPerLocation = inputs.vendors.reduce(
+    (s, v) => s + v.count * v.rent,
+    0
+  );
+  return { numVendors, monthlyVendorRentPerLocation };
+}
+
+/** OpEx per location (monthly) */
+export function opexPerLocation(inputs: ModelInputs) {
+  const { numVendors } = vendorTotals(inputs);
+  const utilities =
+    numVendors *
+    (inputs.gasPerVendor + inputs.electricPerVendor + inputs.waterPerVendor);
+  const nonUtilities =
+    inputs.marketing + inputs.cleaning + inputs.security + inputs.maintenance;
+  return utilities + nonUtilities;
+}
+
 export function runModel(inputs: ModelInputs): ModelOutputs {
   const {
     numLocations,
-    equityPerLocation,
     exitMultiple,
-    monthlyVendorRent,
     leasePSF,
     sqft,
-    monthlyOpex,
-    monthlyMembership,
     profitSharePct,
     salaryBase,
     salaryStep,
@@ -19,8 +44,10 @@ export function runModel(inputs: ModelInputs): ModelOutputs {
     holdMonths,
   } = inputs;
 
-  // Only use the first numLocations entries from the open schedule
   const schedule = inputs.openSchedule.slice(0, numLocations);
+  const { tiTotal, investorEquityPerLocation, lpInvestment } = capitalStack(inputs);
+  const { numVendors, monthlyVendorRentPerLocation } = vendorTotals(inputs);
+  const monthlyOpexPerLocation = opexPerLocation(inputs);
 
   const monthly: MonthlyRow[] = [];
   let cumulativeEquity = 0;
@@ -32,59 +59,44 @@ export function runModel(inputs: ModelInputs): ModelOutputs {
     const nActive = schedule.filter(openMonth => openMonth <= m).length;
     const nDistributing = schedule.filter(openMonth => openMonth <= m - rampMonths).length;
 
-    // Revenue
-    const revenue = nActive * monthlyVendorRent + nActive * monthlyMembership;
+    const revenue = nActive * monthlyVendorRentPerLocation;
+    const opex = nActive * monthlyOpexPerLocation;
 
-    // OpEx
-    const opex = nActive * monthlyOpex;
-
-    // Master lease with L1 holiday
     let masterLease = nActive * monthlyLeasePerLocation;
-    // L1 lease holiday: if we're within L1's first holiday months, subtract one location's lease
     const l1OpenMonth = schedule[0] ?? 1;
     if (m >= l1OpenMonth && m < l1OpenMonth + l1LeaseHolidayMonths) {
       masterLease -= monthlyLeasePerLocation;
     }
 
-    // Pre-comp EBITDA
     const preCompEBITDA = revenue - opex - masterLease;
 
-    // Corp salary
     const corpSalary = nActive > 0
       ? (salaryBase + salaryStep * (nActive - 1)) / 12
       : 0;
 
-    // Post-salary EBITDA
     const postSalaryEBITDA = preCompEBITDA - corpSalary;
 
-    // Distributable NOI: only distributing locations' share
     const distributableNOI = nActive > 0
       ? (nDistributing / nActive) * postSalaryEBITDA
       : 0;
 
-    // Profit share
     const profitShare = Math.max(0, distributableNOI) * profitShareRate;
-
-    // Distributions
     const distributions = Math.max(0, distributableNOI - profitShare);
 
-    // Capital calls: negative for each location opening this month
+    // Capital calls: investor equity (GP+LP) per location opening
     const locationsOpening = schedule.filter(openMonth => openMonth === m).length;
-    const capitalCall = -locationsOpening * equityPerLocation;
+    const capitalCall = -locationsOpening * investorEquityPerLocation;
 
-    // Exit proceeds on final month
     let exitProceeds = 0;
     if (m === holdMonths) {
-      // Sum of last 12 months of post-salary EBITDA
       const trailingMonths = monthly.slice(Math.max(0, monthly.length - 11));
-      let trailing12 = postSalaryEBITDA; // current month
+      let trailing12 = postSalaryEBITDA;
       for (const row of trailingMonths) {
         trailing12 += row.postSalaryEBITDA;
       }
       exitProceeds = exitMultiple * trailing12;
     }
 
-    // Net cash flow
     const netCashFlow = distributions + capitalCall + exitProceeds;
 
     cumulativeEquity += Math.abs(capitalCall);
@@ -119,18 +131,14 @@ export function runModel(inputs: ModelInputs): ModelOutputs {
   const moic = totalEquity > 0 ? totalReturns / totalEquity : 0;
   const avgCoC = totalEquity > 0 ? totalDistributions / totalEquity / (holdMonths / 12) : 0;
 
-  // Stabilized CoC: annual distributions when all locations are distributing
-  // Find the last full year where all locations are active and distributing
   const lastMonth = monthly[monthly.length - 1];
   let stabilizedAnnualDist = 0;
   if (lastMonth && lastMonth.nDistributing > 0) {
-    // Use last 12 months of distributions
     const last12 = monthly.slice(-12);
     stabilizedAnnualDist = last12.reduce((s, r) => s + r.distributions, 0);
   }
   const stabilizedCoC = totalEquity > 0 ? stabilizedAnnualDist / totalEquity : 0;
 
-  // XIRR
   const cashFlows = monthly.map(r => r.netCashFlow);
   const irr = xirrFromMonthly(cashFlows);
 
@@ -145,12 +153,15 @@ export function runModel(inputs: ModelInputs): ModelOutputs {
     irr,
     avgCoC,
     stabilizedCoC,
+    tiTotal,
+    investorEquityPerLocation,
+    lpInvestment,
+    monthlyVendorRentPerLocation,
+    monthlyOpexPerLocation,
+    numVendors,
   };
 }
 
-/**
- * Run model with overrides for sensitivity analysis
- */
 export function runModelWith(
   base: ModelInputs,
   overrides: Partial<ModelInputs>

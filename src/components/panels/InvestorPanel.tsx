@@ -1,0 +1,119 @@
+import type { ModelInputs } from '../../utils/types';
+import { capitalStack } from '../../utils/engine';
+import { fmtDollarFull } from '../../utils/format';
+import SliderRow, { DerivedRow } from '../SliderRow';
+
+interface Props {
+  inputs: ModelInputs;
+  onChange: (next: ModelInputs) => void;
+}
+
+const fmtX = (v: number) => v + '\u00d7';
+const fmtMo = (v: number) => v + ' mo';
+const fmtInt = (v: number) => String(v);
+
+export default function InvestorPanel({ inputs, onChange }: Props) {
+  const set = <K extends keyof ModelInputs>(key: K, value: ModelInputs[K]) =>
+    onChange({ ...inputs, [key]: value });
+
+  const setSchedule = (idx: number, val: number) => {
+    const next = [...inputs.openSchedule];
+    next[idx] = val;
+    onChange({ ...inputs, openSchedule: next });
+  };
+
+  const { investorEquityPerLocation } = capitalStack(inputs);
+  const totalInvestorEquity = investorEquityPerLocation * inputs.numLocations;
+
+  return (
+    <div className="glass rounded-2xl p-5 md:p-6 flex flex-col">
+      <div className="flex items-center gap-2 mb-4">
+        <div className="w-8 h-8 rounded-lg bg-walnut/15 flex items-center justify-center text-walnut">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+        </div>
+        <h3 className="font-bold text-walnut">Deal Terms & Rollout</h3>
+      </div>
+
+      {/* Investor KPIs */}
+      <div className="text-[10px] font-semibold text-walnut-light uppercase tracking-wider mb-2">
+        Investment
+      </div>
+      <SliderRow
+        label="Number of Locations"
+        value={inputs.numLocations}
+        min={1} max={10} step={1}
+        format={fmtInt}
+        onChange={v => set('numLocations', v)}
+      />
+      <SliderRow
+        label="Exit EBITDA Multiple"
+        value={inputs.exitMultiple}
+        min={3} max={10} step={0.5}
+        format={fmtX}
+        onChange={v => set('exitMultiple', v)}
+      />
+
+      <div className="space-y-1.5 mb-4">
+        <DerivedRow
+          label="Investor Equity / Location"
+          value={fmtDollarFull(investorEquityPerLocation)}
+        />
+        <DerivedRow
+          label="Total Investor Equity"
+          value={fmtDollarFull(totalInvestorEquity)}
+          accent
+        />
+      </div>
+
+      {/* Timeline */}
+      <div className="pt-3 border-t border-walnut/10">
+        <div className="text-[10px] font-semibold text-walnut-light uppercase tracking-wider mb-2">
+          Timeline
+        </div>
+        <SliderRow
+          label="Ramp Period"
+          sublabel="no distributions"
+          value={inputs.rampMonths}
+          min={0} max={12} step={1}
+          format={fmtMo}
+          onChange={v => set('rampMonths', v)}
+        />
+        <SliderRow
+          label="L1 Lease Holiday"
+          value={inputs.l1LeaseHolidayMonths}
+          min={0} max={12} step={1}
+          format={fmtMo}
+          onChange={v => set('l1LeaseHolidayMonths', v)}
+        />
+        <SliderRow
+          label="Hold Period"
+          value={inputs.holdMonths}
+          min={24} max={72} step={1}
+          format={fmtMo}
+          onChange={v => set('holdMonths', v)}
+        />
+      </div>
+
+      {/* Open Schedule */}
+      <div className="pt-3 border-t border-walnut/10">
+        <div className="text-[10px] font-semibold text-walnut-light uppercase tracking-wider mb-2">
+          Open Schedule (month #)
+        </div>
+        <div className="grid grid-cols-2 gap-x-3 gap-y-0">
+          {inputs.openSchedule.slice(0, inputs.numLocations).map((m, i) => (
+            <SliderRow
+              key={i}
+              label={`Location ${i + 1}`}
+              value={m}
+              min={1} max={inputs.holdMonths} step={1}
+              format={v => 'Mo ' + v}
+              onChange={v => setSchedule(i, v)}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
