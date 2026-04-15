@@ -135,6 +135,117 @@ export default function Strategy() {
 
       <main className="max-w-5xl mx-auto px-4 md:px-8 py-8 md:py-12">
 
+        {/* The Plan — high-level strategy */}
+        <Section title="The Plan">
+          <p className="text-walnut-light leading-relaxed mb-6">
+            Prove the concept with Richmond. Scale across emerging Texas suburbs on the same
+            playbook. Stabilize operations as each location ramps. Exit at a premium multiple
+            with institutional-quality cash flow.
+          </p>
+
+          {/* 4-phase journey */}
+          <div className="glass rounded-2xl p-5 md:p-6 mb-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-0 md:items-stretch">
+              {[
+                {
+                  num: '1',
+                  title: 'Prove',
+                  sub: 'Richmond',
+                  body: 'Launch the proof of concept. Establish the brand, tech stack, and operating model that every future Barn runs on.',
+                  accent: 'bg-honey/20 text-honey',
+                },
+                {
+                  num: '2',
+                  title: 'Scale',
+                  sub: '7 Texas suburbs',
+                  body: 'Roll out the same playbook across high-growth Texas suburbs over 4 years — each new location smarter than the last.',
+                  accent: 'bg-sage/20 text-sage',
+                },
+                {
+                  num: '3',
+                  title: 'Stabilize',
+                  sub: 'Full portfolio',
+                  body: 'Mature operations, consistent distributions, predictable margins across all locations and vendor rosters.',
+                  accent: 'bg-terracotta/20 text-terracotta',
+                },
+                {
+                  num: '4',
+                  title: 'Exit',
+                  sub: '6× EBITDA',
+                  body: 'Sell the stabilized portfolio at a premium multiple. Return capital plus appreciation to GP and LP investors.',
+                  accent: 'bg-walnut/15 text-walnut',
+                },
+              ].map((phase, i, arr) => (
+                <div key={phase.num} className="flex items-stretch">
+                  <div className="flex-1 text-center px-3 md:px-4 py-3 md:py-2">
+                    <div className={`w-10 h-10 rounded-full ${phase.accent} flex items-center justify-center font-bold text-sm mx-auto mb-2`}>
+                      {phase.num}
+                    </div>
+                    <div className="font-bold text-walnut text-base mb-0.5">{phase.title}</div>
+                    <div className="text-[11px] text-honey font-semibold mb-2">{phase.sub}</div>
+                    <p className="text-[11px] text-walnut-light leading-snug">{phase.body}</p>
+                  </div>
+                  {i < arr.length - 1 && (
+                    <div className="hidden lg:flex items-center text-walnut-light/40">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 3 high-level KPI cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
+            <div className="glass rounded-2xl p-5 text-center glow-hover">
+              <div className="text-[10px] font-semibold text-walnut-light uppercase tracking-wider mb-1">Target Portfolio</div>
+              <div className="text-3xl md:text-4xl font-bold text-honey tabular-nums">7</div>
+              <div className="text-xs text-walnut mt-1">Locations across Texas suburbs</div>
+            </div>
+            <div className="glass rounded-2xl p-5 text-center glow-hover">
+              <div className="text-[10px] font-semibold text-walnut-light uppercase tracking-wider mb-1">Hold Period</div>
+              <div className="text-3xl md:text-4xl font-bold text-sage tabular-nums">4 yrs</div>
+              <div className="text-xs text-walnut mt-1">Prove → Scale → Stabilize → Exit</div>
+            </div>
+            <div className="glass rounded-2xl p-5 text-center glow-hover">
+              <div className="text-[10px] font-semibold text-walnut-light uppercase tracking-wider mb-1">Exit Multiple</div>
+              <div className="text-3xl md:text-4xl font-bold text-terracotta tabular-nums">6×</div>
+              <div className="text-xs text-walnut mt-1">EBITDA at portfolio maturity</div>
+            </div>
+          </div>
+        </Section>
+
+        {/* Scale Vision with Timeline */}
+        <Section title="Scale Vision">
+          <p className="text-walnut-light leading-relaxed mb-6">
+            The Barn — Richmond is the proof of concept. The long-term vision is 7 locations across
+            emerging Texas suburbs over 4 years, each running on the same tech infrastructure, brand identity,
+            and operating model. Data from Richmond informs decisions at every future site.
+          </p>
+
+          {/* Timeline tick-mark visual */}
+          <div className="glass rounded-2xl p-4 md:p-6 reveal overflow-x-auto">
+            <h3 className="text-sm font-bold text-walnut mb-1">Opening Timeline</h3>
+            <div className="min-w-[700px]">
+              <TimelineVis locations={scaleLocations} />
+            </div>
+          </div>
+        </Section>
+
+        {/* Richmond at a Glance */}
+        <Section title="Richmond at a Glance">
+          <div className="glass rounded-2xl p-6 md:p-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <Stat value="10,000" label="Square Feet" />
+              <Stat value="12" label="Vendor Stalls" />
+              <Stat value="$960K" label="Annual Rent Revenue" />
+              <Stat value="$1.5M" label="Total Buildout" />
+            </div>
+          </div>
+        </Section>
+
         {/* The Opportunity */}
         <Section title="The Opportunity">
           <div className="grid md:grid-cols-3 gap-4 mb-6">
@@ -183,18 +294,6 @@ export default function Strategy() {
           </div>
         </Section>
 
-        {/* Key Metrics */}
-        <Section title="Richmond at a Glance">
-          <div className="glass rounded-2xl p-6 md:p-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <Stat value="10,000" label="Square Feet" />
-              <Stat value="12" label="Vendor Stalls" />
-              <Stat value="$960K" label="Annual Rent Revenue" />
-              <Stat value="$1.5M" label="Total Buildout" />
-            </div>
-          </div>
-        </Section>
-
         {/* Tech Advantage */}
         <Section title="Tech-Enabled Platform">
           <p className="text-walnut-light leading-relaxed mb-4">
@@ -220,23 +319,6 @@ export default function Strategy() {
                 <li>Energy and utility usage monitoring</li>
                 <li>Digital vendor communication hub</li>
               </ul>
-            </div>
-          </div>
-        </Section>
-
-        {/* Scale Vision with Timeline */}
-        <Section title="Scale Vision">
-          <p className="text-walnut-light leading-relaxed mb-6">
-            The Barn — Richmond is the proof of concept. The long-term vision is 7 locations across
-            emerging Texas suburbs over 4 years, each running on the same tech infrastructure, brand identity,
-            and operating model. Data from Richmond informs decisions at every future site.
-          </p>
-
-          {/* Timeline tick-mark visual */}
-          <div className="glass rounded-2xl p-4 md:p-6 reveal overflow-x-auto">
-            <h3 className="text-sm font-bold text-walnut mb-1">Opening Timeline</h3>
-            <div className="min-w-[700px]">
-              <TimelineVis locations={scaleLocations} />
             </div>
           </div>
         </Section>
