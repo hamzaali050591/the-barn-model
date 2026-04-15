@@ -19,15 +19,24 @@ export function vendorTotals(inputs: ModelInputs) {
   return { numVendors, monthlyVendorRentPerLocation };
 }
 
-/** OpEx per location (monthly) */
-export function opexPerLocation(inputs: ModelInputs) {
+/** OpEx per location (monthly), broken out */
+export function opexBreakdown(inputs: ModelInputs) {
   const { numVendors } = vendorTotals(inputs);
-  const utilities =
-    numVendors *
-    (inputs.gasPerVendor + inputs.electricPerVendor + inputs.waterPerVendor);
+  const vendorUtilitiesPerVendor =
+    inputs.gasPerVendor + inputs.electricPerVendor + inputs.waterPerVendor;
+  const vendorUtilities = inputs.rentIncludesUtilities
+    ? numVendors * vendorUtilitiesPerVendor
+    : 0;
+  const commonAreaUtilities = inputs.commonElectric + inputs.commonWater;
   const nonUtilities =
     inputs.marketing + inputs.cleaning + inputs.security + inputs.maintenance;
-  return utilities + nonUtilities;
+  const total = vendorUtilities + commonAreaUtilities + nonUtilities;
+  return { vendorUtilities, commonAreaUtilities, nonUtilities, total };
+}
+
+/** OpEx per location (monthly) */
+export function opexPerLocation(inputs: ModelInputs) {
+  return opexBreakdown(inputs).total;
 }
 
 export function runModel(inputs: ModelInputs): ModelOutputs {

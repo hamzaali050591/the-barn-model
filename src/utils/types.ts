@@ -15,10 +15,17 @@ export interface ModelInputs {
   // Revenue Model (vendor breakdown)
   vendors: VendorCategory[];
 
-  // OpEx — per-vendor utilities
+  // Rent terms
+  rentIncludesUtilities: boolean;
+
+  // OpEx — per-vendor utilities (only incurred by The Barn if rent inclusive)
   gasPerVendor: number;      // monthly gas $ per vendor
   electricPerVendor: number; // monthly electric $ per vendor
   waterPerVendor: number;    // monthly water $ per vendor
+
+  // OpEx — common area utilities (always paid by The Barn)
+  commonElectric: number;
+  commonWater: number;
 
   // OpEx — per-location non-utilities (flat)
   marketing: number;
@@ -96,10 +103,17 @@ export const DEFAULT_INPUTS: ModelInputs = {
     { name: 'Drinks', count: 2, rent: 6_000 },
   ],
 
-  // Utilities ($/vendor/mo)
+  // Rent terms
+  rentIncludesUtilities: true,
+
+  // Vendor utilities ($/vendor/mo)
   gasPerVendor: 210,
   electricPerVendor: 670,
   waterPerVendor: 210,
+
+  // Common area utilities ($/location/mo)
+  commonElectric: 2_000,
+  commonWater: 400,
 
   // Non-utilities ($/location/mo)
   marketing: 3_000,

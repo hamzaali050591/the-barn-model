@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { ModelInputs } from '../../utils/types';
-import { vendorTotals, opexPerLocation } from '../../utils/engine';
+import { vendorTotals, opexBreakdown } from '../../utils/engine';
 import { fmtDollarFull } from '../../utils/format';
 import SliderRow, { DerivedRow } from '../SliderRow';
 
@@ -13,19 +13,20 @@ const fmt$ = (v: number) => '$' + v.toLocaleString();
 const fmtPct = (v: number) => v.toFixed(0) + '%';
 
 export default function OpexPanel({ inputs, onChange }: Props) {
-  const [utilsOpen, setUtilsOpen] = useState(false);
+  const [vendorUtilsOpen, setVendorUtilsOpen] = useState(false);
+  const [commonUtilsOpen, setCommonUtilsOpen] = useState(false);
   const [nonUtilsOpen, setNonUtilsOpen] = useState(false);
 
   const set = <K extends keyof ModelInputs>(key: K, value: ModelInputs[K]) =>
     onChange({ ...inputs, [key]: value });
 
   const { numVendors } = vendorTotals(inputs);
-  const totalMonthly = opexPerLocation(inputs);
+  const { vendorUtilities, commonAreaUtilities, nonUtilities, total: totalMonthlyOpex } =
+    opexBreakdown(inputs);
 
-  const utilitiesPerVendor = inputs.gasPerVendor + inputs.electricPerVendor + inputs.waterPerVendor;
-  const utilitiesTotal = numVendors * utilitiesPerVendor;
-  const nonUtilitiesTotal =
-    inputs.marketing + inputs.cleaning + inputs.security + inputs.maintenance;
+  const monthlySalary = inputs.salaryBase / 12;
+  const totalMonthlyExpenses = totalMonthlyOpex + monthlySalary;
+  const totalAnnualExpenses = totalMonthlyExpenses * 12;
 
   return (
     <div className="glass rounded-2xl p-5 md:p-6 flex flex-col">
@@ -39,44 +40,91 @@ export default function OpexPanel({ inputs, onChange }: Props) {
         <span className="text-[10px] text-walnut-light ml-auto">per location</span>
       </div>
 
-      {/* Utilities accordion */}
+      {/* Vendor Utilities accordion - only show when rent inclusive */}
+      {inputs.rentIncludesUtilities ? (
+        <div className="mb-2">
+          <button
+            onClick={() => setVendorUtilsOpen(!vendorUtilsOpen)}
+            className="w-full flex items-center justify-between py-2 px-3 bg-walnut/5 rounded-md hover:bg-walnut/10 transition-colors cursor-pointer"
+          >
+            <span className="text-xs font-semibold text-walnut flex items-center gap-2">
+              <span className={`transition-transform ${vendorUtilsOpen ? 'rotate-90' : ''}`}>▸</span>
+              Vendor Utilities
+              <span className="text-[10px] text-walnut-light font-normal">({numVendors} vendors × monthly)</span>
+            </span>
+            <span className="text-sm font-bold text-walnut tabular-nums">{fmtDollarFull(vendorUtilities)}</span>
+          </button>
+          {vendorUtilsOpen && (
+            <div className="mt-2 px-2 pt-1">
+              <SliderRow
+                label="Gas"
+                sublabel="per vendor"
+                value={inputs.gasPerVendor}
+                min={0} max={500} step={10}
+                format={fmt$}
+                onChange={v => set('gasPerVendor', v)}
+              />
+              <SliderRow
+                label="Electric"
+                sublabel="per vendor"
+                value={inputs.electricPerVendor}
+                min={0} max={2_000} step={25}
+                format={fmt$}
+                onChange={v => set('electricPerVendor', v)}
+              />
+              <SliderRow
+                label="Water"
+                sublabel="per vendor"
+                value={inputs.waterPerVendor}
+                min={0} max={500} step={10}
+                format={fmt$}
+                onChange={v => set('waterPerVendor', v)}
+              />
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="mb-2 py-2 px-3 bg-walnut/5 rounded-md border border-dashed border-walnut/15">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-walnut-light italic">
+              Vendor Utilities
+              <span className="text-[10px] font-normal ml-1">(vendors pay directly)</span>
+            </span>
+            <span className="text-sm font-semibold text-walnut-light tabular-nums">$0</span>
+          </div>
+        </div>
+      )}
+
+      {/* Common Area Utilities accordion */}
       <div className="mb-2">
         <button
-          onClick={() => setUtilsOpen(!utilsOpen)}
+          onClick={() => setCommonUtilsOpen(!commonUtilsOpen)}
           className="w-full flex items-center justify-between py-2 px-3 bg-walnut/5 rounded-md hover:bg-walnut/10 transition-colors cursor-pointer"
         >
           <span className="text-xs font-semibold text-walnut flex items-center gap-2">
-            <span className={`transition-transform ${utilsOpen ? 'rotate-90' : ''}`}>▸</span>
-            Utilities
-            <span className="text-[10px] text-walnut-light font-normal">({numVendors} vendors × monthly)</span>
+            <span className={`transition-transform ${commonUtilsOpen ? 'rotate-90' : ''}`}>▸</span>
+            Common Area Utilities
+            <span className="text-[10px] text-walnut-light font-normal">(shared space)</span>
           </span>
-          <span className="text-sm font-bold text-walnut tabular-nums">{fmtDollarFull(utilitiesTotal)}</span>
+          <span className="text-sm font-bold text-walnut tabular-nums">{fmtDollarFull(commonAreaUtilities)}</span>
         </button>
-        {utilsOpen && (
+        {commonUtilsOpen && (
           <div className="mt-2 px-2 pt-1">
             <SliderRow
-              label="Gas"
-              sublabel="per vendor"
-              value={inputs.gasPerVendor}
-              min={0} max={500} step={10}
-              format={fmt$}
-              onChange={v => set('gasPerVendor', v)}
-            />
-            <SliderRow
               label="Electric"
-              sublabel="per vendor"
-              value={inputs.electricPerVendor}
-              min={0} max={2_000} step={25}
+              sublabel="common area"
+              value={inputs.commonElectric}
+              min={0} max={5_000} step={50}
               format={fmt$}
-              onChange={v => set('electricPerVendor', v)}
+              onChange={v => set('commonElectric', v)}
             />
             <SliderRow
               label="Water"
-              sublabel="per vendor"
-              value={inputs.waterPerVendor}
-              min={0} max={500} step={10}
+              sublabel="common area"
+              value={inputs.commonWater}
+              min={0} max={2_000} step={25}
               format={fmt$}
-              onChange={v => set('waterPerVendor', v)}
+              onChange={v => set('commonWater', v)}
             />
           </div>
         )}
@@ -93,7 +141,7 @@ export default function OpexPanel({ inputs, onChange }: Props) {
             Non-Utilities
             <span className="text-[10px] text-walnut-light font-normal">(flat per location)</span>
           </span>
-          <span className="text-sm font-bold text-walnut tabular-nums">{fmtDollarFull(nonUtilitiesTotal)}</span>
+          <span className="text-sm font-bold text-walnut tabular-nums">{fmtDollarFull(nonUtilities)}</span>
         </button>
         {nonUtilsOpen && (
           <div className="mt-2 px-2 pt-1">
@@ -130,13 +178,19 @@ export default function OpexPanel({ inputs, onChange }: Props) {
       </div>
 
       <div className="mt-3 pt-3 border-t border-walnut/10 space-y-1.5">
-        <DerivedRow label="Total Monthly OpEx" value={fmtDollarFull(totalMonthly)} accent />
+        <DerivedRow label="Total Monthly OpEx" value={fmtDollarFull(totalMonthlyOpex)} accent />
       </div>
 
-      {/* Salary & profit share */}
+      {/* Operator Monthly Salary section */}
       <div className="mt-4 pt-3 border-t border-walnut/10">
-        <div className="text-[10px] font-semibold text-walnut-light uppercase tracking-wider mb-2">
-          Operator Compensation
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-[10px] font-semibold text-walnut-light uppercase tracking-wider">
+            Operator Monthly Salary
+          </div>
+          <div className="flex items-center gap-1.5 bg-honey/15 px-2.5 py-1 rounded-md">
+            <span className="text-[10px] text-walnut-light font-medium">Monthly</span>
+            <span className="text-sm font-bold text-honey tabular-nums">{fmtDollarFull(monthlySalary)}</span>
+          </div>
         </div>
         <SliderRow
           label="Corp Salary Base"
@@ -161,6 +215,21 @@ export default function OpexPanel({ inputs, onChange }: Props) {
           format={fmtPct}
           onChange={v => set('profitSharePct', v)}
         />
+      </div>
+
+      {/* Total Monthly & Annual Expenses */}
+      <div className="mt-4 pt-3 border-t-2 border-honey/30 space-y-1.5">
+        <div className="flex justify-between items-center py-2 px-3 rounded-md bg-walnut text-cream">
+          <span className="text-xs font-medium uppercase tracking-wider">Total Monthly Expenses</span>
+          <span className="text-sm font-bold tabular-nums">{fmtDollarFull(totalMonthlyExpenses)}</span>
+        </div>
+        <div className="flex justify-between items-center py-2 px-3 rounded-md bg-walnut text-cream">
+          <span className="text-xs font-medium uppercase tracking-wider">Total Annual Expenses</span>
+          <span className="text-sm font-bold tabular-nums">{fmtDollarFull(totalAnnualExpenses)}</span>
+        </div>
+        <p className="text-[9px] text-walnut-light italic px-1">
+          OpEx + operator salary (excludes profit share, which scales with EBITDA)
+        </p>
       </div>
     </div>
   );
