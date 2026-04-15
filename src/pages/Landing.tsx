@@ -39,7 +39,7 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-walnut flex flex-col">
       {/* Hero section with feature wall image */}
-      <div className="relative flex-1 flex flex-col items-center justify-center px-4 py-12 md:py-20">
+      <div className="relative flex-1 flex flex-col items-center justify-end px-4 pb-12 md:pb-16">
         {/* Background image with overlay */}
         <div className="absolute inset-0">
           <img
@@ -47,8 +47,11 @@ export default function Landing() {
             alt="The Barn — Everybody's Welcome"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-walnut/40 via-walnut/50 to-walnut/70" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-walnut/10 to-walnut/80" />
         </div>
+
+        {/* Spacer to push content below the "Richmond" logo in the image (roughly lower third) */}
+        <div className="flex-1" />
 
         {/* Content */}
         <div className="relative z-10 text-center max-w-3xl mx-auto">

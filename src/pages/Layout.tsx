@@ -310,7 +310,7 @@ export default function LayoutPage() {
             {zones.map((z, i) => (
               <div
                 key={i}
-                className={`glass rounded-xl transition-all cursor-pointer reveal ${
+                className={`glass rounded-xl transition-all cursor-pointer ${
                   expandedZone === i ? 'border-honey/50 !shadow-lg !shadow-honey/10' : ''
                 }`}
                 onClick={() => setExpandedZone(expandedZone === i ? null : i)}
