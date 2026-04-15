@@ -36,43 +36,47 @@ function Stat({ value, label }: { value: string; label: string }) {
 function TimelineVis({ locations }: { locations: { name: string; month: number }[] }) {
   const months = 48;
   const maxMonth = months;
+  const openingMonths = new Set(locations.map(l => l.month));
   return (
-    <div className="w-full py-10 px-4 md:px-6">
+    <div className="w-full py-12 px-4 md:px-6">
       <div className="relative">
         {/* Main line */}
         <div className="absolute left-0 right-0 top-1/2 h-1 bg-walnut rounded-full" />
 
-        {/* Tick marks */}
+        {/* Tick marks — only highlight ones with opening locations */}
         <div className="relative flex justify-between items-center h-6">
           {Array.from({ length: months }, (_, i) => {
             const m = i + 1;
-            const isMajor = m === 1 || m % 12 === 0;
+            const isOpening = openingMonths.has(m);
             return (
               <div
                 key={m}
                 className={`bg-walnut rounded-full ${
-                  isMajor ? 'w-0.5 h-4' : 'w-px h-2'
+                  isOpening ? 'w-0.5 h-4' : 'w-px h-2'
                 }`}
-                style={{ opacity: isMajor ? 1 : 0.5 }}
+                style={{ opacity: isOpening ? 1 : 0.4 }}
               />
             );
           })}
         </div>
 
-        {/* Year labels under major ticks */}
-        <div className="flex justify-between text-[10px] text-walnut-light font-medium mt-1">
-          {[1, 12, 24, 36, 48].map(m => (
-            <div key={m} className="text-center" style={{ position: 'absolute', left: `${((m - 1) / (maxMonth - 1)) * 100}%`, transform: 'translateX(-50%)' }}>
-              M{m}
+        {/* Month labels only for opening months */}
+        <div className="relative mt-1">
+          {locations.map((loc) => (
+            <div
+              key={loc.month}
+              className="absolute text-[10px] text-walnut font-semibold"
+              style={{ left: `${((loc.month - 1) / (maxMonth - 1)) * 100}%`, transform: 'translateX(-50%)' }}
+            >
+              Mo {loc.month}
             </div>
           ))}
         </div>
 
-        {/* Location circles positioned above the line */}
+        {/* Location circles — above the line, city name inside */}
         <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2">
           {locations.map((loc, i) => {
             const pct = ((loc.month - 1) / (maxMonth - 1)) * 100;
-            const above = i % 2 === 0;
             return (
               <div
                 key={i}
@@ -81,27 +85,16 @@ function TimelineVis({ locations }: { locations: { name: string; month: number }
               >
                 {/* Vertical connector */}
                 <div
-                  className={`w-0.5 bg-honey/40 absolute left-1/2 -translate-x-1/2 ${above ? '-top-8' : 'top-7'}`}
+                  className="w-0.5 bg-honey/40 absolute left-1/2 -translate-x-1/2 -top-8"
                   style={{ height: '22px' }}
                 />
-                {/* Circle */}
+                {/* Circle with city name */}
                 <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-lg absolute left-1/2 -translate-x-1/2 ${
+                  className={`w-16 h-16 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-lg absolute left-1/2 -translate-x-1/2 -top-[62px] text-center leading-tight px-1 ${
                     i === 0 ? 'bg-honey ring-4 ring-honey/30' : 'bg-walnut'
-                  } ${above ? '-top-[54px]' : 'top-7'}`}
-                >
-                  L{i + 1}
-                </div>
-                {/* Label */}
-                <div
-                  className={`absolute left-1/2 -translate-x-1/2 text-[10px] text-walnut-light font-medium whitespace-nowrap ${
-                    above ? '-top-20' : 'top-20'
                   }`}
                 >
-                  <div className="text-center">
-                    <div className="font-semibold text-walnut">{loc.name}</div>
-                    <div>Mo {loc.month}</div>
-                  </div>
+                  {loc.name}
                 </div>
               </div>
             );
@@ -239,26 +232,9 @@ export default function Strategy() {
             and operating model. Data from Richmond informs decisions at every future site.
           </p>
 
-          {/* Circle row (locations) */}
-          <div className="glass rounded-2xl p-6 mb-4">
-            <div className="flex flex-wrap justify-center gap-4 md:gap-8">
-              {scaleLocations.map((loc, i) => (
-                <div key={loc.name} className="text-center">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold mb-1 ${
-                    i === 0 ? 'bg-honey text-white ring-4 ring-honey/20' : 'bg-walnut/10 text-walnut-light'
-                  }`}>
-                    L{i + 1}
-                  </div>
-                  <div className="text-xs text-walnut-light">{loc.name}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
           {/* Timeline tick-mark visual */}
           <div className="glass rounded-2xl p-4 md:p-6 reveal overflow-x-auto">
             <h3 className="text-sm font-bold text-walnut mb-1">Opening Timeline</h3>
-            <p className="text-xs text-walnut-light mb-2">Month-by-month rollout across 48 months (4 years)</p>
             <div className="min-w-[700px]">
               <TimelineVis locations={scaleLocations} />
             </div>

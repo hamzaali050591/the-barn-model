@@ -52,20 +52,8 @@ export default function Landing() {
 
         {/* Content */}
         <div className="relative z-10 text-center max-w-3xl mx-auto">
-          <h1 className="fade-up fade-up-d1 text-4xl md:text-6xl lg:text-7xl font-bold text-cream tracking-tight mb-3">
-            The Barn
-          </h1>
-          <p className="fade-up fade-up-d2 text-lg md:text-2xl text-cream/80 font-light mb-2">
-            Where Neighborhoods Gather
-          </p>
-          <div className="fade-up fade-up-d2 w-16 h-0.5 bg-honey mx-auto my-6" />
-          <p className="fade-up fade-up-d3 text-sm md:text-base text-cream/60 max-w-lg mx-auto mb-12">
-            A curated, tech-enabled food hall designed to be the community gathering place
-            for Richmond and Fort Bend County.
-          </p>
-
           {/* Navigation buttons */}
-          <div className="fade-up fade-up-d4 flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="fade-up fade-up-d2 flex flex-col sm:flex-row gap-4 justify-center items-center">
             {navButtons.map((btn) => (
               <button
                 key={btn.path}
@@ -82,6 +70,12 @@ export default function Landing() {
               </button>
             ))}
           </div>
+
+          {/* Tagline now below buttons */}
+          <p className="fade-up fade-up-d3 text-sm md:text-base text-cream/70 max-w-lg mx-auto mt-10">
+            A curated, tech-enabled food hall designed to be the community gathering place
+            for Richmond and Fort Bend County.
+          </p>
         </div>
       </div>
 

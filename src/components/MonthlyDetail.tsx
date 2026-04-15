@@ -13,10 +13,16 @@ export default function MonthlyDetail({ monthly }: Props) {
     <div className="glass rounded-2xl">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-5 py-3 text-sm font-bold text-walnut hover:bg-walnut/5 transition-colors rounded-2xl"
+        className="w-full flex items-center justify-between px-6 py-5 text-lg md:text-xl font-bold text-walnut hover:bg-honey/10 transition-colors rounded-2xl group"
       >
-        <span>Monthly Detail ({monthly.length} months)</span>
-        <span className={`transition-transform ${open ? 'rotate-180' : ''}`}>&#9662;</span>
+        <span className="flex items-center gap-3">
+          <svg className="w-6 h-6 text-honey" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z" />
+          </svg>
+          Monthly Detail
+          <span className="text-sm font-normal text-walnut-light">({monthly.length} months)</span>
+        </span>
+        <span className={`text-2xl transition-transform text-honey group-hover:scale-110 ${open ? 'rotate-180' : ''}`}>&#9662;</span>
       </button>
 
       {open && (

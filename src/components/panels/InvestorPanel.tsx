@@ -55,18 +55,6 @@ export default function InvestorPanel({ inputs, onChange }: Props) {
         onChange={v => set('exitMultiple', v)}
       />
 
-      <div className="space-y-1.5 mb-4">
-        <DerivedRow
-          label="Investor Equity / Location"
-          value={fmtDollarFull(investorEquityPerLocation)}
-        />
-        <DerivedRow
-          label="Total Investor Equity"
-          value={fmtDollarFull(totalInvestorEquity)}
-          accent
-        />
-      </div>
-
       {/* Timeline */}
       <div className="pt-3 border-t border-walnut/10">
         <div className="text-[10px] font-semibold text-walnut-light uppercase tracking-wider mb-2">
@@ -113,6 +101,19 @@ export default function InvestorPanel({ inputs, onChange }: Props) {
             />
           ))}
         </div>
+      </div>
+
+      {/* Investor Equity — bottom-aligned */}
+      <div className="mt-auto pt-4 space-y-1.5">
+        <DerivedRow
+          label="Investor Equity / Location"
+          value={fmtDollarFull(investorEquityPerLocation)}
+        />
+        <DerivedRow
+          label="Total Investor Equity"
+          value={fmtDollarFull(totalInvestorEquity)}
+          accent
+        />
       </div>
     </div>
   );

@@ -1,9 +1,8 @@
-import { useState, useMemo } from 'react';
-import { DEFAULT_INPUTS } from '../utils/types';
-import type { ModelInputs } from '../utils/types';
+import { useMemo } from 'react';
 import { runModel } from '../utils/engine';
 import { fmtDollarFull, fmtPct } from '../utils/format';
 import { useReveal } from '../utils/useReveal';
+import { useModel } from '../utils/ModelContext';
 import KPICards from '../components/KPICards';
 import AnnualTable from '../components/AnnualTable';
 import CashFlowChart from '../components/CashFlowChart';
@@ -16,7 +15,7 @@ import OpexPanel from '../components/panels/OpexPanel';
 import InvestorPanel from '../components/panels/InvestorPanel';
 
 export default function Model() {
-  const [inputs, setInputs] = useState<ModelInputs>(DEFAULT_INPUTS);
+  const { inputs, setInputs } = useModel();
   const results = useMemo(() => runModel(inputs), [inputs]);
   const revealRef = useReveal();
 

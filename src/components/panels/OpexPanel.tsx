@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { ModelInputs } from '../../utils/types';
-import { vendorTotals, opexBreakdown } from '../../utils/engine';
+import { opexBreakdown } from '../../utils/engine';
 import { fmtDollarFull } from '../../utils/format';
 import SliderRow, { DerivedRow } from '../SliderRow';
 
@@ -12,17 +13,43 @@ interface Props {
 const fmt$ = (v: number) => '$' + v.toLocaleString();
 const fmtPct = (v: number) => v.toFixed(0) + '%';
 
+function DetailButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={e => {
+        e.stopPropagation();
+        onClick();
+      }}
+      className="inline-flex items-center gap-1 text-[10px] font-semibold text-honey hover:text-terracotta bg-honey/10 hover:bg-honey/20 px-2 py-1 rounded-md border border-honey/20 hover:border-honey/40 transition-all cursor-pointer"
+    >
+      View Details
+      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+      </svg>
+    </button>
+  );
+}
+
+function ReadonlyLine({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between items-center px-3 py-1.5 text-xs">
+      <span className="text-walnut-light">{label}</span>
+      <span className="font-semibold text-walnut tabular-nums">{value}</span>
+    </div>
+  );
+}
+
 export default function OpexPanel({ inputs, onChange }: Props) {
   const [vendorUtilsOpen, setVendorUtilsOpen] = useState(false);
   const [commonUtilsOpen, setCommonUtilsOpen] = useState(false);
   const [nonUtilsOpen, setNonUtilsOpen] = useState(false);
+  const navigate = useNavigate();
 
   const set = <K extends keyof ModelInputs>(key: K, value: ModelInputs[K]) =>
     onChange({ ...inputs, [key]: value });
 
-  const { numVendors } = vendorTotals(inputs);
-  const { vendorUtilities, commonAreaUtilities, nonUtilities, total: totalMonthlyOpex } =
-    opexBreakdown(inputs);
+  const bd = opexBreakdown(inputs);
+  const { vendorUtilities, commonAreaUtilities, nonUtilities, total: totalMonthlyOpex, gas, electric, water, nu } = bd;
 
   const monthlySalary = inputs.salaryBase / 12;
   const totalMonthlyExpenses = totalMonthlyOpex + monthlySalary;
@@ -40,46 +67,30 @@ export default function OpexPanel({ inputs, onChange }: Props) {
         <span className="text-[10px] text-walnut-light ml-auto">per location</span>
       </div>
 
-      {/* Vendor Utilities accordion - only show when rent inclusive */}
+      {/* Vendor Utilities */}
       {inputs.rentIncludesUtilities ? (
         <div className="mb-2">
-          <button
-            onClick={() => setVendorUtilsOpen(!vendorUtilsOpen)}
-            className="w-full flex items-center justify-between py-2 px-3 bg-walnut/5 rounded-md hover:bg-walnut/10 transition-colors cursor-pointer"
-          >
-            <span className="text-xs font-semibold text-walnut flex items-center gap-2">
+          <div className="flex items-center gap-2 py-2 px-3 bg-walnut/5 rounded-md">
+            <button
+              onClick={() => setVendorUtilsOpen(!vendorUtilsOpen)}
+              className="flex items-center gap-1.5 text-xs font-semibold text-walnut cursor-pointer hover:text-honey transition-colors"
+            >
               <span className={`transition-transform ${vendorUtilsOpen ? 'rotate-90' : ''}`}>▸</span>
               Vendor Utilities
-              <span className="text-[10px] text-walnut-light font-normal">({numVendors} vendors × monthly)</span>
-            </span>
-            <span className="text-sm font-bold text-walnut tabular-nums">{fmtDollarFull(vendorUtilities)}</span>
-          </button>
+            </button>
+            <DetailButton onClick={() => navigate('/model/opex/vendor-utilities')} />
+            <span className="text-sm font-bold text-walnut tabular-nums ml-auto">{fmtDollarFull(vendorUtilities)}</span>
+          </div>
           {vendorUtilsOpen && (
-            <div className="mt-2 px-2 pt-1">
-              <SliderRow
-                label="Gas"
-                sublabel="per vendor"
-                value={inputs.gasPerVendor}
-                min={0} max={500} step={10}
-                format={fmt$}
-                onChange={v => set('gasPerVendor', v)}
-              />
-              <SliderRow
-                label="Electric"
-                sublabel="per vendor"
-                value={inputs.electricPerVendor}
-                min={0} max={2_000} step={25}
-                format={fmt$}
-                onChange={v => set('electricPerVendor', v)}
-              />
-              <SliderRow
-                label="Water"
-                sublabel="per vendor"
-                value={inputs.waterPerVendor}
-                min={0} max={500} step={10}
-                format={fmt$}
-                onChange={v => set('waterPerVendor', v)}
-              />
+            <div className="mt-1 py-1.5 rounded-md bg-white/30">
+              <div className="text-[10px] font-semibold text-walnut-light uppercase tracking-wider px-3 pt-1">Per Food Vendor</div>
+              <ReadonlyLine label="Gas" value={fmtDollarFull(gas.foodVendor)} />
+              <ReadonlyLine label="Electric" value={fmtDollarFull(electric.foodVendor)} />
+              <ReadonlyLine label="Water" value={fmtDollarFull(water.foodVendor)} />
+              <div className="text-[10px] font-semibold text-walnut-light uppercase tracking-wider px-3 pt-2">Per Non-Food Vendor</div>
+              <ReadonlyLine label="Gas" value={fmtDollarFull(gas.nonFoodVendor)} />
+              <ReadonlyLine label="Electric" value={fmtDollarFull(electric.nonFoodVendor)} />
+              <ReadonlyLine label="Water" value={fmtDollarFull(water.nonFoodVendor)} />
             </div>
           )}
         </div>
@@ -95,84 +106,50 @@ export default function OpexPanel({ inputs, onChange }: Props) {
         </div>
       )}
 
-      {/* Common Area Utilities accordion */}
+      {/* Common Area Utilities */}
       <div className="mb-2">
-        <button
-          onClick={() => setCommonUtilsOpen(!commonUtilsOpen)}
-          className="w-full flex items-center justify-between py-2 px-3 bg-walnut/5 rounded-md hover:bg-walnut/10 transition-colors cursor-pointer"
-        >
-          <span className="text-xs font-semibold text-walnut flex items-center gap-2">
+        <div className="flex items-center gap-2 py-2 px-3 bg-walnut/5 rounded-md">
+          <button
+            onClick={() => setCommonUtilsOpen(!commonUtilsOpen)}
+            className="flex items-center gap-1.5 text-xs font-semibold text-walnut cursor-pointer hover:text-honey transition-colors"
+          >
             <span className={`transition-transform ${commonUtilsOpen ? 'rotate-90' : ''}`}>▸</span>
             Common Area Utilities
-            <span className="text-[10px] text-walnut-light font-normal">(shared space)</span>
-          </span>
-          <span className="text-sm font-bold text-walnut tabular-nums">{fmtDollarFull(commonAreaUtilities)}</span>
-        </button>
+          </button>
+          <DetailButton onClick={() => navigate('/model/opex/common-utilities')} />
+          <span className="text-sm font-bold text-walnut tabular-nums ml-auto">{fmtDollarFull(commonAreaUtilities)}</span>
+        </div>
         {commonUtilsOpen && (
-          <div className="mt-2 px-2 pt-1">
-            <SliderRow
-              label="Electric"
-              sublabel="common area"
-              value={inputs.commonElectric}
-              min={0} max={5_000} step={50}
-              format={fmt$}
-              onChange={v => set('commonElectric', v)}
-            />
-            <SliderRow
-              label="Water"
-              sublabel="common area"
-              value={inputs.commonWater}
-              min={0} max={2_000} step={25}
-              format={fmt$}
-              onChange={v => set('commonWater', v)}
-            />
+          <div className="mt-1 py-1.5 rounded-md bg-white/30">
+            <ReadonlyLine label="Electric" value={fmtDollarFull(electric.common)} />
+            <ReadonlyLine label="Water" value={fmtDollarFull(water.common)} />
           </div>
         )}
       </div>
 
-      {/* Non-Utilities accordion */}
+      {/* Non-Utilities */}
       <div className="mb-2">
-        <button
-          onClick={() => setNonUtilsOpen(!nonUtilsOpen)}
-          className="w-full flex items-center justify-between py-2 px-3 bg-walnut/5 rounded-md hover:bg-walnut/10 transition-colors cursor-pointer"
-        >
-          <span className="text-xs font-semibold text-walnut flex items-center gap-2">
+        <div className="flex items-center gap-2 py-2 px-3 bg-walnut/5 rounded-md">
+          <button
+            onClick={() => setNonUtilsOpen(!nonUtilsOpen)}
+            className="flex items-center gap-1.5 text-xs font-semibold text-walnut cursor-pointer hover:text-honey transition-colors"
+          >
             <span className={`transition-transform ${nonUtilsOpen ? 'rotate-90' : ''}`}>▸</span>
             Non-Utilities
-            <span className="text-[10px] text-walnut-light font-normal">(flat per location)</span>
-          </span>
-          <span className="text-sm font-bold text-walnut tabular-nums">{fmtDollarFull(nonUtilities)}</span>
-        </button>
+          </button>
+          <DetailButton onClick={() => navigate('/model/opex/non-utility')} />
+          <span className="text-sm font-bold text-walnut tabular-nums ml-auto">{fmtDollarFull(nonUtilities)}</span>
+        </div>
         {nonUtilsOpen && (
-          <div className="mt-2 px-2 pt-1">
-            <SliderRow
-              label="Marketing"
-              value={inputs.marketing}
-              min={0} max={10_000} step={250}
-              format={fmt$}
-              onChange={v => set('marketing', v)}
-            />
-            <SliderRow
-              label="Cleaning Staff"
-              value={inputs.cleaning}
-              min={0} max={10_000} step={250}
-              format={fmt$}
-              onChange={v => set('cleaning', v)}
-            />
-            <SliderRow
-              label="Security Staff"
-              value={inputs.security}
-              min={0} max={10_000} step={250}
-              format={fmt$}
-              onChange={v => set('security', v)}
-            />
-            <SliderRow
-              label="Building Maintenance"
-              value={inputs.maintenance}
-              min={0} max={10_000} step={250}
-              format={fmt$}
-              onChange={v => set('maintenance', v)}
-            />
+          <div className="mt-1 py-1.5 rounded-md bg-white/30">
+            <ReadonlyLine label="Marketing" value={fmtDollarFull(nu.marketing)} />
+            <ReadonlyLine label="Cleaning" value={fmtDollarFull(nu.cleaning)} />
+            <ReadonlyLine label="Grease / Oil" value={fmtDollarFull(nu.grease)} />
+            <ReadonlyLine label="Security" value={fmtDollarFull(nu.security)} />
+            <ReadonlyLine label="Maintenance" value={fmtDollarFull(nu.maintenance)} />
+            <ReadonlyLine label="Insurance" value={fmtDollarFull(nu.insurance)} />
+            <ReadonlyLine label="Technology" value={fmtDollarFull(nu.technology)} />
+            <ReadonlyLine label="Misc / Waste" value={fmtDollarFull(nu.misc)} />
           </div>
         )}
       </div>
@@ -181,7 +158,7 @@ export default function OpexPanel({ inputs, onChange }: Props) {
         <DerivedRow label="Total Monthly OpEx" value={fmtDollarFull(totalMonthlyOpex)} accent />
       </div>
 
-      {/* Operator Monthly Salary section */}
+      {/* Operator Monthly Salary */}
       <div className="mt-4 pt-3 border-t border-walnut/10">
         <div className="flex items-center justify-between mb-2">
           <div className="text-[10px] font-semibold text-walnut-light uppercase tracking-wider">
@@ -227,9 +204,6 @@ export default function OpexPanel({ inputs, onChange }: Props) {
           <span className="text-xs font-medium uppercase tracking-wider">Total Annual Expenses</span>
           <span className="text-sm font-bold tabular-nums">{fmtDollarFull(totalAnnualExpenses)}</span>
         </div>
-        <p className="text-[9px] text-walnut-light italic px-1">
-          OpEx + operator salary (excludes profit share, which scales with EBITDA)
-        </p>
       </div>
     </div>
   );
