@@ -81,7 +81,7 @@ export default function Strategy() {
           <div className="grid sm:grid-cols-2 gap-4">
             <Card
               title="Curated Culinary"
-              description="11 unique local vendors. No chains. Personally curated by the operator — relationship-driven, not open-call. Every stall is a draw on its own."
+              description="12 unique local vendors. No chains. Personally curated by the operator — relationship-driven, not open-call. Every stall is a draw on its own."
             />
             <Card
               title="Community Hub"
@@ -103,50 +103,16 @@ export default function Strategy() {
           <div className="glass rounded-2xl p-6 md:p-8">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <Stat value="10,000" label="Square Feet" />
-              <Stat value="11" label="Vendor Stalls" />
+              <Stat value="12" label="Vendor Stalls" />
               <Stat value="160" label="Seats" />
               <Stat value="$1.94M" label="Total Buildout" />
             </div>
           </div>
         </Section>
 
-        {/* Capital Stack */}
-        <Section title="Capital Stack">
-          <div className="glass rounded-2xl overflow-hidden reveal">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-walnut/10 bg-walnut/5">
-                  <th className="text-left px-5 py-3 font-semibold text-walnut">Source</th>
-                  <th className="text-right px-5 py-3 font-semibold text-walnut">Amount</th>
-                  <th className="text-left px-5 py-3 font-semibold text-walnut hidden sm:table-cell">Notes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  { source: 'DPEG Tenant Improvement', amount: '$362,500', note: '$25 PSF × 14,500 sq ft — excluded from CoC base' },
-                  { source: 'GP — Nikhil (DPEG)', amount: '$100,000', note: 'General Partner equity' },
-                  { source: 'GP — Hamza (Operator)', amount: '$100,000', note: 'Operating Partner equity' },
-                  { source: 'LP Investors', amount: '$1,375,000', note: 'Limited Partner capital' },
-                ].map((row, i) => (
-                  <tr key={i} className="border-b border-walnut/5">
-                    <td className="px-5 py-2.5 text-walnut">{row.source}</td>
-                    <td className="px-5 py-2.5 text-right font-semibold text-walnut tabular-nums">{row.amount}</td>
-                    <td className="px-5 py-2.5 text-walnut-light text-xs hidden sm:table-cell">{row.note}</td>
-                  </tr>
-                ))}
-                <tr className="bg-honey/10">
-                  <td className="px-5 py-2.5 font-bold text-walnut">Total Buildout</td>
-                  <td className="px-5 py-2.5 text-right font-bold text-walnut tabular-nums">$1,937,500</td>
-                  <td className="px-5 py-2.5 text-walnut-light text-xs hidden sm:table-cell">Equity base for CoC: $1,575,000</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </Section>
-
         {/* Vendor Model */}
         <Section title="Vendor Model">
-          <div className="bg-white/60 backdrop-blur rounded-2xl border border-walnut/10 overflow-hidden mb-4">
+          <div className="glass rounded-2xl overflow-hidden mb-4 reveal">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-walnut/10 bg-walnut/5">
@@ -158,12 +124,12 @@ export default function Strategy() {
               </thead>
               <tbody>
                 {[
-                  { cat: 'Food Vendors', n: 8, rent: '$5,500', total: '$44,000' },
-                  { cat: 'Health Bar', n: 1, rent: '$7,000', total: '$7,000' },
-                  { cat: 'Desserts', n: 1, rent: '$4,500', total: '$4,500' },
-                  { cat: 'Drinks', n: 1, rent: '$4,500', total: '$4,500' },
+                  { cat: 'Food Vendors', n: 8, rent: '$7,000', total: '$56,000' },
+                  { cat: 'Health Bar', n: 1, rent: '$6,000', total: '$6,000' },
+                  { cat: 'Desserts', n: 1, rent: '$6,000', total: '$6,000' },
+                  { cat: 'Drinks', n: 2, rent: '$6,000', total: '$12,000' },
                 ].map((row, i) => (
-                  <tr key={i} className="border-b border-walnut/5">
+                  <tr key={i} className="border-b border-walnut/5 row-hover">
                     <td className="px-5 py-2.5 text-walnut">{row.cat}</td>
                     <td className="px-5 py-2.5 text-center text-walnut">{row.n}</td>
                     <td className="px-5 py-2.5 text-right text-walnut tabular-nums">{row.rent}</td>
@@ -172,9 +138,9 @@ export default function Strategy() {
                 ))}
                 <tr className="bg-honey/10">
                   <td className="px-5 py-2.5 font-bold text-walnut">Total</td>
-                  <td className="px-5 py-2.5 text-center font-bold text-walnut">11</td>
+                  <td className="px-5 py-2.5 text-center font-bold text-walnut">12</td>
                   <td className="px-5 py-2.5"></td>
-                  <td className="px-5 py-2.5 text-right font-bold text-walnut tabular-nums">$60,000</td>
+                  <td className="px-5 py-2.5 text-right font-bold text-walnut tabular-nums">$80,000</td>
                 </tr>
               </tbody>
             </table>
