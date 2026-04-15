@@ -1,7 +1,10 @@
+export type RevenueModel = 'base' | 'pct' | 'mixed';
+
 export interface VendorCategory {
   name: string;
   count: number;
-  rent: number; // monthly rent per vendor
+  rent: number;  // base monthly rent per vendor (used in 'base' mode)
+  sales: number; // monthly sales per vendor (used in 'pct' and 'mixed' modes)
 }
 
 export interface ModelInputs {
@@ -14,6 +17,10 @@ export interface ModelInputs {
 
   // Revenue Model (vendor breakdown)
   vendors: VendorCategory[];
+  revenueModel: RevenueModel;
+  pctOfSalesRate: number;  // for 'pct' mode (e.g. 20 = 20%)
+  mixedBaseRent: number;   // for 'mixed' mode
+  mixedPctRate: number;    // for 'mixed' mode (e.g. 6 = 6%)
 
   // Rent terms
   rentIncludesUtilities: boolean;
@@ -97,11 +104,15 @@ export const DEFAULT_INPUTS: ModelInputs = {
 
   // Revenue Model
   vendors: [
-    { name: 'Food Vendors', count: 8, rent: 7_000 },
-    { name: 'Health Bar', count: 1, rent: 6_000 },
-    { name: 'Desserts', count: 1, rent: 6_000 },
-    { name: 'Drinks', count: 2, rent: 6_000 },
+    { name: 'Food Vendors', count: 8, rent: 7_000, sales: 35_000 },
+    { name: 'Health Bar', count: 1, rent: 6_000, sales: 25_000 },
+    { name: 'Desserts', count: 1, rent: 6_000, sales: 25_000 },
+    { name: 'Drinks', count: 2, rent: 6_000, sales: 25_000 },
   ],
+  revenueModel: 'base',
+  pctOfSalesRate: 20,
+  mixedBaseRent: 3_500,
+  mixedPctRate: 6,
 
   // Rent terms
   rentIncludesUtilities: true,

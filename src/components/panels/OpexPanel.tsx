@@ -217,8 +217,8 @@ export default function OpexPanel({ inputs, onChange }: Props) {
         />
       </div>
 
-      {/* Total Monthly & Annual Expenses */}
-      <div className="mt-4 pt-3 border-t-2 border-honey/30 space-y-1.5">
+      {/* Total Monthly & Annual Expenses (bottom-aligned) */}
+      <div className="mt-auto pt-4 border-t-2 border-honey/30 space-y-1.5">
         <div className="flex justify-between items-center py-2 px-3 rounded-md bg-walnut text-cream">
           <span className="text-xs font-medium uppercase tracking-wider">Total Monthly Expenses</span>
           <span className="text-sm font-bold tabular-nums">{fmtDollarFull(totalMonthlyExpenses)}</span>

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import NavBar from '../components/NavBar';
 import { useReveal } from '../utils/useReveal';
 
@@ -33,30 +32,6 @@ function Stat({ value, label }: { value: string; label: string }) {
 }
 
 // ── Interactive cell ──
-function NumCell({
-  value,
-  onChange,
-  prefix,
-}: {
-  value: number;
-  onChange: (v: number) => void;
-  prefix?: string;
-}) {
-  return (
-    <div className="inline-flex items-center gap-1">
-      {prefix && <span className="text-walnut-light text-xs">{prefix}</span>}
-      <input
-        type="number"
-        value={value}
-        onChange={e => onChange(Math.max(0, Number(e.target.value) || 0))}
-        className="w-20 bg-white/70 border border-walnut/20 rounded-md px-2 py-1 text-right tabular-nums text-walnut focus:outline-none focus:border-honey focus:ring-2 focus:ring-honey/20 transition-all"
-      />
-    </div>
-  );
-}
-
-const fmt$ = (n: number) => '$' + n.toLocaleString('en-US');
-
 // ── Scale Vision Timeline (tick marks 1-48 with opening circles) ──
 function TimelineVis({ locations }: { locations: { name: string; month: number }[] }) {
   const months = 48;
@@ -137,34 +112,8 @@ function TimelineVis({ locations }: { locations: { name: string; month: number }
   );
 }
 
-interface VendorRow {
-  cat: string;
-  n: number;
-  rent: number;
-}
-
 export default function Strategy() {
   const revealRef = useReveal();
-
-  // Interactive vendor model
-  const [vendors, setVendors] = useState<VendorRow[]>([
-    { cat: 'Food Vendors', n: 8, rent: 7000 },
-    { cat: 'Health Bar', n: 1, rent: 6000 },
-    { cat: 'Desserts', n: 1, rent: 6000 },
-    { cat: 'Drinks', n: 2, rent: 6000 },
-  ]);
-
-  const updateVendor = (idx: number, field: 'n' | 'rent', value: number) => {
-    const next = [...vendors];
-    next[idx] = { ...next[idx], [field]: value };
-    setVendors(next);
-  };
-
-  // Calculations
-  const totalVendors = vendors.reduce((s, v) => s + v.n, 0);
-  const totalMonthlyRent = vendors.reduce((s, v) => s + v.n * v.rent, 0);
-  const totalAnnualRent = totalMonthlyRent * 12;
-  const totalDeposit = vendors.reduce((s, v) => s + v.n * v.rent * 2, 0);
 
   // Scale Vision locations
   const scaleLocations = [
@@ -224,7 +173,7 @@ export default function Strategy() {
           <div className="grid sm:grid-cols-2 gap-4">
             <Card
               title="Curated Culinary"
-              description={`${totalVendors} unique local vendors. No chains. Personally curated by the operator — relationship-driven, not open-call. Every stall is a draw on its own.`}
+              description="12 unique local vendors. No chains. Personally curated by the operator — relationship-driven, not open-call. Every stall is a draw on its own."
             />
             <Card
               title="Community Hub"
@@ -246,90 +195,10 @@ export default function Strategy() {
           <div className="glass rounded-2xl p-6 md:p-8">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <Stat value="10,000" label="Square Feet" />
-              <Stat value={String(totalVendors)} label="Vendor Stalls" />
-              <Stat value="160" label="Seats" />
+              <Stat value="12" label="Vendor Stalls" />
+              <Stat value="$960K" label="Annual Rent Revenue" />
               <Stat value="$1.5M" label="Total Buildout" />
             </div>
-          </div>
-        </Section>
-
-        {/* Vendor Model — Interactive */}
-        <Section title="Vendor Model">
-          <p className="text-walnut-light text-sm mb-4">
-            Adjust vendor counts and rent to explore scenarios. Totals update live.
-          </p>
-          <div className="glass rounded-2xl overflow-hidden mb-4 reveal">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-walnut/10 bg-walnut/5">
-                  <th className="text-left px-5 py-3 font-semibold text-walnut">Category</th>
-                  <th className="text-center px-5 py-3 font-semibold text-walnut"># Vendors</th>
-                  <th className="text-right px-5 py-3 font-semibold text-walnut">Rent/Month</th>
-                  <th className="text-right px-5 py-3 font-semibold text-walnut">Total/Month</th>
-                </tr>
-              </thead>
-              <tbody>
-                {vendors.map((row, i) => (
-                  <tr key={i} className="border-b border-walnut/5 row-hover">
-                    <td className="px-5 py-2.5 text-walnut">{row.cat}</td>
-                    <td className="px-5 py-2.5 text-center text-walnut">
-                      <NumCell value={row.n} onChange={v => updateVendor(i, 'n', v)} />
-                    </td>
-                    <td className="px-5 py-2.5 text-right text-walnut tabular-nums">
-                      <NumCell value={row.rent} onChange={v => updateVendor(i, 'rent', v)} prefix="$" />
-                    </td>
-                    <td className="px-5 py-2.5 text-right font-semibold text-walnut tabular-nums">
-                      {fmt$(row.n * row.rent)}
-                    </td>
-                  </tr>
-                ))}
-                <tr className="bg-honey/10 border-t-2 border-honey/20">
-                  <td className="px-5 py-3 font-bold text-walnut">Total Monthly Rent</td>
-                  <td className="px-5 py-3 text-center font-bold text-walnut tabular-nums">{totalVendors}</td>
-                  <td className="px-5 py-3"></td>
-                  <td className="px-5 py-3 text-right font-bold text-walnut tabular-nums">{fmt$(totalMonthlyRent)}</td>
-                </tr>
-                <tr className="bg-honey/15">
-                  <td className="px-5 py-3 font-bold text-walnut">Total Annual Rent</td>
-                  <td className="px-5 py-3"></td>
-                  <td className="px-5 py-3"></td>
-                  <td className="px-5 py-3 text-right font-bold text-walnut tabular-nums">{fmt$(totalAnnualRent)}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          {/* Deposit calculation */}
-          <div className="glass rounded-2xl p-5 md:p-6 mb-4 reveal">
-            <h3 className="font-bold text-walnut mb-2">Vendor Deposits Collected at Lease Signing</h3>
-            <p className="text-xs text-walnut-light mb-4 leading-relaxed">
-              Each vendor pays 2× monthly rent upfront at lease signing — one month's rent applied toward Month 1 rent on launch,
-              plus an equal security deposit held by The Barn.
-            </p>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              <div className="text-center">
-                <div className="text-xs text-walnut-light font-medium uppercase tracking-wider mb-1">Prepaid Month 1 Rent</div>
-                <div className="text-2xl font-bold text-walnut tabular-nums">{fmt$(totalMonthlyRent)}</div>
-                <div className="text-[10px] text-walnut-light mt-0.5">Applied at launch</div>
-              </div>
-              <div className="text-center">
-                <div className="text-xs text-walnut-light font-medium uppercase tracking-wider mb-1">Security Deposits</div>
-                <div className="text-2xl font-bold text-walnut tabular-nums">{fmt$(totalMonthlyRent)}</div>
-                <div className="text-[10px] text-walnut-light mt-0.5">Held by The Barn</div>
-              </div>
-              <div className="text-center col-span-2 md:col-span-1 bg-honey/15 rounded-xl py-2 -m-1">
-                <div className="text-xs text-walnut font-medium uppercase tracking-wider mb-1">Total Collected</div>
-                <div className="text-2xl font-bold text-honey tabular-nums">{fmt$(totalDeposit)}</div>
-                <div className="text-[10px] text-walnut-light mt-0.5">{totalVendors} vendors × 2× monthly rent</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid sm:grid-cols-4 gap-3">
-            <Card title="3-Year Leases" description="Stability and locked-in revenue with 6-month performance reviews." />
-            <Card title="2× Rent Deposit" description="One month's rent prepaid to month 1, plus equal security deposit held by The Barn." />
-            <Card title="Rolling Waitlist" description="3-4 pre-vetted backup vendors ready to step in at all times." />
-            <Card title="Independent Ops" description="Vendors manage staff & permits. The Barn handles common areas & marketing." />
           </div>
         </Section>
 

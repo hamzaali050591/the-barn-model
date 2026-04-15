@@ -9,13 +9,27 @@ export function capitalStack(inputs: ModelInputs) {
   return { tiTotal, investorEquityPerLocation, lpInvestment };
 }
 
-/** Vendor aggregates */
+/** Vendor aggregates - rent revenue depends on revenue model */
 export function vendorTotals(inputs: ModelInputs) {
   const numVendors = inputs.vendors.reduce((s, v) => s + v.count, 0);
-  const monthlyVendorRentPerLocation = inputs.vendors.reduce(
-    (s, v) => s + v.count * v.rent,
-    0
-  );
+
+  let monthlyVendorRentPerLocation = 0;
+  if (inputs.revenueModel === 'base') {
+    monthlyVendorRentPerLocation = inputs.vendors.reduce(
+      (s, v) => s + v.count * v.rent,
+      0
+    );
+  } else if (inputs.revenueModel === 'pct') {
+    const totalSales = inputs.vendors.reduce((s, v) => s + v.count * v.sales, 0);
+    monthlyVendorRentPerLocation = totalSales * (inputs.pctOfSalesRate / 100);
+  } else {
+    // mixed
+    const totalSales = inputs.vendors.reduce((s, v) => s + v.count * v.sales, 0);
+    const baseTotal = numVendors * inputs.mixedBaseRent;
+    const pctTotal = totalSales * (inputs.mixedPctRate / 100);
+    monthlyVendorRentPerLocation = baseTotal + pctTotal;
+  }
+
   return { numVendors, monthlyVendorRentPerLocation };
 }
 
