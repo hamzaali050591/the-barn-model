@@ -164,7 +164,7 @@ export default function LayoutPage() {
         </div>
 
         {/* Floor Plan Schematic */}
-        <section className="mb-8 reveal">
+        <section className="mb-8">
           <div className="glass rounded-2xl p-4 md:p-6">
             <h2 className="text-lg font-bold text-walnut mb-4">Floor Plan</h2>
             <div className="bg-cream rounded-xl border border-walnut/10 p-3 md:p-5 font-mono text-[10px] md:text-xs leading-relaxed overflow-x-auto">

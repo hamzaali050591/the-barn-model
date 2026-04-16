@@ -3,7 +3,7 @@ import { useReveal } from '../utils/useReveal';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="mb-10 reveal">
+    <section className="mb-10">
       <h2 className="text-xl md:text-2xl font-bold text-walnut mb-4 pb-2 border-b border-walnut/10">
         {title}
       </h2>
@@ -351,19 +351,19 @@ export default function Strategy() {
               <div>
                 <h4 className="font-semibold text-walnut mb-2">The Barn Is</h4>
                 <ul className="space-y-1 text-walnut-light">
-                  <li>The place your neighborhood needed</li>
-                  <li>Where families build weekly routines</li>
-                  <li>Modern and tech-forward but never cold</li>
-                  <li>Nostalgic without being gimmicky</li>
+                  <li>Where families build weekly routines — not a once-in-a-while outing</li>
+                  <li>Modern and tech-forward but never cold or impersonal</li>
+                  <li>The place your neighborhood didn't know it needed</li>
+                  <li>Nostalgic for parents, exciting for kids</li>
                 </ul>
               </div>
               <div>
                 <h4 className="font-semibold text-walnut mb-2">The Barn Is Not</h4>
                 <ul className="space-y-1 text-walnut-light">
-                  <li>A food court — no trays, no mall energy</li>
+                  <li>A food court — no trays, no fluorescents, no mall energy</li>
                   <li>A bar scene that happens to serve food</li>
                   <li>Expensive or exclusionary</li>
-                  <li>A franchise feel — rooted in community</li>
+                  <li>A franchise feel — every location is rooted in its community</li>
                 </ul>
               </div>
             </div>
