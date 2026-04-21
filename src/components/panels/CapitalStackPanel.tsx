@@ -16,7 +16,7 @@ export default function CapitalStackPanel({ inputs, onChange }: Props) {
   const set = <K extends keyof ModelInputs>(key: K, value: ModelInputs[K]) =>
     onChange({ ...inputs, [key]: value });
 
-  const { tiTotal, investorEquityPerLocation, lpInvestment } = capitalStack(inputs);
+  const { totalCapex, tiTotal, investorEquityPerLocation, lpInvestment } = capitalStack(inputs);
 
   return (
     <div className="glass rounded-2xl p-5 md:p-6 flex flex-col">
@@ -52,11 +52,11 @@ export default function CapitalStackPanel({ inputs, onChange }: Props) {
         onChange={v => set('leasePSF', v)}
       />
       <SliderRow
-        label="CapEx (Total Buildout)"
-        value={inputs.capex}
-        min={500_000} max={3_000_000} step={50_000}
-        format={fmt$}
-        onChange={v => set('capex', v)}
+        label="CapEx (Buildout PSF)"
+        value={inputs.capexPSF}
+        min={50} max={300} step={5}
+        format={fmtPSF}
+        onChange={v => set('capexPSF', v)}
       />
       <SliderRow
         label="GP Investment"
@@ -67,6 +67,7 @@ export default function CapitalStackPanel({ inputs, onChange }: Props) {
       />
 
       <div className="mt-auto pt-3 border-t border-walnut/10 space-y-1.5">
+        <DerivedRow label="Total CapEx" value={fmtDollarFull(totalCapex)} accent />
         <DerivedRow label="Total TI (DPEG)" value={fmtDollarFull(tiTotal)} />
         <DerivedRow label="GP Investment" value={fmtDollarFull(inputs.gpInvestment)} />
         <DerivedRow label="LP Investment" value={fmtDollarFull(lpInvestment)} />

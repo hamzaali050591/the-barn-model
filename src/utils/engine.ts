@@ -6,10 +6,11 @@ import { xirrFromMonthly } from './xirr';
 
 // ── Capital Stack ──
 export function capitalStack(inputs: ModelInputs) {
+  const totalCapex = inputs.sqft * inputs.capexPSF;
   const tiTotal = inputs.sqft * inputs.tiPSF;
-  const investorEquityPerLocation = Math.max(0, inputs.capex - tiTotal);
+  const investorEquityPerLocation = Math.max(0, totalCapex - tiTotal);
   const lpInvestment = Math.max(0, investorEquityPerLocation - inputs.gpInvestment);
-  return { tiTotal, investorEquityPerLocation, lpInvestment };
+  return { totalCapex, tiTotal, investorEquityPerLocation, lpInvestment };
 }
 
 // ── Revenue ──
@@ -179,15 +180,18 @@ export function runModel(inputs: ModelInputs): ModelOutputs {
     const profitShare = Math.max(0, distributableNOI) * profitShareRate;
     const distributions = Math.max(0, distributableNOI - profitShare);
 
-    const locationsOpening = schedule.filter(om => om === m).length;
-    const capitalCall = -locationsOpening * investorEquityPerLocation;
+    const locationsCallingCapital = schedule.filter(om => Math.max(1, om - 3) === m).length;
+    const capitalCall = -locationsCallingCapital * investorEquityPerLocation;
 
     let exitProceeds = 0;
+    let exitProfitShare = 0;
     if (m === holdMonths) {
       const trailing = monthly.slice(Math.max(0, monthly.length - 11));
-      let t12 = postSalaryEBITDA;
-      for (const r of trailing) t12 += r.postSalaryEBITDA;
-      exitProceeds = exitMultiple * t12;
+      let t12PreComp = preCompEBITDA;
+      for (const r of trailing) t12PreComp += r.preCompEBITDA;
+      const grossExit = exitMultiple * t12PreComp;
+      exitProfitShare = Math.max(0, grossExit) * profitShareRate;
+      exitProceeds = grossExit - exitProfitShare;
     }
 
     const netCashFlow = distributions + capitalCall + exitProceeds;
@@ -197,7 +201,7 @@ export function runModel(inputs: ModelInputs): ModelOutputs {
     monthly.push({
       month: m, nActive, nDistributing, revenue, opex, masterLease,
       preCompEBITDA, corpSalary, postSalaryEBITDA, distributableNOI,
-      profitShare, distributions, capitalCall, exitProceeds, netCashFlow,
+      profitShare, distributions, capitalCall, exitProceeds, exitProfitShare, netCashFlow,
       cumulativeEquity, cumulativeDistributions,
     });
   }

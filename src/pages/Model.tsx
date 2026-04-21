@@ -14,6 +14,7 @@ import RevenuePanel from '../components/panels/RevenuePanel';
 import OpexPanel from '../components/panels/OpexPanel';
 import InvestorPanel from '../components/panels/InvestorPanel';
 import RichmondDealTermsPanel from '../components/panels/RichmondDealTermsPanel';
+import InfoTooltip from '../components/InfoTooltip';
 
 type ViewMode = 'richmond' | 'portfolio';
 
@@ -31,7 +32,7 @@ export default function Model() {
         ...inputs,
         numLocations: 1,
         holdMonths: richmondHold,
-        openSchedule: [1],
+        openSchedule: [4],
       };
     }
     return inputs;
@@ -49,7 +50,14 @@ export default function Model() {
         {/* Header + view toggle */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-walnut">Financial Model</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-walnut flex items-center gap-2">
+              Financial Model
+              <InfoTooltip
+                align="left"
+                size="md"
+                content="Equity-only, pre-tax. No debt, no preferred return, no waterfall. Operator receives a 10% promote applied to both ongoing distributions and exit proceeds."
+              />
+            </h1>
             <p className="text-walnut-light text-sm mt-0.5">Interactive investor returns model</p>
           </div>
 
@@ -85,13 +93,32 @@ export default function Model() {
         {/* Summary row */}
         <section className="mb-6 md:mb-8 grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { label: 'Total Equity', value: fmtDollarFull(results.totalEquity) },
-            { label: 'Total Distributions', value: fmtDollarFull(results.totalDistributions) },
-            { label: 'Exit Proceeds', value: fmtDollarFull(results.exitProceeds) },
-            { label: 'Stabilized CoC', value: fmtPct(results.stabilizedCoC) },
+            {
+              label: 'Total Equity',
+              value: fmtDollarFull(results.totalEquity),
+              tip: 'Sum of all investor capital contributions (GP + LP combined) across all locations. Each location is funded at CapEx minus TI allowance.',
+            },
+            {
+              label: 'Total Distributions',
+              value: fmtDollarFull(results.totalDistributions),
+              tip: 'Cumulative cash distributions to investors over the hold, net of the operator’s 10% promote. Excludes exit proceeds.',
+            },
+            {
+              label: 'Exit Proceeds',
+              value: fmtDollarFull(results.exitProceeds),
+              tip: 'Stabilized T12 EBITDA (with owner comp added back per industry PE normalization) × exit multiple, net of the operator’s 10% promote on the exit gain. This is the net cash to investors at exit.',
+            },
+            {
+              label: 'Stabilized CoC',
+              value: fmtPct(results.stabilizedCoC),
+              tip: 'Stabilized cash-on-cash yield: last-12-month distributions ÷ total equity. The run-rate annual yield on investor equity once all locations are past ramp.',
+            },
           ].map(item => (
             <div key={item.label} className="glass rounded-xl px-4 py-3 text-center">
-              <div className="text-xs text-walnut-light font-medium">{item.label}</div>
+              <div className="text-xs text-walnut-light font-medium flex items-center justify-center gap-1">
+                {item.label}
+                <InfoTooltip content={item.tip} />
+              </div>
               <div className="text-lg font-bold text-walnut mt-0.5">{item.value}</div>
             </div>
           ))}

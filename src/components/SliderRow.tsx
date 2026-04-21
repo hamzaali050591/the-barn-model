@@ -1,3 +1,5 @@
+import InfoTooltip from './InfoTooltip';
+
 interface Props {
   label: string;
   value: number;
@@ -7,6 +9,7 @@ interface Props {
   format: (v: number) => string;
   onChange: (v: number) => void;
   sublabel?: string;
+  info?: string;
 }
 
 export default function SliderRow({
@@ -18,13 +21,15 @@ export default function SliderRow({
   format,
   onChange,
   sublabel,
+  info,
 }: Props) {
   return (
     <div className="mb-3">
       <div className="flex justify-between items-baseline mb-1">
-        <label className="text-xs font-medium text-walnut">
+        <label className="text-xs font-medium text-walnut flex items-center gap-1">
           {label}
           {sublabel && <span className="text-walnut-light ml-1">({sublabel})</span>}
+          {info && <InfoTooltip content={info} align="left" />}
         </label>
         <span className="text-sm font-semibold text-honey tabular-nums">{format(value)}</span>
       </div>

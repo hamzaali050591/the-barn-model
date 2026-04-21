@@ -77,7 +77,7 @@ export interface ModelInputs {
   sqft: number;
   tiPSF: number;
   leasePSF: number;
-  capex: number;
+  capexPSF: number;
   gpInvestment: number;
 
   // Revenue Model
@@ -125,6 +125,7 @@ export interface MonthlyRow {
   distributions: number;
   capitalCall: number;
   exitProceeds: number;
+  exitProfitShare: number;
   netCashFlow: number;
   cumulativeEquity: number;
   cumulativeDistributions: number;
@@ -154,7 +155,7 @@ export const DEFAULT_INPUTS: ModelInputs = {
   sqft: 10_000,
   tiPSF: 35,
   leasePSF: 35,
-  capex: 1_500_000,
+  capexPSF: 150,
   gpInvestment: 200_000,
 
   // Revenue Model
@@ -287,6 +288,6 @@ export const DEFAULT_INPUTS: ModelInputs = {
   exitMultiple: 6,
   rampMonths: 3,
   l1LeaseHolidayMonths: 3,
-  openSchedule: [1, 13, 17, 21, 25, 29, 33],
+  openSchedule: [4, 16, 20, 24, 28, 32, 36],
   holdMonths: 48,
 };

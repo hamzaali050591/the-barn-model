@@ -1,5 +1,6 @@
 import type { ModelInputs } from '../../utils/types';
 import SliderRow from '../SliderRow';
+import InfoTooltip from '../InfoTooltip';
 
 interface Props {
   inputs: ModelInputs;
@@ -45,12 +46,17 @@ export default function RichmondDealTermsPanel({ inputs, onChange, holdMonths, o
       />
 
       <div className="pt-3 border-t border-walnut/10">
-        <div className="text-[10px] font-semibold text-walnut-light uppercase tracking-wider mb-2">
+        <div className="text-[10px] font-semibold text-walnut-light uppercase tracking-wider mb-2 flex items-center gap-1">
           Timeline
+          <InfoTooltip
+            align="left"
+            content="Investor equity is called 3 months prior to each location's opening, reflecting the buildout period when CapEx is deployed. Richmond opens in month 4; the capital call occurs in month 1."
+          />
         </div>
         <SliderRow
           label="Ramp Period"
           sublabel="no distributions"
+          info="The hall is fully pre-leased, so rent revenue starts at 100% from day 1. The ramp period lets the operating entity build a cash reserve before starting distributions. Distributions begin the month after ramp completes."
           value={inputs.rampMonths}
           min={0} max={12} step={1}
           format={fmtMo}
