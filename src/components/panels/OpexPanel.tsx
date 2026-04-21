@@ -8,6 +8,7 @@ import SliderRow, { DerivedRow } from '../SliderRow';
 interface Props {
   inputs: ModelInputs;
   onChange: (next: ModelInputs) => void;
+  isRichmond?: boolean;
 }
 
 const fmt$ = (v: number) => '$' + v.toLocaleString();
@@ -39,7 +40,7 @@ function ReadonlyLine({ label, value }: { label: string; value: string }) {
   );
 }
 
-export default function OpexPanel({ inputs, onChange }: Props) {
+export default function OpexPanel({ inputs, onChange, isRichmond = false }: Props) {
   const [vendorUtilsOpen, setVendorUtilsOpen] = useState(false);
   const [commonUtilsOpen, setCommonUtilsOpen] = useState(false);
   const [nonUtilsOpen, setNonUtilsOpen] = useState(false);
@@ -177,14 +178,16 @@ export default function OpexPanel({ inputs, onChange }: Props) {
           format={fmt$}
           onChange={v => set('salaryBase', v)}
         />
-        <SliderRow
-          label="Salary Increment"
-          sublabel="per extra location"
-          value={inputs.salaryStep}
-          min={0} max={50_000} step={2_500}
-          format={fmt$}
-          onChange={v => set('salaryStep', v)}
-        />
+        {!isRichmond && (
+          <SliderRow
+            label="Salary Increment"
+            sublabel="per extra location"
+            value={inputs.salaryStep}
+            min={0} max={50_000} step={2_500}
+            format={fmt$}
+            onChange={v => set('salaryStep', v)}
+          />
+        )}
         <SliderRow
           label="Operator Profit Share"
           value={inputs.profitSharePct}

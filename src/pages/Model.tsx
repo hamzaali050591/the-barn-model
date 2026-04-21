@@ -13,6 +13,7 @@ import CapitalStackPanel from '../components/panels/CapitalStackPanel';
 import RevenuePanel from '../components/panels/RevenuePanel';
 import OpexPanel from '../components/panels/OpexPanel';
 import InvestorPanel from '../components/panels/InvestorPanel';
+import RichmondDealTermsPanel from '../components/panels/RichmondDealTermsPanel';
 
 type ViewMode = 'richmond' | 'portfolio';
 
@@ -21,8 +22,8 @@ export default function Model() {
   const [viewMode, setViewMode] = useState<ViewMode>('richmond');
   const revealRef = useReveal();
 
-  // Richmond mode overrides: 1 location, hold period adjustable (24 or 48 months)
-  const [richmondHold, setRichmondHold] = useState<24 | 48>(48);
+  // Richmond mode overrides: 1 location; hold period adjustable via panel slider
+  const [richmondHold, setRichmondHold] = useState<number>(48);
 
   const activeInputs = useMemo(() => {
     if (viewMode === 'richmond') {
@@ -76,31 +77,6 @@ export default function Model() {
           </div>
         </div>
 
-        {/* Richmond hold period toggle */}
-        {isRichmond && (
-          <div className="flex items-center gap-3 mb-6">
-            <span className="text-xs font-medium text-walnut-light">Exit horizon:</span>
-            <div className="flex gap-1 p-0.5 bg-cream border border-walnut/15 rounded-lg">
-              {([24, 48] as const).map(m => (
-                <button
-                  key={m}
-                  onClick={() => setRichmondHold(m)}
-                  className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                    richmondHold === m
-                      ? 'bg-honey text-white shadow-sm shadow-honey/30'
-                      : 'text-walnut-light hover:text-walnut'
-                  }`}
-                >
-                  {m / 12}-Year Exit
-                </button>
-              ))}
-            </div>
-            <span className="text-xs text-walnut-light">
-              {fmtDollarFull(results.totalEquity)} equity &middot; {activeInputs.holdMonths / 12}yr hold
-            </span>
-          </div>
-        )}
-
         {/* KPI cards */}
         <section className="mb-6 md:mb-8">
           <KPICards results={results} />
@@ -129,15 +105,18 @@ export default function Model() {
               Adjust any bar to see KPIs update live
             </span>
           </div>
-          <div className={`grid gap-4 md:gap-5 ${
-            isRichmond
-              ? 'grid-cols-1 md:grid-cols-3'
-              : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-4'
-          }`}>
+          <div className="grid gap-4 md:gap-5 grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
             <CapitalStackPanel inputs={inputs} onChange={setInputs} />
             <RevenuePanel inputs={inputs} onChange={setInputs} />
-            <OpexPanel inputs={inputs} onChange={setInputs} />
-            {!isRichmond && (
+            <OpexPanel inputs={inputs} onChange={setInputs} isRichmond={isRichmond} />
+            {isRichmond ? (
+              <RichmondDealTermsPanel
+                inputs={inputs}
+                onChange={setInputs}
+                holdMonths={richmondHold}
+                onHoldChange={setRichmondHold}
+              />
+            ) : (
               <InvestorPanel inputs={inputs} onChange={setInputs} />
             )}
           </div>
