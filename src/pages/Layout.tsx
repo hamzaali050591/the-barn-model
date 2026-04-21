@@ -2,6 +2,8 @@ import { useState } from 'react';
 import NavBar from '../components/NavBar';
 import { useReveal } from '../utils/useReveal';
 
+type Version = 'v1' | 'v2';
+
 interface Zone {
   name: string;
   sqft: number;
@@ -11,281 +13,533 @@ interface Zone {
   details?: string[];
 }
 
-const zones: Zone[] = [
+interface VersionSpec {
+  label: string;
+  shortLabel: string;
+  tagline: string;
+  dims: string;
+  totalSqft: number;
+  zones: Zone[];
+}
+
+const V1_TOTAL = 9180;
+const V2_TOTAL = 14500;
+
+const pct = (sf: number, total: number) => Math.round((sf / total) * 1000) / 10;
+
+const v1Zones: Zone[] = [
   {
-    name: 'Vendor Stalls',
-    sqft: 2960,
-    pct: 29.6,
+    name: 'Food Stall Row (8 stalls)',
+    sqft: 2240,
+    pct: pct(2240, V1_TOTAL),
     color: 'bg-honey',
-    description: '8 food (280sf) + 1 health bar (280sf) + 1 desserts (220sf) + 1 drinks (220sf)',
+    description: '8 stalls @ 10ft × 28ft = 280sf each, single linear row along core wall',
     details: [
-      'Food vendors (F1-F8): 280sf each — front half operating, back half storage behind internal wall',
-      'Health bar: 280sf — long-format counter, customer-facing from multiple sides, no back storage',
-      'Desserts & Drinks: 220sf each — compact counters, lighter operational footprint',
-      'Positioned in center core for equal visibility and natural browsing loop',
+      'Row footprint: 80ft × 28ft = 2,240sf, runs north–south along the core wall',
+      'Internal geometry: 8ft hood-covered cooking zone at back (against core) + 2ft flanking prep = 10ft wide',
+      'Cooking line at back, prep middle, customer counter at front (facing west into the hall)',
+      'Continuous shared hood — UL 300 fire suppression per-stall nozzle zones + auto gas shut-off',
+      'Hood exhaust vents UP through central TPO roof zone (shortest possible duct run)',
+      '"Heavy Warm minus Refrigeration" buildout: prep counter, 3-comp sink, hand sink, floor drains, FRP walls — vendor brings cooking + refrigeration',
     ],
   },
   {
-    name: 'Seating (160 seats)',
-    sqft: 1750,
-    pct: 17.5,
-    color: 'bg-sage',
-    description: 'Counter stools, communal farm tables, family tables',
-    details: [
-      'Counter seating: 60 seats along floor-to-ceiling windows (both side walls), ~6.7sf/seat',
-      'Communal farm tables: 50 seats — solid walnut, matte black hairpin legs, 8-10 per table, ~13sf/seat',
-      'Family tables: 50 seats — 4-tops & 6-tops, positioned near kids zone, ~14sf/seat',
-    ],
-  },
-  {
-    name: 'Circulation & Walkways',
-    sqft: 1700,
-    pct: 17.0,
-    color: 'bg-walnut/40',
-    description: 'Main aisles, vendor queue space, general flow',
-    details: [
-      'Main aisles between vendor core & seating: 700sf',
-      'Vendor queue / ordering space: 500sf',
-      'Secondary circulation between seating zones: 500sf',
-    ],
-  },
-  {
-    name: 'Multi-Purpose Turf Zone',
-    sqft: 1250,
-    pct: 12.5,
+    name: 'Non-Cooking Kiosks (4)',
+    sqft: 940,
+    pct: pct(940, V1_TOTAL),
     color: 'bg-terracotta',
-    description: 'Live music, pop-ups, yoga, kids activities, community events',
+    description: 'Health bar + coffee + 2 dessert — distributed through gathering zone',
     details: [
-      'Artificial turf flooring — zero permanent fixtures',
-      'Friday: Live music with removable stage',
-      'Saturday: Yoga and wellness classes',
-      'Sunday: Local artisan pop-up market',
-      'Weekdays: Trivia, game nights, community events',
+      'Health bar: 280sf single-sided kiosk — Bucket 3 Heavy Warm (hand sink + 3-comp + floor drain)',
+      'Coffee / drinks: 220sf single-sided kiosk — Bucket 3 Heavy Warm',
+      'Dessert #1: 220sf fully open island (counter all sides) — Bucket 2 Medium Warm',
+      'Dessert #2: 220sf fully open island — Bucket 2 Medium Warm',
+      'No gas, no hood, no fire suppression on kiosks — electrical + water + waste drain only',
+      'Distributed through the western gathering zone as visual anchors — NOT placed against core wall',
     ],
   },
   {
-    name: 'Kids Play Zone',
+    name: 'Gathering / Dining / Common',
+    sqft: 4700,
+    pct: pct(4700, V1_TOTAL),
+    color: 'bg-sage',
+    description: 'Communal farm tables, family tables, high-tops, lounge zones — windows on 3 sides',
+    details: [
+      'Communal farm tables (signature) — solid walnut, matte black hairpin legs, 8–10 seats each',
+      'Family tables — 4-tops and 6-tops scattered near windows',
+      'High-top counter seating along the west, north, and south window walls',
+      'Lounge / living-room style seating in corners near window views',
+      'Warm amber lighting throughout — Edison string lights, warm pendants, LED counter strips',
+    ],
+  },
+  {
+    name: 'Circulation + BOH',
     sqft: 800,
-    pct: 8.0,
-    color: 'bg-sage/70',
-    description: 'Sandbox, turf area, toddler play — visible from work counter',
+    pct: pct(800, V1_TOTAL),
+    color: 'bg-walnut/40',
+    description: 'Aisles, queue space, back-of-house receiving, light storage',
     details: [
-      'Large sandbox: 350sf — centerpiece of kids zone',
-      'Turf / green play area: 300sf — soft turf for toddlers',
-      'Low climbing / activity features: 150sf — age-appropriate structures',
-      'Direct sightline from work/coffee counter for parents',
+      'Main aisle running parallel to the food row — generous queue depth',
+      'Secondary circulation through the gathering zone',
+      'Back-of-house receiving / light storage adjacent to core',
     ],
   },
   {
-    name: 'Restrooms + Admin',
-    sqft: 580,
-    pct: 5.8,
+    name: 'Restrooms (ADA)',
+    sqft: 500,
+    pct: pct(500, V1_TOTAL),
     color: 'bg-walnut/30',
-    description: "Men's, women's, family/accessible, admin/storage office",
+    description: "Men's, women's, family/accessible — adjacent to core",
     details: [
-      "Women's: 200sf (4 stalls + sinks)",
-      "Men's: 160sf (2 stalls + 2 urinals + sinks)",
-      'Family/accessible: 70sf (single room, changing table, ADA)',
-      'Admin office/storage: 150sf',
-    ],
-  },
-  {
-    name: 'Work / Coffee Counter',
-    sqft: 400,
-    pct: 4.0,
-    color: 'bg-honey/60',
-    description: 'Laptop-ready counter with outlets, bordering kids zone',
-    details: [
-      'Long walnut counter, individual seats with backs',
-      'Power outlet at every spot — accommodates 15-20 laptop users',
-      'Intentionally positioned bordering kids zone for parent sightlines',
-      'Core differentiator: dedicated parent-work / kids-play combo',
+      "Women's restroom (ADA)",
+      "Men's restroom (ADA)",
+      'Family / accessible restroom',
+      'Preliminary figure — confirm against final schematic design',
     ],
   },
   {
     name: 'Feature Wall',
-    sqft: 200,
-    pct: 2.0,
+    sqft: null as unknown as number,
+    pct: 0,
     color: 'bg-terracotta/60',
-    description: 'Herringbone wood, neon sign, greenery, photo bench',
+    description: 'Herringbone wood · dimensional Barn logo · "Everybody\'s Welcome" neon · greenery — at entry',
     details: [
-      '~14\' wide x 14\' deep — first thing every guest sees',
-      'Herringbone walnut chevron backdrop',
+      'Herringbone walnut backdrop',
       '"Everybody\'s Welcome" neon sign in warm honey/cream glow',
       'Flanking vertical greenery panels',
-      'Photo bench seats 4-5 people — social sharing engine',
+      'Photo-op destination — absorbed within gathering zone footprint',
+    ],
+  },
+];
+
+const v2Zones: Zone[] = [
+  {
+    name: 'Food Stall Rows — Mirrored (16 stalls)',
+    sqft: 4480,
+    pct: pct(4480, V2_TOTAL),
+    color: 'bg-honey',
+    description: 'Two islands of 8 stalls each, flanking the central core — mirrored Path A',
+    details: [
+      'Left island: 8 stalls along WEST face of core wall (F1L–F8L)',
+      'Right island: 8 stalls along EAST face of core wall (F1R–F8R)',
+      'Each stall identical to V1: 10ft × 28ft = 280sf',
+      'Each row: 80ft × 28ft = 2,240sf — combined 4,480sf',
+      'Two separate shared hood systems — both vent through central TPO roof zone',
+      'Two UL 300 fire suppression systems — one per island',
     ],
   },
   {
-    name: 'Buffer (Unallocated)',
-    sqft: 360,
-    pct: 3.6,
-    color: 'bg-cream border border-walnut/20',
-    description: 'Absorbed into wider walkways or zones during build',
+    name: 'Non-Cooking Kiosks (6 approx.)',
+    sqft: 1440,
+    pct: pct(1440, V2_TOTAL),
+    color: 'bg-terracotta',
+    description: 'Expanded preliminary program — split across both zones',
+    details: [
+      'Health bar (280sf) — Bucket 3',
+      'Coffee / drinks (220sf) — Bucket 3',
+      '3 dessert kiosks @ 220sf each — Bucket 2 (fully open islands)',
+      'Specialty kiosk option (200–280sf) — juice bar / bakery / TBD, Bucket 2/3',
+      'Distributed across both zones so each side has its own food + kiosk mix',
+    ],
+  },
+  {
+    name: 'Gathering / Dining / Common',
+    sqft: 6280,
+    pct: pct(6280, V2_TOTAL),
+    color: 'bg-sage',
+    description: 'Gathering opens outward to all 4 window walls — two halls flanking the core',
+    details: [
+      'Left gathering zone opens to west, north, south windows',
+      'Right gathering zone opens to east, north, south windows',
+      'Signature communal farm tables, family tables, high-tops, lounge nooks on both sides',
+      'Warm amber lighting — Edison string lights across both halls',
+    ],
+  },
+  {
+    name: 'Circulation + BOH',
+    sqft: 1500,
+    pct: pct(1500, V2_TOTAL),
+    color: 'bg-walnut/40',
+    description: 'Expanded — aisles on both sides + shared BOH / receiving at core',
+    details: [
+      'Dedicated aisle per island parallel to each food row',
+      'Shared BOH / receiving adjacent to the central core',
+      'Secondary circulation between gathering zones',
+    ],
+  },
+  {
+    name: 'Restrooms (both zones)',
+    sqft: 800,
+    pct: pct(800, V2_TOTAL),
+    color: 'bg-walnut/30',
+    description: 'Two restroom cores — one per zone — adjacent to central core',
+    details: [
+      "Left zone: men's, women's, family/accessible",
+      "Right zone: men's, women's, family/accessible",
+      'Preliminary figures — confirm against final schematic design',
+    ],
   },
 ];
+
+const versions: Record<Version, VersionSpec> = {
+  v1: {
+    label: 'Version 1 — 10K Left Zone (PRIMARY)',
+    shortLabel: 'V1 · Left Zone',
+    tagline:
+      'Left zone of Level 2 only. Path A: single row of 8 food stalls along the core wall; gathering opens west to three window walls. Basis for the Richmond deal + first SOW.',
+    dims: '~9,180 sq ft · Left zone of Level 2 · ~102ft × 90ft',
+    totalSqft: V1_TOTAL,
+    zones: v1Zones,
+  },
+  v2: {
+    label: 'Version 2 — Full L2 (~14,500+ sf)',
+    shortLabel: 'V2 · Full Space',
+    tagline:
+      'Full Level 2 — both zones flanking the central core. Mirrored Path A: two food islands, 16 stalls, expanded 6-kiosk program. Larger proposal for the DPEG pitch.',
+    dims: '~14,500 sq ft · Full Level 2 · ~196ft × 90ft',
+    totalSqft: V2_TOTAL,
+    zones: v2Zones,
+  },
+};
 
 const designDecisions = [
   {
-    q: 'Why vendors are in the center core',
-    a: 'Most food halls put vendors on perimeter walls. The Barn flips that — the left and right walls have floor-to-ceiling windows with views. That\'s premium real estate for guests, not kitchens. Center placement gives every stall equal visibility and lets guests browse in a natural loop.',
+    q: 'Why the food row is anchored to the core wall (Path A)',
+    a: 'Every perimeter wall on Level 2 is storefront glazing — there are no solid exterior walls. The core wall is the only non-window interior wall in each zone. Placing the cooking line against the core puts every stall within feet of the plumbing stubs (2″ CW + 4″ Waste + 4″ Vent per zone), seconds from the Mech/Elec room, and directly under the central TPO flat-roof zone where hood exhaust MUST penetrate. Any other placement lengthens MEP runs and blocks premium window views for guests.',
   },
   {
-    q: 'Why counter seating faces the windows',
-    a: 'Natural light and views make this 2nd-floor location special. Counter seating along windows is the most space-efficient way to give 60 guests access to the premium experience while creating visual rhythm from outside.',
+    q: 'Why hood exhaust only penetrates the central TPO roof zone',
+    a: 'The Level 2 roof is dual-material: sloped standing-seam metal on the long sides, and flat TPO membrane in the center above the mechanical area. The sloped metal cannot be penetrated without major complications and warranty risk, so every hood stack has to land in the central TPO zone. That constraint alone is enough to lock the food row to the core wall.',
   },
   {
-    q: 'Why the work counter borders the kids zone',
-    a: 'Intentional parent-child sightline design. A parent at the work counter can see their kids playing in the sandbox. No other food hall in suburban Texas offers this. It turns a 45-minute lunch into a 2-hour stay.',
+    q: 'Why "Heavy Warm minus Refrigeration" is the buildout package',
+    a: 'The Barn delivers the heavy, infrastructure-locked stuff — stud framing, hood + fire suppression, FRP walls, floor drains, 3-comp + hand sinks, utility stub-outs sized for 4 equipment connections per stall — and the vendor brings their cooking equipment and their choice of refrigeration (under-counter, reach-in, or walk-in). It lowers our per-stall CapEx, gives each vendor creative room on their equipment spec, and avoids over-building for the wrong cuisine.',
   },
   {
-    q: 'Why the turf zone has no permanent fixtures',
-    a: 'Maximum flexibility. The same 1,250sf hosts live music Friday night, yoga Saturday morning, and a pop-up market Sunday. Modular design means the space reinvents itself constantly — always a reason to come back.',
+    q: 'Why kiosks are NOT placed against the core wall',
+    a: 'Kiosks have no gas, no hood, and no fire suppression — they do not need the core-wall MEP cluster. Placing them in the western gathering zone (V1) or across both halls (V2) turns them into visual anchors that pull guests through the space and create natural activation points between the signature farm tables and the food row.',
   },
   {
-    q: 'Why the feature wall is at the entry',
-    a: 'First impression and last memory. The warm neon glow of "Everybody\'s Welcome" sets the tone immediately. The photo bench generates organic social sharing — brand marketing that costs nothing after installation.',
+    q: 'Why we are proposing two versions',
+    a: 'Version 1 is the primary scope — the Richmond deal, the first SOW, and the CapEx model are all built around ~9,180 sf in the left zone. Version 2 is the mirrored full-L2 proposal for the pitch conversation with DPEG: same DNA, doubled. Keeping both in the package lets us move fast on V1 while keeping V2 on the table.',
+  },
+  {
+    q: 'Why the gas service upgrade is the #1 critical-path item',
+    a: 'Current Building F gas service per P02.F00 is 7,000 CFH total at 5 PSI for all tenants. The Barn alone needs 32,000–35,000 CFH peak (V1) or 64,000–70,000 CFH (V2). DPEG has confirmed CenterPoint can deliver the upgrade, but utility scheduling has long lead times. If we don\'t book the upgrade early in Discovery/Design, permits will hold.',
   },
 ];
 
+function InfoBadge({ text, tone = 'honey' as 'honey' | 'terracotta' | 'sage' }: { text: string; tone?: 'honey' | 'terracotta' | 'sage' }) {
+  const toneMap = {
+    honey: 'bg-honey/15 border-honey/30 text-walnut',
+    terracotta: 'bg-terracotta/15 border-terracotta/30 text-walnut',
+    sage: 'bg-sage/15 border-sage/30 text-walnut',
+  };
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-semibold ${toneMap[tone]}`}>
+      {text}
+    </span>
+  );
+}
+
+function GasFlagCallout() {
+  return (
+    <div className="rounded-2xl border border-terracotta/40 bg-terracotta/10 p-4 md:p-5">
+      <div className="flex items-start gap-3">
+        <div className="text-terracotta text-xl leading-none">▲</div>
+        <div>
+          <div className="font-bold text-walnut text-sm mb-1">
+            CRITICAL INFRASTRUCTURE — Gas Service Upgrade Required
+          </div>
+          <p className="text-xs text-walnut-light leading-relaxed">
+            Per P02.F00, current Bldg F gas service is <span className="font-semibold text-walnut">7,000 CFH @ 5 PSI</span> for all tenants.
+            The Barn peak load estimate: <span className="font-semibold text-walnut">32,000–35,000 CFH</span> (V1, 8 stalls) or{' '}
+            <span className="font-semibold text-walnut">64,000–70,000 CFH</span> (V2, 16 stalls).
+            CenterPoint upgrade is <span className="font-semibold text-walnut">confirmed available by DPEG</span> — budget, lead time, and utility
+            coordination to be finalized during Discovery/Design. Must be scheduled early to avoid holding buildout permits.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ShellContextCard() {
+  return (
+    <div className="glass rounded-2xl p-4 md:p-6">
+      <h2 className="text-lg font-bold text-walnut mb-3">Building Context — Shell Conditions</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-walnut-light leading-relaxed">
+        <ul className="space-y-1.5">
+          <li><span className="text-walnut font-semibold">Building F Level 2:</span> ~196ft × ~90ft ≈ 17,640 sf gross</li>
+          <li><span className="text-walnut font-semibold">Split:</span> two zones separated by central core (~30ft × 30ft)</li>
+          <li><span className="text-walnut font-semibold">Left zone:</span> ~102ft × 90ft ≈ 9,180 sf (V1 scope)</li>
+          <li><span className="text-walnut font-semibold">Right zone:</span> ~85ft × 90ft ≈ 7,650 sf</li>
+          <li><span className="text-walnut font-semibold">Column grid:</span> F.1–F.8 east–west at ~28ft bay spacing (F.5 in core)</li>
+        </ul>
+        <ul className="space-y-1.5">
+          <li><span className="text-walnut font-semibold">Glazing:</span> all 4 perimeter sides — NO solid exterior walls</li>
+          <li><span className="text-walnut font-semibold">Core wall:</span> only solid interior wall — all cooking lines anchor here</li>
+          <li><span className="text-walnut font-semibold">Ceiling:</span> exposed wood trusses (preserved — "elevated barn")</li>
+          <li><span className="text-walnut font-semibold">Roof:</span> sloped standing-seam metal long sides + central flat TPO (only valid penetration zone)</li>
+          <li><span className="text-walnut font-semibold">Terraces:</span> notched corners with outdoor setbacks</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+function StallCell({ label, kind = 'food' as 'food' | 'kiosk-h' | 'kiosk-m' | 'core' }: { label: string; kind?: 'food' | 'kiosk-h' | 'kiosk-m' | 'core' }) {
+  const map = {
+    food: 'bg-honey/25 border-honey/40 text-walnut',
+    'kiosk-h': 'bg-terracotta/20 border-terracotta/40 text-walnut',
+    'kiosk-m': 'bg-sage/20 border-sage/40 text-walnut',
+    core: 'bg-walnut/20 border-walnut/40 text-walnut',
+  };
+  return (
+    <div className={`rounded border px-1 py-1 text-center font-bold text-[10px] ${map[kind]}`}>
+      {label}
+    </div>
+  );
+}
+
+function V1FloorPlan() {
+  return (
+    <div className="bg-cream rounded-xl border border-walnut/10 p-3 md:p-5 font-mono text-[10px] md:text-xs leading-relaxed overflow-x-auto">
+      <div className="min-w-[520px]">
+        <div className="text-center text-[9px] text-walnut-light mb-1">■ WINDOWS (North) ■</div>
+
+        <div className="flex gap-2 items-stretch">
+          {/* Left gathering zone — 75% */}
+          <div className="flex-[3] flex flex-col gap-2">
+            {/* Window callout west */}
+            <div className="text-[9px] text-walnut-light text-center">■ WINDOWS (West) ■</div>
+
+            {/* Gathering area — communal tables */}
+            <div className="bg-sage/15 border border-sage/25 rounded-lg p-3 flex-1">
+              <div className="font-bold text-walnut text-center mb-1">GATHERING / DINING</div>
+              <div className="text-center text-[9px] text-walnut-light mb-2">~4,700 sf · 51% · communal farm tables · family tables · high-tops · lounge</div>
+              <div className="grid grid-cols-4 gap-1.5">
+                <StallCell label="HB 280sf" kind="kiosk-h" />
+                <StallCell label="C 220sf" kind="kiosk-h" />
+                <div />
+                <StallCell label="D1 220sf" kind="kiosk-m" />
+                <div />
+                <div />
+                <div />
+                <StallCell label="D2 220sf" kind="kiosk-m" />
+              </div>
+              <div className="text-center text-[9px] text-walnut-light mt-2">Kiosks distributed through gathering zone — NOT on core wall</div>
+            </div>
+
+            <div className="flex gap-2">
+              <div className="flex-1 bg-walnut/10 border border-walnut/20 rounded-lg p-2 text-center">
+                <div className="font-bold text-walnut text-[10px]">FEATURE WALL</div>
+                <div className="text-walnut-light text-[9px]">Herringbone · Neon · Greenery</div>
+              </div>
+              <div className="flex-1 bg-walnut/10 border border-walnut/20 rounded-lg p-2 text-center">
+                <div className="font-bold text-walnut text-[10px]">RESTROOMS ~500sf</div>
+                <div className="text-walnut-light text-[9px]">M / W / Family (ADA)</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Food row against core wall */}
+          <div className="w-24 md:w-28 bg-honey/10 border border-honey/30 rounded-lg p-1.5">
+            <div className="text-center font-bold text-walnut text-[9px] mb-1">FOOD ROW</div>
+            <div className="text-center text-[8px] text-walnut-light mb-1">80ft × 28ft · 2,240sf</div>
+            <div className="flex flex-col gap-1">
+              {['F1','F2','F3','F4','F5','F6','F7','F8'].map(v => (
+                <StallCell key={v} label={`${v} 280sf`} kind="food" />
+              ))}
+            </div>
+            <div className="text-center text-[8px] text-walnut-light mt-1">hood ↑ TPO</div>
+          </div>
+
+          {/* Core wall */}
+          <div className="w-6 md:w-8 bg-walnut/30 rounded flex items-center justify-center">
+            <div className="text-[8px] text-cream font-bold rotate-90 whitespace-nowrap">CORE WALL</div>
+          </div>
+        </div>
+
+        <div className="text-center text-[9px] text-walnut-light mt-2">■ WINDOWS (South) ■</div>
+
+        <div className="flex justify-center mt-2">
+          <div className="px-4 py-1 bg-terracotta/15 border border-terracotta/30 rounded-full text-walnut font-bold text-[10px]">
+            ▲ ENTRY ▲
+          </div>
+        </div>
+
+        <div className="mt-3 text-[9px] text-walnut-light flex flex-wrap gap-3 justify-center">
+          <span>◾ Core wall = only non-window wall · anchor for MEP + hood exhaust</span>
+          <span>◾ Hood vents through central TPO roof zone above core</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function V2FloorPlan() {
+  return (
+    <div className="bg-cream rounded-xl border border-walnut/10 p-3 md:p-5 font-mono text-[10px] md:text-xs leading-relaxed overflow-x-auto">
+      <div className="min-w-[700px]">
+        <div className="text-center text-[9px] text-walnut-light mb-1">■ WINDOWS (North) ■</div>
+
+        <div className="flex gap-1 items-stretch">
+          <div className="text-[9px] text-walnut-light self-center rotate-180 [writing-mode:vertical-rl]">■ WINDOWS ■</div>
+
+          {/* Left gathering */}
+          <div className="flex-1 flex flex-col gap-2">
+            <div className="bg-sage/15 border border-sage/25 rounded-lg p-2 flex-1">
+              <div className="font-bold text-walnut text-center text-[10px]">LEFT GATHERING</div>
+              <div className="text-center text-[9px] text-walnut-light mb-2">~3,140sf · communal · family · lounge</div>
+              <div className="grid grid-cols-2 gap-1">
+                <StallCell label="HB 280sf" kind="kiosk-h" />
+                <StallCell label="D1 220sf" kind="kiosk-m" />
+              </div>
+            </div>
+            <div className="bg-walnut/10 border border-walnut/20 rounded p-1.5 text-center">
+              <div className="font-bold text-walnut text-[9px]">L-RR ~400sf</div>
+            </div>
+          </div>
+
+          {/* Left food island */}
+          <div className="w-24 bg-honey/10 border border-honey/30 rounded-lg p-1.5">
+            <div className="text-center font-bold text-walnut text-[9px] mb-1">LEFT ISLAND</div>
+            <div className="text-center text-[8px] text-walnut-light mb-1">8 × 280sf</div>
+            <div className="flex flex-col gap-1">
+              {['F1L','F2L','F3L','F4L','F5L','F6L','F7L','F8L'].map(v => (
+                <StallCell key={v} label={v} kind="food" />
+              ))}
+            </div>
+          </div>
+
+          {/* Core */}
+          <div className="w-16 bg-walnut/30 border border-walnut/40 rounded flex flex-col items-center justify-center p-1">
+            <div className="text-[9px] text-cream font-bold text-center leading-tight">CORE</div>
+            <div className="text-[8px] text-cream/80 text-center leading-tight mt-1">Mech · Elev · Stairs</div>
+            <div className="text-[8px] text-cream/80 text-center leading-tight mt-1">↑ TPO hood zone</div>
+          </div>
+
+          {/* Right food island */}
+          <div className="w-24 bg-honey/10 border border-honey/30 rounded-lg p-1.5">
+            <div className="text-center font-bold text-walnut text-[9px] mb-1">RIGHT ISLAND</div>
+            <div className="text-center text-[8px] text-walnut-light mb-1">8 × 280sf</div>
+            <div className="flex flex-col gap-1">
+              {['F1R','F2R','F3R','F4R','F5R','F6R','F7R','F8R'].map(v => (
+                <StallCell key={v} label={v} kind="food" />
+              ))}
+            </div>
+          </div>
+
+          {/* Right gathering */}
+          <div className="flex-1 flex flex-col gap-2">
+            <div className="bg-sage/15 border border-sage/25 rounded-lg p-2 flex-1">
+              <div className="font-bold text-walnut text-center text-[10px]">RIGHT GATHERING</div>
+              <div className="text-center text-[9px] text-walnut-light mb-2">~3,140sf · communal · family · lounge</div>
+              <div className="grid grid-cols-2 gap-1">
+                <StallCell label="C 220sf" kind="kiosk-h" />
+                <StallCell label="D2 220sf" kind="kiosk-m" />
+                <StallCell label="D3 220sf" kind="kiosk-m" />
+                <StallCell label="SP TBD" kind="kiosk-m" />
+              </div>
+            </div>
+            <div className="bg-walnut/10 border border-walnut/20 rounded p-1.5 text-center">
+              <div className="font-bold text-walnut text-[9px]">R-RR ~400sf</div>
+            </div>
+          </div>
+
+          <div className="text-[9px] text-walnut-light self-center [writing-mode:vertical-rl]">■ WINDOWS ■</div>
+        </div>
+
+        <div className="text-center text-[9px] text-walnut-light mt-2">■ WINDOWS (South) ■</div>
+
+        <div className="mt-3 text-[9px] text-walnut-light text-center">
+          Mirrored Path A — 16 food stalls + 6 kiosks · two hood systems converge on central TPO roof zone
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function LayoutPage() {
+  const [version, setVersion] = useState<Version>('v1');
   const [expandedZone, setExpandedZone] = useState<number | null>(null);
   const [showDecisions, setShowDecisions] = useState(false);
   const revealRef = useReveal();
+
+  const spec = versions[version];
+  const displayZones = spec.zones.filter(z => z.sqft);
 
   return (
     <div className="min-h-screen bg-cream" ref={revealRef}>
       <NavBar current="/layout" />
 
       <main className="max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-10">
-        <div className="mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-walnut">Space Layout & Specifications</h1>
-          <p className="text-walnut-light text-sm mt-1">10,000 sq ft &middot; 2nd Floor &middot; 125ft (W) x 80ft (D)</p>
-        </div>
-
-        {/* Floor Plan Schematic */}
-        <section className="mb-8">
-          <div className="glass rounded-2xl p-4 md:p-6">
-            <h2 className="text-lg font-bold text-walnut mb-4">Floor Plan</h2>
-            <div className="bg-cream rounded-xl border border-walnut/10 p-3 md:p-5 font-mono text-[10px] md:text-xs leading-relaxed overflow-x-auto">
-              <div className="min-w-[500px]">
-                {/* Top row */}
-                <div className="flex gap-2 mb-2">
-                  <div className="flex-1 bg-terracotta/20 border border-terracotta/30 rounded-lg p-2 text-center">
-                    <div className="font-bold text-walnut">MULTI-PURPOSE TURF ZONE</div>
-                    <div className="text-walnut-light">1,250 sf</div>
-                  </div>
-                  <div className="w-24 bg-walnut/10 border border-walnut/20 rounded-lg p-2 text-center">
-                    <div className="font-bold text-walnut text-[9px]">RESTROOMS + ADMIN</div>
-                    <div className="text-walnut-light">580 sf</div>
-                  </div>
-                  <div className="flex-1 bg-sage/20 border border-sage/30 rounded-lg p-2 text-center">
-                    <div className="font-bold text-walnut">KIDS PLAY ZONE</div>
-                    <div className="text-walnut-light">800 sf</div>
-                  </div>
-                </div>
-
-                {/* Work counter */}
-                <div className="flex mb-2">
-                  <div className="flex-1"></div>
-                  <div className="w-2/3 bg-honey/15 border border-honey/30 rounded-lg p-1.5 text-center">
-                    <span className="font-bold text-walnut">WORK / COFFEE COUNTER</span>
-                    <span className="text-walnut-light ml-2">400 sf</span>
-                    <span className="text-walnut-light ml-2 text-[9px]">← sightline to kids zone →</span>
-                  </div>
-                  <div className="flex-1"></div>
-                </div>
-
-                {/* Vendor core + seating */}
-                <div className="flex gap-2 mb-2">
-                  {/* Left seating */}
-                  <div className="w-28 flex flex-col gap-1">
-                    <div className="text-[8px] text-walnut-light text-center">■ WINDOWS ■</div>
-                    <div className="bg-sage/15 border border-sage/20 rounded-lg p-2 text-center flex-1">
-                      <div className="font-bold text-walnut text-[9px]">COMMUNAL FARM TABLES</div>
-                      <div className="text-walnut-light">50 seats</div>
-                      <div className="text-walnut-light">650 sf</div>
-                    </div>
-                    <div className="bg-walnut/5 border border-walnut/10 rounded p-1 text-center">
-                      <div className="text-[9px] text-walnut">COUNTER</div>
-                      <div className="text-walnut-light">30 seats</div>
-                    </div>
-                  </div>
-
-                  {/* Vendor core */}
-                  <div className="flex-1 bg-honey/10 border border-honey/20 rounded-xl p-2">
-                    <div className="text-center font-bold text-walnut mb-1">VENDOR CORE — 2,960 sf</div>
-                    <div className="text-center text-[9px] text-walnut-light mb-1">Back row (storage side)</div>
-                    <div className="grid grid-cols-4 gap-1 mb-1">
-                      {['F1','F2','F3','F4'].map(v => (
-                        <div key={v} className="bg-honey/20 border border-honey/30 rounded p-1 text-center">
-                          <div className="font-bold text-walnut">{v}</div>
-                          <div className="text-[9px] text-walnut-light">280sf</div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="text-center text-[9px] text-walnut-light my-0.5">■■ central aisle ■■</div>
-                    <div className="grid grid-cols-4 gap-1 mb-1">
-                      {['F5','F6','F7','F8'].map(v => (
-                        <div key={v} className="bg-honey/20 border border-honey/30 rounded p-1 text-center">
-                          <div className="font-bold text-walnut">{v}</div>
-                          <div className="text-[9px] text-walnut-light">280sf</div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="text-center text-[9px] text-walnut-light mb-1">Front row (customer-facing)</div>
-                    <div className="grid grid-cols-3 gap-1">
-                      <div className="bg-terracotta/15 border border-terracotta/25 rounded p-1 text-center">
-                        <div className="font-bold text-walnut">HB</div>
-                        <div className="text-[9px] text-walnut-light">280sf</div>
-                      </div>
-                      <div className="bg-terracotta/15 border border-terracotta/25 rounded p-1 text-center">
-                        <div className="font-bold text-walnut">DS</div>
-                        <div className="text-[9px] text-walnut-light">220sf</div>
-                      </div>
-                      <div className="bg-terracotta/15 border border-terracotta/25 rounded p-1 text-center">
-                        <div className="font-bold text-walnut">DR</div>
-                        <div className="text-[9px] text-walnut-light">220sf</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right seating */}
-                  <div className="w-28 flex flex-col gap-1">
-                    <div className="text-[8px] text-walnut-light text-center">■ WINDOWS ■</div>
-                    <div className="bg-sage/15 border border-sage/20 rounded-lg p-2 text-center flex-1">
-                      <div className="font-bold text-walnut text-[9px]">FAMILY TABLES</div>
-                      <div className="text-walnut-light">50 seats</div>
-                      <div className="text-walnut-light">700 sf</div>
-                    </div>
-                    <div className="bg-walnut/5 border border-walnut/10 rounded p-1 text-center">
-                      <div className="text-[9px] text-walnut">COUNTER</div>
-                      <div className="text-walnut-light">30 seats</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Feature wall + entry */}
-                <div className="flex justify-center mb-1">
-                  <div className="w-48 bg-terracotta/15 border border-terracotta/25 rounded-lg p-2 text-center">
-                    <div className="font-bold text-walnut">FEATURE WALL</div>
-                    <div className="text-walnut-light text-[9px]">"Everybody's Welcome" — 200 sf</div>
-                  </div>
-                </div>
-                <div className="text-center font-bold text-walnut">▲ ENTRY ▲</div>
+        {/* Header */}
+        <div className="mb-6">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-walnut">Space Layout & Specifications</h1>
+              <p className="text-walnut-light text-sm mt-1">{spec.dims}</p>
+              <div className="flex gap-2 mt-2 flex-wrap">
+                <InfoBadge text="Path A — food row at core wall" tone="honey" />
+                <InfoBadge text="All 4 sides glazed" tone="sage" />
+                <InfoBadge text="Exposed wood trusses" tone="terracotta" />
               </div>
             </div>
+
+            {/* Version toggle */}
+            <div className="flex gap-0 bg-walnut/5 border border-walnut/10 rounded-full p-1 text-xs">
+              {(['v1','v2'] as Version[]).map(v => (
+                <button
+                  key={v}
+                  onClick={() => { setVersion(v); setExpandedZone(null); }}
+                  className={`px-4 py-1.5 rounded-full font-semibold transition-all ${
+                    version === v
+                      ? 'bg-honey text-cream shadow-sm'
+                      : 'text-walnut-light hover:text-walnut'
+                  }`}
+                >
+                  {versions[v].shortLabel}
+                </button>
+              ))}
+            </div>
+          </div>
+          <p className="text-walnut-light text-sm mt-4 leading-relaxed max-w-3xl">{spec.tagline}</p>
+        </div>
+
+        {/* Shell context */}
+        <section className="mb-6">
+          <ShellContextCard />
+        </section>
+
+        {/* Floor plan */}
+        <section className="mb-8">
+          <div className="glass rounded-2xl p-4 md:p-6">
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+              <h2 className="text-lg font-bold text-walnut">Floor Plan — {spec.shortLabel}</h2>
+              <div className="flex gap-2 text-[10px]">
+                <InfoBadge text="🟫 Food stall (hot line)" tone="honey" />
+                <InfoBadge text="🟧 Kiosk (Bucket 3)" tone="terracotta" />
+                <InfoBadge text="🟩 Kiosk (Bucket 2)" tone="sage" />
+              </div>
+            </div>
+            {version === 'v1' ? <V1FloorPlan /> : <V2FloorPlan />}
           </div>
         </section>
 
-        {/* Space Allocation Breakdown */}
+        {/* Gas flag */}
         <section className="mb-8">
-          <h2 className="text-lg font-bold text-walnut mb-4">Space Allocation</h2>
+          <GasFlagCallout />
+        </section>
 
-          {/* Visual bar chart */}
+        {/* Space Allocation */}
+        <section className="mb-8">
+          <h2 className="text-lg font-bold text-walnut mb-4">Space Allocation — {spec.shortLabel}</h2>
+
           <div className="glass rounded-2xl p-4 md:p-6 mb-4 reveal">
             <div className="flex rounded-xl overflow-hidden h-10 mb-4">
-              {zones.map((z, i) => (
+              {displayZones.map((z, i) => (
                 <div
                   key={i}
                   className={`${z.color} relative group cursor-pointer transition-all hover:opacity-80`}
@@ -296,7 +550,7 @@ export default function LayoutPage() {
               ))}
             </div>
             <div className="flex flex-wrap gap-3 text-xs">
-              {zones.map((z, i) => (
+              {displayZones.map((z, i) => (
                 <div key={i} className="flex items-center gap-1.5">
                   <div className={`w-3 h-3 rounded ${z.color}`} />
                   <span className="text-walnut-light">{z.name}</span>
@@ -305,9 +559,8 @@ export default function LayoutPage() {
             </div>
           </div>
 
-          {/* Zone cards */}
           <div className="space-y-2">
-            {zones.map((z, i) => (
+            {spec.zones.map((z, i) => (
               <div
                 key={i}
                 className={`glass rounded-xl transition-all cursor-pointer ${
@@ -322,8 +575,14 @@ export default function LayoutPage() {
                     <span className="text-walnut-light text-xs ml-2 hidden sm:inline">{z.description}</span>
                   </div>
                   <div className="text-right shrink-0">
-                    <span className="font-bold text-walnut text-sm tabular-nums">{z.sqft.toLocaleString()} sf</span>
-                    <span className="text-walnut-light text-xs ml-2">{z.pct}%</span>
+                    {z.sqft ? (
+                      <>
+                        <span className="font-bold text-walnut text-sm tabular-nums">{z.sqft.toLocaleString()} sf</span>
+                        <span className="text-walnut-light text-xs ml-2">{z.pct}%</span>
+                      </>
+                    ) : (
+                      <span className="text-walnut-light text-xs italic">within gathering</span>
+                    )}
                   </div>
                   <span className={`text-walnut-light text-xs transition-transform ${expandedZone === i ? 'rotate-180' : ''}`}>
                     &#9662;
@@ -345,54 +604,36 @@ export default function LayoutPage() {
             ))}
           </div>
 
-          {/* Total */}
           <div className="flex items-center justify-between px-4 py-3 mt-2 bg-honey/10 rounded-xl border border-honey/20">
             <span className="font-bold text-walnut">Total</span>
-            <span className="font-bold text-walnut tabular-nums">10,000 sf &middot; 100%</span>
+            <span className="font-bold text-walnut tabular-nums">~{spec.totalSqft.toLocaleString()} sf &middot; 100%</span>
           </div>
+
+          <p className="text-xs text-walnut-light italic mt-2">
+            Restroom and BOH figures are preliminary — confirm against final schematic design.
+          </p>
         </section>
 
-        {/* Seating breakdown */}
+        {/* MEP anchor rationale */}
         <section className="mb-8">
-          <h2 className="text-lg font-bold text-walnut mb-4">Seating Specifications</h2>
-          <div className="glass rounded-2xl overflow-hidden reveal">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-walnut/10 bg-walnut/5">
-                  <th className="text-left px-5 py-3 font-semibold text-walnut">Type</th>
-                  <th className="text-center px-3 py-3 font-semibold text-walnut">Seats</th>
-                  <th className="text-right px-3 py-3 font-semibold text-walnut">Sq Ft</th>
-                  <th className="text-right px-3 py-3 font-semibold text-walnut">SF/Seat</th>
-                  <th className="text-left px-5 py-3 font-semibold text-walnut hidden md:table-cell">Location</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  { type: 'Counter Stools', seats: 60, sqft: 400, per: '6.7', loc: 'Side windows (L&R)' },
-                  { type: 'Farm Tables (8-10 seat)', seats: 50, sqft: 650, per: '13', loc: 'Left wing' },
-                  { type: 'Family Tables (4-6 tops)', seats: 50, sqft: 700, per: '14', loc: 'Right wing' },
-                ].map((r, i) => (
-                  <tr key={i} className="border-b border-walnut/5">
-                    <td className="px-5 py-2.5 text-walnut">{r.type}</td>
-                    <td className="px-3 py-2.5 text-center text-walnut tabular-nums">{r.seats}</td>
-                    <td className="px-3 py-2.5 text-right text-walnut tabular-nums">{r.sqft}</td>
-                    <td className="px-3 py-2.5 text-right text-walnut-light tabular-nums">{r.per}</td>
-                    <td className="px-5 py-2.5 text-walnut-light text-xs hidden md:table-cell">{r.loc}</td>
-                  </tr>
-                ))}
-                <tr className="bg-honey/10">
-                  <td className="px-5 py-2.5 font-bold text-walnut">Total</td>
-                  <td className="px-3 py-2.5 text-center font-bold text-walnut">160</td>
-                  <td className="px-3 py-2.5 text-right font-bold text-walnut tabular-nums">1,750</td>
-                  <td className="px-3 py-2.5 text-right font-bold text-walnut">11</td>
-                  <td className="px-5 py-2.5 hidden md:table-cell"></td>
-                </tr>
-              </tbody>
-            </table>
+          <h2 className="text-lg font-bold text-walnut mb-4">MEP Anchor Rationale</h2>
+          <div className="glass rounded-2xl p-4 md:p-6">
+            <p className="text-sm text-walnut-light leading-relaxed mb-3">
+              Every decision in both Path A configurations is driven by minimizing MEP runs and preserving window real estate for guests.
+              The shell conditions make the core wall the unambiguously correct anchor for the cooking line:
+            </p>
+            <ul className="space-y-2 text-xs text-walnut-light">
+              <li><span className="text-walnut font-semibold">Plumbing stubs at core wall —</span> 2″ CW + 4″ Waste + 4″ Vent per zone. Fire sprinkler 4″ riser delivered.</li>
+              <li><span className="text-walnut font-semibold">Electrical panels inside core —</span> 1,200A @ 277/480V 3-phase to Bldg F; HF-2 (600A) + LF2(2) (225A) panels in the Level 2 Mech/Elec room.</li>
+              <li><span className="text-walnut font-semibold">HVAC 100% tenant scope —</span> MAU clusters in central mech zone next to hood exhaust.</li>
+              <li><span className="text-walnut font-semibold">Roof penetrations locked to central TPO —</span> sloped standing-seam metal cannot be penetrated without major complications.</li>
+              <li><span className="text-walnut font-semibold">Grease interceptor —</span> tenant scope; location coordinated with sanitary stub at core.</li>
+              <li><span className="text-walnut font-semibold">Glazing on all 4 sides —</span> a perimeter cooking line would block windows AND require significantly longer MEP runs.</li>
+            </ul>
           </div>
         </section>
 
-        {/* Design Decisions */}
+        {/* Design decisions */}
         <section className="mb-8">
           <button
             onClick={() => setShowDecisions(!showDecisions)}
@@ -417,7 +658,7 @@ export default function LayoutPage() {
       <footer className="bg-walnut/5 border-t border-walnut/10 py-6 px-4">
         <div className="max-w-6xl mx-auto text-center">
           <p className="text-walnut font-semibold text-sm">The Barn &mdash; Everybody&rsquo;s Welcome</p>
-          <p className="text-walnut-light text-xs mt-1">10,000 sq ft &middot; 2nd Floor &middot; Richmond, TX</p>
+          <p className="text-walnut-light text-xs mt-1">Building F Level 2 &middot; Marcel Harvest Green &middot; Richmond, TX</p>
         </div>
       </footer>
     </div>
