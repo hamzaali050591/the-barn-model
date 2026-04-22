@@ -5,6 +5,7 @@ import Model from './pages/Model';
 import Layout from './pages/Layout';
 import CapEx from './pages/CapEx';
 import Opex from './pages/Opex';
+import Renderings from './pages/Renderings';
 import OpexVendorUtilities from './pages/OpexVendorUtilities';
 import OpexCommonUtilities from './pages/OpexCommonUtilities';
 import OpexNonUtility from './pages/OpexNonUtility';
@@ -23,6 +24,7 @@ function App() {
         <Route path="/capex" element={<CapEx />} />
         <Route path="/opex" element={<Opex />} />
         <Route path="/layout" element={<Layout />} />
+        <Route path="/renderings" element={<Renderings />} />
       </Routes>
     </ModelProvider>
   );

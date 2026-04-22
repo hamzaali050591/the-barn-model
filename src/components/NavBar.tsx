@@ -10,6 +10,7 @@ const links = [
   { path: '/layout', label: 'Space Layout' },
   { path: '/capex', label: 'CapEx' },
   { path: '/opex', label: 'OpEx' },
+  { path: '/renderings', label: 'Renderings' },
 ];
 
 export default function NavBar({ current }: Props) {

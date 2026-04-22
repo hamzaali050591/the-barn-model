@@ -25,6 +25,7 @@ When changing default inputs (`DEFAULT_INPUTS` in `src/utils/types.ts`) or formu
 - `Layout/Detailed Layout Plan.docx` — locked narrative for both versions (supersedes the old `Detailed Layot Plan.pdf` — typo file, kept for now)
 - `Layout/Layout_Sketch_Description.md` — companion markdown describing the V1 + V2 bird's-eye sketches for redraw
 - `Layout/Plans/Plans and Specs bldg. F - Part 1/2/3.pdf` — Gensler Issue For Permit set (12/17/2021). Key sheets: A02.F02, A02.F03, A02.F05, M01.F02, P01.F02, E01.F02, E03.F00, P02.F00
+- `Layout/Richmond SOW Internal.pdf` — full V1 capital expenditure scope of work ($1.754M total, 9 categories, 59 line items). Drives `/capex` tab content. Edit the inline arrays at the top of `src/pages/CapEx.tsx` if the SOW changes.
 - `Visual Assets/` — photography and mockups
 
 ## Tech stack
@@ -48,13 +49,15 @@ npm run preview   # preview built output
 
 | Route | File | Purpose |
 |---|---|---|
-| `/` | `src/pages/Landing.tsx` | Feature-wall hero + 3 nav buttons |
+| `/` | `src/pages/Landing.tsx` | Feature-wall hero + 5 nav buttons (Strategy / Financial Model / Space Layout / CapEx / OpEx) |
 | `/strategy` | `src/pages/Strategy.tsx` | Narrative: The Plan → Scale Vision → Richmond at a Glance → Opportunity → Concept → Tech → Brand |
 | `/model` | `src/pages/Model.tsx` | Interactive model with **Richmond / Full Portfolio** toggle |
-| `/model/opex/vendor-utilities` | `src/pages/OpexVendorUtilities.tsx` | Detailed gas/electric/water breakdown per vendor |
-| `/model/opex/common-utilities` | `src/pages/OpexCommonUtilities.tsx` | Common-area utilities |
-| `/model/opex/non-utility` | `src/pages/OpexNonUtility.tsx` | Marketing, cleaning, grease, security, etc. |
+| `/model/opex/vendor-utilities` | `src/pages/OpexVendorUtilities.tsx` | Detailed gas/electric/water breakdown per vendor (editable) |
+| `/model/opex/common-utilities` | `src/pages/OpexCommonUtilities.tsx` | Common-area utilities (editable) |
+| `/model/opex/non-utility` | `src/pages/OpexNonUtility.tsx` | Marketing, cleaning, grease, security, etc. (editable) |
 | `/layout` | `src/pages/Layout.tsx` | V1 / V2 toggle — V1 Left Zone (~9,180 sf, Path A single row at core wall) vs V2 Full L2 (~14,500+ sf, mirrored Path A) |
+| `/capex` | `src/pages/CapEx.tsx` | Full Richmond V1 SOW — 9 categories, 59 line items, $1.754M. Static (data inlined from `Richmond SOW Internal.pdf`). |
+| `/opex` | `src/pages/Opex.tsx` | Unified read-only OpEx roll-up driven live from `useModel()`. Each block has an "Edit Details" link to the corresponding `/model/opex/*` page. |
 
 ## Model architecture
 
@@ -133,12 +136,22 @@ Site: Building F, Level 2, Marcel Harvest Green, 18806 W Airport Blvd, Richmond,
 
 **Model reconciled to V1 (April 2026):** `DEFAULT_INPUTS.sqft = 9_180` and vendor array = 8 Food + 1 Health Bar + 2 Desserts + 1 Coffee (12 total). Total monthly vendor rent invariant at $80k (all non-food kiosks share the same $6k rent / $25k sales). `audit.ts` sqft perturbation updated to 7,344 / 11,016 (±20% of 9,180). If V2 ever becomes the modelled case, bump `sqft` to ~14,500 and roughly double food-vendor count (16) + kiosks (6).
 
+## CapEx & OpEx tabs (added April 2026)
+
+Two top-level tabs sit alongside Strategy / Financial Model / Space Layout in the NavBar.
+
+**`/capex` (`src/pages/CapEx.tsx`)** — single-source view of the Richmond V1 SOW. All numbers are **inlined as TypeScript constants** at the top of the file (cat1Items, cat2aItems...cat9Items). Why inline rather than data-driven: the SOW is the deal artifact, not a model input — investors see the same numbers we present in PDF form. To change a line item or add a category: edit the array, the subtotal/total/percentage roll-ups recompute automatically. Cat 2 (MEP) is the only category with sub-categories (2a HVAC → 2g Low-Voltage); other categories use a flat line-item list. Includes the gas service upgrade callout and Critical Path sequencing block — both are demo-grade copy, edit carefully.
+
+**`/opex` (`src/pages/Opex.tsx`)** — unified read-only roll-up of all OpEx categories pulling live values via `useModel()`. Mirrors the CapEx tab's expandable-category UX. Each block has an **"Edit Details" button** that routes to the corresponding `/model/opex/*` detail page — that's where editing happens. **Do not duplicate edit affordances on `/opex`** (that would create two write paths into the same state). The tab also surfaces a Monthly Roll-Up card (vendor utils + common + non-utils + operator salary → total monthly + annual) and a "How OpEx Flows Into the Model" explainer.
+
+**Pattern shared by both tabs:** category card → expandable line items → optional second-level expand for scope notes / per-item calculation. `toneStyles` map + numbered category dots = visual taxonomy. Both pages are unauthenticated client-side routes — no SEO, no markup beyond the NavBar/footer scaffold.
+
 ## Conventions & gotchas
 
 - **Shared state:** always read/write model inputs through `useModel()`. Panel components take `{ inputs, onChange }` props and delegate `onChange(setInputs)` up from `Model.tsx`.
 - **Money formatting:** `fmtDollarFull` / `fmtDollar` / `fmtPct` from `src/utils/format.ts`. Don't roll your own.
 - **Richmond overrides must not mutate `inputs`** — compute `activeInputs` via `useMemo`, as `Model.tsx` already does. All sliders stay bound to full portfolio state.
-- **OpEx detail pages** (`/model/opex/*`) read directly from `useModel()` and write back via `setInputs`. Keep the URL structure stable — links from `OpexPanel` point to them.
+- **OpEx detail pages** (`/model/opex/*`) read directly from `useModel()` and write back via `setInputs`. Keep the URL structure stable — links from `OpexPanel` AND from the `/opex` top-level tab point to them. Editing happens here; `/opex` is read-only.
 - **Scenario rates:** `low / mid / high` for gas/electric/water rates live inside each config object and are selected via `scenarioRate()` in the engine.
 - **No comments in code** unless the *why* is non-obvious. The existing code follows this.
 - **Don't create new docs/READMEs** unless asked.
