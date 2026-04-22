@@ -31,6 +31,26 @@ const navButtons = [
       </svg>
     ),
   },
+  {
+    label: 'CapEx',
+    subtitle: 'Buildout SOW · $1.75M',
+    path: '/capex',
+    icon: (
+      <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z" />
+      </svg>
+    ),
+  },
+  {
+    label: 'OpEx',
+    subtitle: 'Operating Expenses',
+    path: '/opex',
+    icon: (
+      <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" />
+      </svg>
+    ),
+  },
 ];
 
 export default function Landing() {
@@ -56,12 +76,12 @@ export default function Landing() {
         {/* Content */}
         <div className="relative z-10 text-center max-w-3xl mx-auto">
           {/* Navigation buttons */}
-          <div className="fade-up fade-up-d2 flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="fade-up fade-up-d2 flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4 justify-center items-center max-w-4xl mx-auto">
             {navButtons.map((btn) => (
               <button
                 key={btn.path}
                 onClick={() => navigate(btn.path)}
-                className="group w-full sm:w-56 glass-dark rounded-2xl px-6 py-5 text-cream cursor-pointer"
+                className="group w-full sm:w-44 md:w-48 glass-dark rounded-2xl px-5 py-4 text-cream cursor-pointer"
               >
                 <div className="flex flex-col items-center gap-2">
                   <div className="text-honey group-hover:scale-110 transition-transform duration-300 float-anim">

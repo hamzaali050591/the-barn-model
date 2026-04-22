@@ -8,6 +8,8 @@ const links = [
   { path: '/strategy', label: 'Strategy' },
   { path: '/model', label: 'Financial Model' },
   { path: '/layout', label: 'Space Layout' },
+  { path: '/capex', label: 'CapEx' },
+  { path: '/opex', label: 'OpEx' },
 ];
 
 export default function NavBar({ current }: Props) {

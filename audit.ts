@@ -130,12 +130,12 @@ const cs = capitalStack(DEFAULT_INPUTS);
 const vt = vendorTotals(DEFAULT_INPUTS);
 const ob = opexBreakdown(DEFAULT_INPUTS);
 console.log('\nManual sanity:');
-console.log(`  Total CapEx (10k × $150)             = ${fmt$(cs.totalCapex)}   engine ${fmt$(cs.totalCapex)}`);
-console.log(`  Total TI   (10k × $35)               = ${fmt$(cs.tiTotal)}      engine ${fmt$(cs.tiTotal)}`);
+console.log(`  Total CapEx (9,180 × $150)           = ${fmt$(cs.totalCapex)}   engine ${fmt$(cs.totalCapex)}`);
+console.log(`  Total TI   (9,180 × $35)             = ${fmt$(cs.tiTotal)}      engine ${fmt$(cs.tiTotal)}`);
 console.log(`  Investor Eq/loc  (capex − TI)        = ${fmt$(cs.investorEquityPerLocation)}`);
 console.log(`  Monthly vendor rent (base model)      = ${fmt$(vt.monthlyVendorRentPerLocation)}   (8×$7k + 4×$6k = $80,000)`);
 console.log(`  Monthly OpEx total                   = ${fmt$(ob.total)}   (vendor util ${fmt$(ob.vendorUtilities)} + common ${fmt$(ob.commonAreaUtilities)} + non-util ${fmt$(ob.nonUtilities)})`);
-console.log(`  Stabilized preComp EBITDA (Richmond) = ${fmt$(80000 - ob.total - 35 * 10000 / 12)}/mo`);
+console.log(`  Stabilized preComp EBITDA (Richmond) = ${fmt$(80000 - ob.total - 35 * 9180 / 12)}/mo`);
 
 // ────────────────────────────────────────────────────────────────────
 // SECTION 2 — ±20% on EVERY variable (Richmond 48mo baseline)
@@ -147,9 +147,9 @@ console.log('══════════════════════�
 const perturbations: Perturbation[] = [
   // ── CAPITAL STACK ──
   {
-    name: '[1] sqft', caption: '10,000 sf  → 8,000 / 12,000',
-    lo: richmond({ sqft: 8_000 }),
-    hi: richmond({ sqft: 12_000 }),
+    name: '[1] sqft', caption: '9,180 sf  → 7,344 / 11,016',
+    lo: richmond({ sqft: 7_344 }),
+    hi: richmond({ sqft: 11_016 }),
     expectDirIRR: 'down',
     note: 'Bigger space scales CapEx, TI, and lease together. Expect IRR ↓ as sqft ↑ (lease scales 1:1, CapEx barely changes investor equity at current PSF mix).',
   },

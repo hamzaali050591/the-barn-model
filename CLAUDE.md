@@ -21,7 +21,10 @@ When changing default inputs (`DEFAULT_INPUTS` in `src/utils/types.ts`) or formu
 
 - `Initial Decks/Barn Full Proposal.pdf` — narrative long-form
 - `Initial Decks/Barn Deck.pdf` — pitch deck
-- `Layout/TheBarn_SpaceAllocation.xlsx` + `Layout/Detailed Layot Plan.pdf` — drives `/layout` zone numbers
+- `Layout/TheBarn_SpaceAllocation.xlsx` — V1 / V2 / Comparison / MEP tabs; drives `/layout` zone numbers
+- `Layout/Detailed Layout Plan.docx` — locked narrative for both versions (supersedes the old `Detailed Layot Plan.pdf` — typo file, kept for now)
+- `Layout/Layout_Sketch_Description.md` — companion markdown describing the V1 + V2 bird's-eye sketches for redraw
+- `Layout/Plans/Plans and Specs bldg. F - Part 1/2/3.pdf` — Gensler Issue For Permit set (12/17/2021). Key sheets: A02.F02, A02.F03, A02.F05, M01.F02, P01.F02, E01.F02, E03.F00, P02.F00
 - `Visual Assets/` — photography and mockups
 
 ## Tech stack
@@ -51,7 +54,7 @@ npm run preview   # preview built output
 | `/model/opex/vendor-utilities` | `src/pages/OpexVendorUtilities.tsx` | Detailed gas/electric/water breakdown per vendor |
 | `/model/opex/common-utilities` | `src/pages/OpexCommonUtilities.tsx` | Common-area utilities |
 | `/model/opex/non-utility` | `src/pages/OpexNonUtility.tsx` | Marketing, cleaning, grease, security, etc. |
-| `/layout` | `src/pages/Layout.tsx` | 10,000sf zone-by-zone allocation |
+| `/layout` | `src/pages/Layout.tsx` | V1 / V2 toggle — V1 Left Zone (~9,180 sf, Path A single row at core wall) vs V2 Full L2 (~14,500+ sf, mirrored Path A) |
 
 ## Model architecture
 
@@ -59,7 +62,7 @@ Single shared state via `src/utils/ModelContext.tsx` → `ModelProvider` wraps t
 
 **Inputs** (`src/utils/types.ts` → `ModelInputs`):
 - Capital stack: `sqft`, `tiPSF`, `leasePSF`, `capexPSF`, `gpInvestment`
-  - Total CapEx is derived: `sqft × capexPSF` (default $150/psf × 10,000 sf = $1.5M). Never store a total-dollar CapEx field — the PSF coupling keeps sqft, TI, lease, and CapEx moving together, which is the CFO-defensible behavior.
+  - Total CapEx is derived: `sqft × capexPSF` (default $150/psf × 9,180 sf ≈ $1.38M — V1 Richmond left-zone baseline). Never store a total-dollar CapEx field — the PSF coupling keeps sqft, TI, lease, and CapEx moving together, which is the CFO-defensible behavior.
 - Revenue: `vendors[]`, `revenueModel` (`'base' | 'pct' | 'mixed'`), `pctOfSalesRate`, `mixedBaseRent`, `mixedPctRate`, `rentIncludesUtilities`
 - Detailed OpEx: `gas`, `electric`, `water`, `nonUtility` (each with scenario `'low' | 'mid' | 'high'`)
 - Comp: `salaryBase`, `salaryStep`, `profitSharePct`
@@ -100,6 +103,35 @@ Single shared state via `src/utils/ModelContext.tsx` → `ModelProvider` wraps t
 **Icons:** inline Heroicons-style SVGs (no icon library).
 
 **Tooltips:** use `<InfoTooltip content="..." />` for hover-revealed explanations. Already wired into: KPI cards, summary row, page title (equity-only disclosure), Timeline section headers, and the Ramp Period slider. `SliderRow` accepts an optional `info` prop that renders an inline tooltip next to the label. Prefer tooltips over inline copy for anything a CFO might want to verify the convention for.
+
+## Richmond layout spec (locked — April 2026)
+
+Site: Building F, Level 2, Marcel Harvest Green, 18806 W Airport Blvd, Richmond, TX 77406. Landlord: DPEG. Architect of Record: Gensler. Shell delivered as "Shell Space Only — Tenant Buildout NIC."
+
+**Level 2 shell reality** (per Gensler permit set):
+- ~196′ × 90′ ≈ 17,640 sf gross, split by a central core (~30′ × 30′ — Mech/Elec + elevator + stairs).
+- Left zone ~102′ × 90′ ≈ **9,180 sf** (V1 scope). Right zone ~85′ × 90′ ≈ 7,650 sf.
+- **All 4 perimeter sides are storefront glazing** — no solid exterior walls. The core wall is the ONLY solid interior wall.
+- Exposed wood trusses throughout (preserved as a design feature).
+- Roof: sloped standing-seam metal on long sides + central flat TPO zone above the core — **hood exhaust penetrations MUST land in the central TPO zone**.
+- Floor-to-floor: Level 2 slab at 14′-8″ above grade; low roof 42′-8″, high roof 47′-0⅜″ (generous interior volume under the gable).
+- **Terrace on L2** (see A08.005 — guardrail, drain, storefront edge details) — usable outdoor area on our floor.
+- **Access:** core stairs + elevator through central core, plus an exterior stair (A09.F02). No ground-floor street frontage — wayfinding/signage is a narrative item for the Strategy page.
+- **L2 occupant load: 164** (per code review) — ceiling on combined seating + vendor + circulation capacity.
+- **Code:** 2018 IBC, Type II-B, Occupancy B, fully sprinklered (NFPA 13), outside 100-yr floodplain — all positives for insurance/underwriting.
+- **Exterior palette:** Cooperstown brick (UM01, running bond, rough) + Ballpark brick (UM02, angled) + slate-gray standing-seam metal (MTL01) + "Aria" stucco (STC01, PPG 1001-2). Gable ends face Harlem Rd corner — inherently barn-like, no facade work needed to sell the brand.
+
+**Path A (both versions):** single linear row of food stalls anchored to the core wall. Cooking at back against core · prep middle · counter front. Stall = 10′ × 28′ = 280 sf. Gathering opens outward to the window walls. Kiosks are NOT placed at the core wall — they float through the gathering zone.
+
+**V1 (PRIMARY — 9,180 sf left zone):** 8 food stalls (2,240 sf) + 4 kiosks (HB 280sf + Coffee 220sf + Dessert ×2 @ 220sf) + ~500 sf restrooms + ~800 sf circulation/BOH + ~4,700 sf gathering. Basis for Richmond deal + first SOW + CapEx model.
+
+**V2 (alternate — ~14,500+ sf full L2):** mirrored Path A, 16 food stalls + 6-kiosk preliminary program (HB + C + 3 dessert + 1 specialty TBD), ~800 sf restrooms + ~1,500 sf circulation/BOH + ~6,280 sf gathering. Pitch conversation with DPEG.
+
+**Buildout package per food stall — "Heavy Warm minus Refrigeration":** The Barn delivers hood + UL 300 suppression + FRP walls + 3-comp + hand sinks + floor drains + utility stub-outs (electrical subpanel, water, sewer, gas manifold sized for 4 equipment connections). Vendor brings all cooking equipment AND all refrigeration (vendor's choice of under-counter / reach-in / walk-in). Kiosks: no gas, no hood, no fire suppression — electrical + water + waste only.
+
+**Critical infrastructure flag — gas service upgrade (P02.F00):** Current Bldg F gas is 7,000 CFH @ 5 PSI for all tenants. V1 needs 32,000–35,000 CFH peak; V2 needs 64,000–70,000 CFH. CenterPoint upgrade confirmed available by DPEG but must be scheduled early in Discovery/Design or buildout permits will hold.
+
+**Model reconciled to V1 (April 2026):** `DEFAULT_INPUTS.sqft = 9_180` and vendor array = 8 Food + 1 Health Bar + 2 Desserts + 1 Coffee (12 total). Total monthly vendor rent invariant at $80k (all non-food kiosks share the same $6k rent / $25k sales). `audit.ts` sqft perturbation updated to 7,344 / 11,016 (±20% of 9,180). If V2 ever becomes the modelled case, bump `sqft` to ~14,500 and roughly double food-vendor count (16) + kiosks (6).
 
 ## Conventions & gotchas
 
