@@ -26,7 +26,8 @@ When changing default inputs (`DEFAULT_INPUTS` in `src/utils/types.ts`) or formu
 - `Layout/Layout_Sketch_Description.md` — companion markdown describing the V1 + V2 bird's-eye sketches for redraw
 - `Layout/Plans/Plans and Specs bldg. F - Part 1/2/3.pdf` — Gensler Issue For Permit set (12/17/2021). Key sheets: A02.F02, A02.F03, A02.F05, M01.F02, P01.F02, E01.F02, E03.F00, P02.F00
 - `Layout/Richmond SOW Internal.pdf` — full V1 capital expenditure scope of work ($1.754M total, 9 categories, 59 line items). Drives `/capex` tab content. Edit the inline arrays at the top of `src/pages/CapEx.tsx` if the SOW changes.
-- `Visual Assets/` — photography and mockups
+- `Visual Assets/` — original photography and mockups (legacy / reference only).
+- `Visual Assets 2/` — 18 numbered AI-rendered concept images (V1 narrative order). Source for the `/renderings` tab. Numbering is load-bearing — `1. Hero Image.png` → `18. Barn Ops UI 2.png` is the intended scroll order. When adding/replacing renderings, drop the source PNG into `Visual Assets 2/`, then re-export to `public/renderings/NN-slug.jpg` at quality 85 (use `sips -s format jpeg -s formatOptions 85`); the page references JPGs by URL-safe slug.
 
 ## Tech stack
 
@@ -49,7 +50,7 @@ npm run preview   # preview built output
 
 | Route | File | Purpose |
 |---|---|---|
-| `/` | `src/pages/Landing.tsx` | Feature-wall hero + 5 nav buttons (Strategy / Financial Model / Space Layout / CapEx / OpEx) |
+| `/` | `src/pages/Landing.tsx` | Feature-wall hero + 6 nav buttons (Strategy / Financial Model / Space Layout / CapEx / OpEx / Renderings) |
 | `/strategy` | `src/pages/Strategy.tsx` | Narrative: The Plan → Scale Vision → Richmond at a Glance → Opportunity → Concept → Tech → Brand |
 | `/model` | `src/pages/Model.tsx` | Interactive model with **Richmond / Full Portfolio** toggle |
 | `/model/opex/vendor-utilities` | `src/pages/OpexVendorUtilities.tsx` | Detailed gas/electric/water breakdown per vendor (editable) |
@@ -58,6 +59,7 @@ npm run preview   # preview built output
 | `/layout` | `src/pages/Layout.tsx` | V1 / V2 toggle — V1 Left Zone (~9,180 sf, Path A single row at core wall) vs V2 Full L2 (~14,500+ sf, mirrored Path A) |
 | `/capex` | `src/pages/CapEx.tsx` | Full Richmond V1 SOW — 9 categories, 59 line items, $1.754M. Static (data inlined from `Richmond SOW Internal.pdf`). |
 | `/opex` | `src/pages/Opex.tsx` | Unified read-only OpEx roll-up driven live from `useModel()`. Each block has an "Edit Details" link to the corresponding `/model/opex/*` page. |
+| `/renderings` | `src/pages/Renderings.tsx` | Single-scroll photo essay of 18 V1 concept renderings (hero → moods → exterior → interior → vendor detail → birds-eye → app UI), each with a numbered title and short caption. Images live in `public/renderings/`. |
 
 ## Model architecture
 
@@ -145,6 +147,14 @@ Two top-level tabs sit alongside Strategy / Financial Model / Space Layout in th
 **`/opex` (`src/pages/Opex.tsx`)** — unified read-only roll-up of all OpEx categories pulling live values via `useModel()`. Mirrors the CapEx tab's expandable-category UX. Each block has an **"Edit Details" button** that routes to the corresponding `/model/opex/*` detail page — that's where editing happens. **Do not duplicate edit affordances on `/opex`** (that would create two write paths into the same state). The tab also surfaces a Monthly Roll-Up card (vendor utils + common + non-utils + operator salary → total monthly + annual) and a "How OpEx Flows Into the Model" explainer.
 
 **Pattern shared by both tabs:** category card → expandable line items → optional second-level expand for scope notes / per-item calculation. `toneStyles` map + numbered category dots = visual taxonomy. Both pages are unauthenticated client-side routes — no SEO, no markup beyond the NavBar/footer scaffold.
+
+## Renderings tab (added April 2026)
+
+**`/renderings` (`src/pages/Renderings.tsx`)** — single linear photo-essay of 18 AI-rendered concept images for V1. The narrative arc (set in source filenames `1.` → `18.` and preserved in URL slugs `01-` → `18-`) is intentional and load-bearing: hero (1) → moods/exterior (2–4) → interior moments (5–9) → vendor detail (10–13) → birds-eye plan (14–15) → app UI (16–18). Don't reorder unless you're rebuilding the narrative.
+
+**Asset pipeline:** Source PNGs are 1536×1024 (~2–3 MB each, 42 MB total). Page references **JPGs at quality 85** in `public/renderings/` (~10 MB total) — the conversion is not part of the build. To refresh after editing source: re-run `sips -s format jpeg -s formatOptions 85` per-file and overwrite. Captions on each rendering are written into the `renderings` array at the top of the file — they're brand voice, not literal description; review before changing.
+
+**Performance:** First two images load eager, remaining 16 are lazy. No image optimization beyond JPG-Q85 — Vite serves `public/` as static assets without the Next.js `next/image` machinery. If the page ever feels slow, the next lever is responsive `srcset` + a smaller mobile variant, not further compression.
 
 ## Conventions & gotchas
 

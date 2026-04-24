@@ -304,75 +304,16 @@ function StallCell({ label, kind = 'food' as 'food' | 'kiosk-h' | 'kiosk-m' | 'c
 
 function V1FloorPlan() {
   return (
-    <div className="bg-cream rounded-xl border border-walnut/10 p-3 md:p-5 font-mono text-[10px] md:text-xs leading-relaxed overflow-x-auto">
-      <div className="min-w-[520px]">
-        <div className="text-center text-[9px] text-walnut-light mb-1">■ WINDOWS (North) ■</div>
-
-        <div className="flex gap-2 items-stretch">
-          {/* Left gathering zone — 75% */}
-          <div className="flex-[3] flex flex-col gap-2">
-            {/* Window callout west */}
-            <div className="text-[9px] text-walnut-light text-center">■ WINDOWS (West) ■</div>
-
-            {/* Gathering area — communal tables */}
-            <div className="bg-sage/15 border border-sage/25 rounded-lg p-3 flex-1">
-              <div className="font-bold text-walnut text-center mb-1">GATHERING / DINING</div>
-              <div className="text-center text-[9px] text-walnut-light mb-2">~4,700 sf · 51% · communal farm tables · family tables · high-tops · lounge</div>
-              <div className="grid grid-cols-4 gap-1.5">
-                <StallCell label="HB 280sf" kind="kiosk-h" />
-                <StallCell label="C 220sf" kind="kiosk-h" />
-                <div />
-                <StallCell label="D1 220sf" kind="kiosk-m" />
-                <div />
-                <div />
-                <div />
-                <StallCell label="D2 220sf" kind="kiosk-m" />
-              </div>
-              <div className="text-center text-[9px] text-walnut-light mt-2">Kiosks distributed through gathering zone — NOT on core wall</div>
-            </div>
-
-            <div className="flex gap-2">
-              <div className="flex-1 bg-walnut/10 border border-walnut/20 rounded-lg p-2 text-center">
-                <div className="font-bold text-walnut text-[10px]">FEATURE WALL</div>
-                <div className="text-walnut-light text-[9px]">Herringbone · Neon · Greenery</div>
-              </div>
-              <div className="flex-1 bg-walnut/10 border border-walnut/20 rounded-lg p-2 text-center">
-                <div className="font-bold text-walnut text-[10px]">RESTROOMS ~500sf</div>
-                <div className="text-walnut-light text-[9px]">M / W / Family (ADA)</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Food row against core wall */}
-          <div className="w-24 md:w-28 bg-honey/10 border border-honey/30 rounded-lg p-1.5">
-            <div className="text-center font-bold text-walnut text-[9px] mb-1">FOOD ROW</div>
-            <div className="text-center text-[8px] text-walnut-light mb-1">80ft × 28ft · 2,240sf</div>
-            <div className="flex flex-col gap-1">
-              {['F1','F2','F3','F4','F5','F6','F7','F8'].map(v => (
-                <StallCell key={v} label={`${v} 280sf`} kind="food" />
-              ))}
-            </div>
-            <div className="text-center text-[8px] text-walnut-light mt-1">hood ↑ TPO</div>
-          </div>
-
-          {/* Core wall */}
-          <div className="w-6 md:w-8 bg-walnut/30 rounded flex items-center justify-center">
-            <div className="text-[8px] text-cream font-bold rotate-90 whitespace-nowrap">CORE WALL</div>
-          </div>
-        </div>
-
-        <div className="text-center text-[9px] text-walnut-light mt-2">■ WINDOWS (South) ■</div>
-
-        <div className="flex justify-center mt-2">
-          <div className="px-4 py-1 bg-terracotta/15 border border-terracotta/30 rounded-full text-walnut font-bold text-[10px]">
-            ▲ ENTRY ▲
-          </div>
-        </div>
-
-        <div className="mt-3 text-[9px] text-walnut-light flex flex-wrap gap-3 justify-center">
-          <span>◾ Core wall = only non-window wall · anchor for MEP + hood exhaust</span>
-          <span>◾ Hood vents through central TPO roof zone above core</span>
-        </div>
+    <div className="bg-cream rounded-xl border border-walnut/10 p-3 md:p-4 overflow-hidden">
+      <img
+        src="/renderings/15-birdseye-blueprint.jpg"
+        alt="The Barn — Richmond V1 birdseye layout blueprint, ~9,180 sf left zone with 8 food stalls, 4 kiosks, gathering zone, and restrooms"
+        className="w-full h-auto rounded-lg"
+        loading="eager"
+      />
+      <div className="mt-3 text-[10px] md:text-xs text-walnut-light flex flex-wrap gap-x-4 gap-y-1 justify-center">
+        <span>◾ Core wall = only non-window wall · anchor for MEP + hood exhaust</span>
+        <span>◾ Hood vents through central TPO roof zone above core</span>
       </div>
     </div>
   );
