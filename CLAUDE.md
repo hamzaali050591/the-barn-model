@@ -75,7 +75,7 @@ Single shared state via `src/utils/ModelContext.tsx` → `ModelProvider` wraps t
 - Capital stack: `sqft`, `tiPSF`, `leasePSF`, `capexPSF`, `gpInvestment`, `debtPerLocation`, `debtRatePct`
   - Total CapEx is derived: `sqft × capexPSF` (default $150/psf × 9,180 sf ≈ $1.38M — V1 Richmond left-zone baseline). Never store a total-dollar CapEx field — the PSF coupling keeps sqft, TI, lease, and CapEx moving together, which is the CFO-defensible behavior.
   - Capital stack order: `TI + Debt + GP + LP = CapEx`. Debt is clamped at `max(0, capex − TI − GP)` so it can't squeeze LP below zero — the slider visually appears "stuck" past that point and the summary row shows "(capped)".
-- Revenue: `vendors[]`, `revenueModel` (`'base' | 'pct' | 'mixed'`), `pctOfSalesRate`, `mixedBaseRent`, `mixedPctRate`, `rentIncludesUtilities`
+- Revenue: `vendors[]`, `revenueModel` (`'base' | 'pct' | 'mixed'`), `pctOfSalesRate`, `mixedBaseRent`, `mixedPctRate`, `rentIncludesUtilities`, `nonRentRevenue` (per-location $/mo, default $0, escalates with rent), `spaceLeasedPct` (default 100%, scales rent only — OpEx unchanged)
 - Detailed OpEx: `gas`, `electric`, `water`, `nonUtility` (each with scenario `'low' | 'mid' | 'high'`)
 - Comp: `salaryBase`, `salaryStep`, `profitSharePct`
 - Deal terms: `numLocations`, `exitMultiple`, `rampMonths`, `l1LeaseHolidayMonths`, `openSchedule[]`, `holdMonths`

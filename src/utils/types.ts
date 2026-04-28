@@ -88,6 +88,8 @@ export interface ModelInputs {
   pctOfSalesRate: number;
   mixedBaseRent: number;
   mixedPctRate: number;
+  nonRentRevenue: number;
+  spaceLeasedPct: number;
 
   // Annual escalators (% per year, compounding, per-location clock)
   rentEscalatorPct: number;
@@ -180,6 +182,8 @@ export const DEFAULT_INPUTS: ModelInputs = {
   pctOfSalesRate: 20,
   mixedBaseRent: 3_500,
   mixedPctRate: 6,
+  nonRentRevenue: 0,
+  spaceLeasedPct: 100,
 
   rentEscalatorPct: 3,
   opexEscalatorPct: 3,

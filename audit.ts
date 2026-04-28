@@ -349,6 +349,22 @@ const perturbations: Perturbation[] = [
     expectDirIRR: 'down',
     note: 'Same debt principal, varying rate. Higher rate = bigger interest drag = lower IRR/MOIC. Above ~operating-return threshold this becomes negative leverage.',
   },
+  {
+    name: '[26] nonRentRevenue',
+    caption: '$0  →  $5k/mo / $10k/mo per loc',
+    lo: richmond({ nonRentRevenue: 5_000 }),
+    hi: richmond({ nonRentRevenue: 10_000 }),
+    expectDirIRR: 'up',
+    note: 'Non-rent revenue per location (events, sponsorships, parking). Escalates with rent escalator. Pure topline addition → higher EBITDA → higher IRR/MOIC.',
+  },
+  {
+    name: '[27] spaceLeasedPct',
+    caption: '100%  →  50% / 100%   (default 100%)',
+    lo: richmond({ spaceLeasedPct: 50 }),
+    hi: richmond({ spaceLeasedPct: 100 }),
+    expectDirIRR: 'up',
+    note: 'LO = half-leased stress test (50% rent collected). HI = baseline (default already 100%). OpEx unchanged — models rent shortfall without dropping vendor count.',
+  },
 ];
 
 function scaleNonUtility(n: typeof DEFAULT_INPUTS.nonUtility, s: number) {

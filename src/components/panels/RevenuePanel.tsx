@@ -138,6 +138,29 @@ export default function RevenuePanel({ inputs, onChange }: Props) {
         </div>
       ))}
 
+      {/* Other Revenue Levers */}
+      <div className="mt-4 pt-3 border-t border-walnut/10">
+        <div className="text-[10px] font-semibold text-walnut-light uppercase tracking-wider mb-2">
+          Other Revenue Levers
+        </div>
+        <SliderRow
+          label="Non-Rent Revenue"
+          value={inputs.nonRentRevenue}
+          min={0} max={10_000} step={1_000}
+          format={fmt$}
+          info="Additional monthly revenue per location beyond vendor rent — events, sponsorships, parking, etc. Escalates annually with the rent escalator."
+          onChange={v => set('nonRentRevenue', v)}
+        />
+        <SliderRow
+          label="% Space Leased"
+          value={inputs.spaceLeasedPct}
+          min={50} max={100} step={10}
+          format={v => v.toFixed(0) + '%'}
+          info="Effective lease-up rate. Scales total vendor rent down proportionally. Vendor utilities and OpEx are unchanged — this models 'rent collected vs rent capacity,' not vendor count."
+          onChange={v => set('spaceLeasedPct', v)}
+        />
+      </div>
+
       {/* Annual Rent Escalator */}
       <div className="mt-4 pt-3 border-t border-walnut/10">
         <div className="text-[10px] font-semibold text-walnut-light uppercase tracking-wider mb-2">

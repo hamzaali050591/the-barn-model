@@ -33,6 +33,7 @@ function levelPayment(principal: number, monthlyRate: number, termMonths: number
 //   - flatRent: portion that does not (% of sales — assumed sales stay flat)
 // In 'base' mode all rent escalates; in 'pct' mode none escalates;
 // in 'mixed' mode only the base-rent component escalates.
+// Both portions are scaled by spaceLeasedPct (% of stalls actually leased).
 export function vendorTotals(inputs: ModelInputs) {
   const numVendors = inputs.vendors.reduce((s, v) => s + v.count, 0);
   const numFoodVendors = inputs.vendors.reduce((s, v) => s + (v.isFood ? v.count : 0), 0);
@@ -51,6 +52,10 @@ export function vendorTotals(inputs: ModelInputs) {
     escalatingRent = numVendors * inputs.mixedBaseRent;
     flatRent = totalSales * (inputs.mixedPctRate / 100);
   }
+
+  const leasedFactor = inputs.spaceLeasedPct / 100;
+  escalatingRent *= leasedFactor;
+  flatRent *= leasedFactor;
 
   const monthlyVendorRentPerLocation = escalatingRent + flatRent;
 
@@ -217,7 +222,7 @@ export function runModel(inputs: ModelInputs): ModelOutputs {
       const rentFactor = Math.pow(rentEsc, yearsOpen);
       const opexFactor = Math.pow(opexEsc, yearsOpen);
       const leaseFactor = Math.pow(leaseEsc, yearsOpen);
-      revenue += escalatingRent * rentFactor + flatRent;
+      revenue += escalatingRent * rentFactor + flatRent + inputs.nonRentRevenue * rentFactor;
       opex += monthlyOpexPerLocation * opexFactor;
       let locLease = monthlyLeasePerLocation * leaseFactor;
       if (om === l1OpenMonth && m >= om && m < om + l1LeaseHolidayMonths) {

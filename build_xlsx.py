@@ -27,6 +27,8 @@ RENT_ESC, OPEX_ESC, LEASE_ESC = 3, 3, 0
 SALARY_BASE, SALARY_STEP, PROFIT_SHARE = 84_000, 20_000, 10
 REV_MODEL = "base"
 PCT_OF_SALES, MIXED_BASE, MIXED_PCT = 20, 3500, 6
+NON_RENT_REVENUE = 0
+SPACE_LEASED_PCT = 100
 RENT_INCLUDES_UTILS = True
 
 VENDORS = [("Food Vendors", 8, 7000, 35000, True),
@@ -188,6 +190,8 @@ inp = [
     ("% of Sales Rate (%)", PCT_OF_SALES/100, "pctOfSalesRate", PCT1),
     ("Mixed Base Rent ($/vendor/mo)", MIXED_BASE, "mixedBaseRent", USD0),
     ("Mixed % of Sales Rate (%)", MIXED_PCT/100, "mixedPctRate", PCT1),
+    ("Non-Rent Revenue ($/mo per loc)", NON_RENT_REVENUE, "nonRentRevenue", USD0),
+    ("% Space Leased (50–100)", SPACE_LEASED_PCT/100, "spaceLeasedPct", PCT1),
     ("Rent Includes Utilities (1=yes 0=no)", 1 if RENT_INCLUDES_UTILS else 0, "rentIncludesUtilities", "0"),
     ("", None, None, None),
     ("ESCALATORS (annual, compounding, per-location clock)", None, None, None),
@@ -293,17 +297,26 @@ ws.cell(4, 1, "Base Rent Total (Food×rent + NonFood×rent)")
 ws.cell(4, 2, "=numFoodVendors*foodRent+numNonFoodVendors*nonFoodRent"); ws.cell(4, 2).number_format = USD0
 ws.cell(5, 1, "Sales Total (Food×sales + NonFood×sales)")
 ws.cell(5, 2, "=numFoodVendors*foodSales+numNonFoodVendors*nonFoodSales"); ws.cell(5, 2).number_format = USD0
-ws.cell(7, 1, "Escalating Rent (drives rent escalator)").font = SUB
+ws.cell(7, 1, "Escalating Rent — pre-leased-factor").font = SUB
 ws.cell(7, 2, '=IF(revenueModel="base",B4,IF(revenueModel="pct",0,B3*mixedBaseRent))')
-ws.cell(7, 2).number_format = USD0; ws.cell(7, 2).fill = ACCENT_FILL
-ws.cell(8, 1, "Flat Rent (does not escalate)").font = SUB
+ws.cell(7, 2).number_format = USD0
+ws.cell(8, 1, "Flat Rent — pre-leased-factor").font = SUB
 ws.cell(8, 2, '=IF(revenueModel="base",0,IF(revenueModel="pct",B5*pctOfSalesRate,B5*mixedPctRate))')
-ws.cell(8, 2).number_format = USD0; ws.cell(8, 2).fill = ACCENT_FILL
-ws.cell(9, 1, "Total Monthly Vendor Rent")
-ws.cell(9, 2, "=B7+B8"); ws.cell(9, 2).number_format = USD0; ws.cell(9, 2).fill = DERIVED_FILL
+ws.cell(8, 2).number_format = USD0
 
-named(wb, "escalatingRent", "'Vendor Revenue'!$B$7")
-named(wb, "flatRent", "'Vendor Revenue'!$B$8")
+ws.cell(10, 1, "Escalating Rent (× spaceLeasedPct)").font = SUB
+ws.cell(10, 2, "=B7*spaceLeasedPct"); ws.cell(10, 2).number_format = USD0; ws.cell(10, 2).fill = ACCENT_FILL
+ws.cell(11, 1, "Flat Rent (× spaceLeasedPct)").font = SUB
+ws.cell(11, 2, "=B8*spaceLeasedPct"); ws.cell(11, 2).number_format = USD0; ws.cell(11, 2).fill = ACCENT_FILL
+ws.cell(12, 1, "Total Monthly Vendor Rent (Year 0)")
+ws.cell(12, 2, "=B10+B11"); ws.cell(12, 2).number_format = USD0; ws.cell(12, 2).fill = DERIVED_FILL
+ws.cell(13, 1, "Non-Rent Revenue (per loc, Year 0)")
+ws.cell(13, 2, "=nonRentRevenue"); ws.cell(13, 2).number_format = USD0; ws.cell(13, 2).fill = ACCENT_FILL
+ws.cell(14, 1, "Total Revenue (per loc, Year 0)")
+ws.cell(14, 2, "=B12+B13"); ws.cell(14, 2).number_format = USD0; ws.cell(14, 2).fill = DERIVED_FILL
+
+named(wb, "escalatingRent", "'Vendor Revenue'!$B$10")
+named(wb, "flatRent", "'Vendor Revenue'!$B$11")
 
 # ═════ Sheet 5: Gas ═════
 ws = wb.create_sheet("Gas")
@@ -611,9 +624,9 @@ for m in range(1, MAX_MONTHS + 1):
         # j-YearsOpen = IF(active, FLOOR((m - openMo)/12), 0)
         ws.cell(r, YR_OFF + j - 1,
                 f"=IF({cl(ACTIVE_OFF+j-1)}{r}=1,FLOOR((A{r}-openMo_{j})/12,1),0)")
-        # j-Revenue = active * (escalatingRent * (1+rentEsc)^yrs + flatRent)
+        # j-Revenue = active * (escalatingRent * (1+rentEsc)^yrs + flatRent + nonRentRevenue * (1+rentEsc)^yrs)
         ws.cell(r, REV_OFF + j - 1,
-                f"=IF({cl(ACTIVE_OFF+j-1)}{r}=1,escalatingRent*(1+rentEscalatorPct)^{cl(YR_OFF+j-1)}{r}+flatRent,0)")
+                f"=IF({cl(ACTIVE_OFF+j-1)}{r}=1,(escalatingRent+nonRentRevenue)*(1+rentEscalatorPct)^{cl(YR_OFF+j-1)}{r}+flatRent,0)")
         # j-OpEx = active * (monthlyOpex * (1+opexEsc)^yrs)
         ws.cell(r, OPEX_OFF + j - 1,
                 f"=IF({cl(ACTIVE_OFF+j-1)}{r}=1,monthlyOpexPerLoc*(1+opexEscalatorPct)^{cl(YR_OFF+j-1)}{r},0)")
