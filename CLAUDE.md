@@ -5,7 +5,7 @@ Interactive investor-facing companion to The Barn's pitch deck and financial mod
 ## The concept (for context when making copy/design calls)
 
 - **The Barn** is a curated, tech-enabled food hall. Richmond, TX is the flagship/proof-of-concept.
-- **Long-term vision:** 7 Texas-suburb locations over ~4 years (Richmond → Fulshear → Frisco → Plano → San Antonio → +2), exit at ~6× EBITDA.
+- **Long-term vision:** 7 Texas-suburb locations over ~4 years (Richmond → Fulshear → Frisco → Plano → San Antonio → +2), exit at a conservative ~3× EBITDA default in the model (slider ranges 1–8×; aspirational 6× still available).
 - **Capital stack partners:** **DPEG** (landlord) funds TI; **GP** (the user) + **LP** investors fund the remaining equity per location. Don't rename "DPEG" in the UI — it's load-bearing terminology for the deal.
 - **Brand voice:** warm, neighborhood-first, "Everybody's Welcome." Never franchise-y, never a food court.
 
@@ -66,8 +66,9 @@ npm run preview   # preview built output
 Single shared state via `src/utils/ModelContext.tsx` → `ModelProvider` wraps the whole app.
 
 **Inputs** (`src/utils/types.ts` → `ModelInputs`):
-- Capital stack: `sqft`, `tiPSF`, `leasePSF`, `capexPSF`, `gpInvestment`
+- Capital stack: `sqft`, `tiPSF`, `leasePSF`, `capexPSF`, `gpInvestment`, `debtPerLocation`, `debtRatePct`
   - Total CapEx is derived: `sqft × capexPSF` (default $150/psf × 9,180 sf ≈ $1.38M — V1 Richmond left-zone baseline). Never store a total-dollar CapEx field — the PSF coupling keeps sqft, TI, lease, and CapEx moving together, which is the CFO-defensible behavior.
+  - Capital stack order: `TI + Debt + GP + LP = CapEx`. Debt is clamped at `max(0, capex − TI − GP)` so it can't squeeze LP below zero — the slider visually appears "stuck" past that point and the summary row shows "(capped)".
 - Revenue: `vendors[]`, `revenueModel` (`'base' | 'pct' | 'mixed'`), `pctOfSalesRate`, `mixedBaseRent`, `mixedPctRate`, `rentIncludesUtilities`
 - Detailed OpEx: `gas`, `electric`, `water`, `nonUtility` (each with scenario `'low' | 'mid' | 'high'`)
 - Comp: `salaryBase`, `salaryStep`, `profitSharePct`
@@ -96,6 +97,7 @@ Single shared state via `src/utils/ModelContext.tsx` → `ModelProvider` wraps t
   - **Clock convention:** per-location, Year 0 = first 12 months from each location's open month. Year 1 starts at month 12, Year 2 at month 24, etc. Factor at month-since-open `k` = `(1 + esc)^floor(k/12)`. Salary uses L1's open as a single portfolio-wide clock since salary is corporate, not per-location.
   - **Lease holiday interaction:** `l1LeaseHolidayMonths` zeroes the lease for L1's first N months regardless of escalator. The escalator clock keeps ticking from open month, so the holiday doesn't reset Year 0.
   - **Exit math:** unchanged structurally — still `exitMultiple × T12 preCompEBITDA × (1 − profitShare)`. T12 at exit naturally captures whatever year each location is in, so escalators flow into exit value automatically.
+- **Senior debt (added Apr 2026):** `debtPerLocation` (default $0, range $0–$1M) and `debtRatePct` (default 0%, range 0–20%). Conservative structure — fully amortizing (level monthly P&I) over the period from each location's capital-call month to `holdMonths`, so the loan balance is **$0 at exit (no balloon)**. Rationale: investor-friendly + lender-friendly + simplifies the exit math (no debt to retire from exit proceeds). The trade-off: this is a non-standard loan term. Real construction lenders rarely write 4-yr fully-amortizing loans; the realistic structure is interest-only construction debt converting to a 5–10 yr amortizing term loan with a balloon. If a real lender quote comes in, may need to revisit. Engine details: `interestExpense` and `debtServicePayment` are subtracted from `postSalaryEBITDA` *before* the ramp ratio (debt service is a hard cost). `MonthlyRow` exposes `interestExpense`, `debtPrincipalPaid`, `debtServicePayment`. Default exit multiple lowered to 3× (down from 6×) — slider 1–8× covers the full range.
 
 **Richmond vs Portfolio:** `Model.tsx` overrides `numLocations: 1`, `openSchedule: [4]` (L1 opens m=4, capital called m=1), and `holdMonths` is driven by the Hold Period slider inside `RichmondDealTermsPanel` (range 24–72 mo, default 48). The portfolio `InvestorPanel` hides in Richmond mode; the `RichmondDealTermsPanel` takes its 4th-column slot. `OpexPanel` accepts `isRichmond` and hides the Salary Increment slider (inert with 1 location).
 

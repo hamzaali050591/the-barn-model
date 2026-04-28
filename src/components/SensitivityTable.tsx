@@ -7,7 +7,7 @@ interface Props {
   inputs: ModelInputs;
 }
 
-const EXIT_MULTIPLES = [4, 5, 6, 7, 8];
+const EXIT_MULTIPLES = [2, 3, 4, 5, 6];
 const LOCATION_COUNTS = [5, 6, 7, 8, 9];
 
 export default function SensitivityTable({ inputs }: Props) {

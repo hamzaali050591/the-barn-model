@@ -16,7 +16,8 @@ export default function CapitalStackPanel({ inputs, onChange }: Props) {
   const set = <K extends keyof ModelInputs>(key: K, value: ModelInputs[K]) =>
     onChange({ ...inputs, [key]: value });
 
-  const { totalCapex, tiTotal, investorEquityPerLocation, lpInvestment } = capitalStack(inputs);
+  const { totalCapex, tiTotal, investorEquityPerLocation, lpInvestment, debtUsedPerLocation } = capitalStack(inputs);
+  const debtCapped = debtUsedPerLocation < inputs.debtPerLocation;
 
   return (
     <div className="glass rounded-2xl p-5 md:p-6 flex flex-col">
@@ -73,9 +74,29 @@ export default function CapitalStackPanel({ inputs, onChange }: Props) {
         format={fmt$}
         onChange={v => set('gpInvestment', v)}
       />
+      <SliderRow
+        label="Debt Leverage"
+        value={inputs.debtPerLocation}
+        min={0} max={1_000_000} step={100_000}
+        format={fmt$}
+        info="Per-location senior debt that replaces LP equity dollar-for-dollar. Funds at the capital-call month (3 months before open) and fully amortizes by exit on a level monthly P&I schedule — no balloon. If the slider exceeds the available LP slot (CapEx − TI − GP), the model clamps debt at that ceiling."
+        onChange={v => set('debtPerLocation', v)}
+      />
+      <SliderRow
+        label="Debt Rate"
+        value={inputs.debtRatePct}
+        min={0} max={20} step={2}
+        format={v => v.toFixed(0) + '%'}
+        info="Annual interest rate on the senior debt. Applied to the outstanding balance each month. Positive leverage when this is below the operating return; negative leverage above it."
+        onChange={v => set('debtRatePct', v)}
+      />
 
       <div className="mt-auto pt-3 border-t border-walnut/10 space-y-1.5">
         <DerivedRow label="Total TI (DPEG)" value={fmtDollarFull(tiTotal)} />
+        <DerivedRow
+          label={debtCapped ? 'Debt Financing (capped)' : 'Debt Financing'}
+          value={fmtDollarFull(debtUsedPerLocation)}
+        />
         <DerivedRow label="GP Investment" value={fmtDollarFull(inputs.gpInvestment)} />
         <DerivedRow label="LP Investment" value={fmtDollarFull(lpInvestment)} />
         <DerivedRow label="Investor Equity (LP+GP)" value={fmtDollarFull(investorEquityPerLocation)} />

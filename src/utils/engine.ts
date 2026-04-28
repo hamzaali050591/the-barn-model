@@ -8,9 +8,23 @@ import { xirrFromMonthly } from './xirr';
 export function capitalStack(inputs: ModelInputs) {
   const totalCapex = inputs.sqft * inputs.capexPSF;
   const tiTotal = inputs.sqft * inputs.tiPSF;
-  const investorEquityPerLocation = Math.max(0, totalCapex - tiTotal);
-  const lpInvestment = Math.max(0, investorEquityPerLocation - inputs.gpInvestment);
-  return { totalCapex, tiTotal, investorEquityPerLocation, lpInvestment };
+  const equitySlot = Math.max(0, totalCapex - tiTotal);
+  const gpUsed = Math.min(inputs.gpInvestment, equitySlot);
+  const debtSlot = Math.max(0, equitySlot - gpUsed);
+  const debtUsedPerLocation = Math.min(Math.max(0, inputs.debtPerLocation), debtSlot);
+  const investorEquityPerLocation = Math.max(0, equitySlot - debtUsedPerLocation);
+  const lpInvestment = Math.max(0, investorEquityPerLocation - gpUsed);
+  return { totalCapex, tiTotal, investorEquityPerLocation, lpInvestment, debtUsedPerLocation };
+}
+
+// ── Debt amortization (fully amortizing — no balloon at exit) ──
+// Returns the level monthly P&I payment given principal P, monthly rate r,
+// and term in months n. If r=0, it's straight principal-only paydown.
+function levelPayment(principal: number, monthlyRate: number, termMonths: number): number {
+  if (principal <= 0 || termMonths <= 0) return 0;
+  if (monthlyRate === 0) return principal / termMonths;
+  const factor = Math.pow(1 + monthlyRate, termMonths);
+  return principal * (monthlyRate * factor) / (factor - 1);
 }
 
 // ── Revenue ──
@@ -161,10 +175,11 @@ export function runModel(inputs: ModelInputs): ModelOutputs {
     numLocations, exitMultiple, leasePSF, sqft, profitSharePct,
     salaryBase, salaryStep, rampMonths, l1LeaseHolidayMonths, holdMonths,
     rentEscalatorPct, opexEscalatorPct, leaseEscalatorPct,
+    debtRatePct,
   } = inputs;
 
   const schedule = inputs.openSchedule.slice(0, numLocations);
-  const { tiTotal, investorEquityPerLocation, lpInvestment } = capitalStack(inputs);
+  const { tiTotal, investorEquityPerLocation, lpInvestment, debtUsedPerLocation } = capitalStack(inputs);
   const { numVendors, monthlyVendorRentPerLocation, escalatingRent, flatRent } = vendorTotals(inputs);
   const monthlyOpexPerLocation = opexPerLocation(inputs);
 
@@ -177,6 +192,17 @@ export function runModel(inputs: ModelInputs): ModelOutputs {
   const opexEsc = 1 + opexEscalatorPct / 100;
   const leaseEsc = 1 + leaseEscalatorPct / 100;
   const l1OpenMonth = schedule[0] ?? 1;
+
+  // Debt schedule per location: loan funds at the capital-call month
+  // (max(1, openMonth - 3)) and fully amortizes by holdMonths so balance = 0
+  // at exit. Term = holdMonths - callMonth + 1.
+  const monthlyDebtRate = debtRatePct / 100 / 12;
+  const debtSchedules = schedule.map(om => {
+    const callMonth = Math.max(1, om - 3);
+    const termMonths = Math.max(0, holdMonths - callMonth + 1);
+    const payment = levelPayment(debtUsedPerLocation, monthlyDebtRate, termMonths);
+    return { callMonth, termMonths, payment, balance: debtUsedPerLocation };
+  });
 
   for (let m = 1; m <= holdMonths; m++) {
     const nActive = schedule.filter(om => om <= m).length;
@@ -205,7 +231,23 @@ export function runModel(inputs: ModelInputs): ModelOutputs {
     const salaryFactor = Math.pow(opexEsc, Math.max(0, salaryYearsOpen));
     const corpSalary = nActive > 0 ? ((salaryBase + salaryStep * (nActive - 1)) / 12) * salaryFactor : 0;
     const postSalaryEBITDA = preCompEBITDA - corpSalary;
-    const distributableNOI = nActive > 0 ? (nDistributing / nActive) * postSalaryEBITDA : 0;
+
+    let interestExpense = 0;
+    let debtPrincipalPaid = 0;
+    let debtServicePayment = 0;
+    for (const ds of debtSchedules) {
+      if (m < ds.callMonth || m >= ds.callMonth + ds.termMonths) continue;
+      if (ds.balance <= 0 || ds.payment <= 0) continue;
+      const interest = ds.balance * monthlyDebtRate;
+      const principal = Math.min(ds.balance, ds.payment - interest);
+      interestExpense += interest;
+      debtPrincipalPaid += principal;
+      debtServicePayment += ds.payment;
+      ds.balance = Math.max(0, ds.balance - principal);
+    }
+
+    const postDebtEBITDA = postSalaryEBITDA - debtServicePayment;
+    const distributableNOI = nActive > 0 ? (nDistributing / nActive) * postDebtEBITDA : 0;
     const profitShare = Math.max(0, distributableNOI) * profitShareRate;
     const distributions = Math.max(0, distributableNOI - profitShare);
 
@@ -229,7 +271,9 @@ export function runModel(inputs: ModelInputs): ModelOutputs {
 
     monthly.push({
       month: m, nActive, nDistributing, revenue, opex, masterLease,
-      preCompEBITDA, corpSalary, postSalaryEBITDA, distributableNOI,
+      preCompEBITDA, corpSalary, postSalaryEBITDA,
+      interestExpense, debtPrincipalPaid, debtServicePayment,
+      distributableNOI,
       profitShare, distributions, capitalCall, exitProceeds, exitProfitShare, netCashFlow,
       cumulativeEquity, cumulativeDistributions,
     });
@@ -257,7 +301,7 @@ export function runModel(inputs: ModelInputs): ModelOutputs {
   return {
     monthly, totalEquity, totalDistributions, exitProceeds: exitProceedsTotal,
     totalReturns, roi, moic, irr, avgCoC, stabilizedCoC,
-    tiTotal, investorEquityPerLocation, lpInvestment,
+    tiTotal, investorEquityPerLocation, lpInvestment, debtUsedPerLocation,
     monthlyVendorRentPerLocation, monthlyOpexPerLocation, numVendors,
   };
 }

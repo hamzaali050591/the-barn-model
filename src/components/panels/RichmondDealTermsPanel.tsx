@@ -33,7 +33,7 @@ export default function RichmondDealTermsPanel({ inputs, onChange, holdMonths, o
       <SliderRow
         label="Exit EBITDA Multiple"
         value={inputs.exitMultiple}
-        min={3} max={10} step={0.5}
+        min={1} max={8} step={0.5}
         format={fmtX}
         onChange={v => set('exitMultiple', v)}
       />

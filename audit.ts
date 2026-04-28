@@ -279,9 +279,9 @@ const perturbations: Perturbation[] = [
   // ── DEAL TERMS ──
   {
     name: '[17] exitMultiple',
-    caption: '6×  → 4.8× / 7.2×',
-    lo: richmond({ exitMultiple: 4.8 }),
-    hi: richmond({ exitMultiple: 7.2 }),
+    caption: '3×  → 2.4× / 3.6×',
+    lo: richmond({ exitMultiple: 2.4 }),
+    hi: richmond({ exitMultiple: 3.6 }),
     expectDirIRR: 'up',
     note: 'Exit proceeds scale linearly (± 20% of exit). IRR moves less because distributions are unchanged.',
   },
@@ -332,6 +332,22 @@ const perturbations: Perturbation[] = [
     hi: richmond({ leaseEscalatorPct: 6 }),
     expectDirIRR: 'down',
     note: 'Master lease only. LO = baseline (default already 0). HI = aggressive 6% escalator → bigger lease bill every year → lower EBITDA, lower IRR/MOIC.',
+  },
+  {
+    name: '[24] debtPerLocation @ 8%',
+    caption: '$0  → $400k debt @ 8% rate (default 0/0)',
+    lo: richmond({ debtPerLocation: 0, debtRatePct: 0 }),
+    hi: richmond({ debtPerLocation: 400_000, debtRatePct: 8 }),
+    expectDirIRR: 'up',
+    note: 'Senior debt replaces LP equity dollar-for-dollar. Fully amortizes by exit (no balloon). Positive leverage when debt rate < operating return — $400k @ 8% should boost IRR.',
+  },
+  {
+    name: '[25] debtRatePct on $400k debt',
+    caption: '$400k @ 4%  →  $400k @ 16%',
+    lo: richmond({ debtPerLocation: 400_000, debtRatePct: 4 }),
+    hi: richmond({ debtPerLocation: 400_000, debtRatePct: 16 }),
+    expectDirIRR: 'down',
+    note: 'Same debt principal, varying rate. Higher rate = bigger interest drag = lower IRR/MOIC. Above ~operating-return threshold this becomes negative leverage.',
   },
 ];
 

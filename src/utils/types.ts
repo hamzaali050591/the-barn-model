@@ -79,6 +79,8 @@ export interface ModelInputs {
   leasePSF: number;
   capexPSF: number;
   gpInvestment: number;
+  debtPerLocation: number;
+  debtRatePct: number;
 
   // Revenue Model
   vendors: VendorCategory[];
@@ -125,6 +127,9 @@ export interface MonthlyRow {
   preCompEBITDA: number;
   corpSalary: number;
   postSalaryEBITDA: number;
+  interestExpense: number;
+  debtPrincipalPaid: number;
+  debtServicePayment: number;
   distributableNOI: number;
   profitShare: number;
   distributions: number;
@@ -150,6 +155,7 @@ export interface ModelOutputs {
   tiTotal: number;
   investorEquityPerLocation: number;
   lpInvestment: number;
+  debtUsedPerLocation: number;
   monthlyVendorRentPerLocation: number;
   monthlyOpexPerLocation: number;
   numVendors: number;
@@ -162,6 +168,8 @@ export const DEFAULT_INPUTS: ModelInputs = {
   leasePSF: 35,
   capexPSF: 150,
   gpInvestment: 200_000,
+  debtPerLocation: 0,
+  debtRatePct: 0,
 
   // Revenue Model
   vendors: [
@@ -292,7 +300,7 @@ export const DEFAULT_INPUTS: ModelInputs = {
 
   // Deal terms
   numLocations: 7,
-  exitMultiple: 6,
+  exitMultiple: 3,
   rampMonths: 3,
   l1LeaseHolidayMonths: 3,
   openSchedule: [4, 16, 20, 24, 28, 32, 36],

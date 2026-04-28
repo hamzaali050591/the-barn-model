@@ -162,7 +162,7 @@ export default function Model() {
                   <thead>
                     <tr>
                       <th className="px-3 py-2 text-left text-walnut-light font-semibold">Exit Multiple</th>
-                      {[3, 4, 5, 6, 7, 8].map(em => (
+                      {[1, 2, 3, 4, 5, 6].map(em => (
                         <th key={em} className={`px-3 py-2 text-center font-semibold ${em === activeInputs.exitMultiple ? 'text-honey' : 'text-walnut-light'}`}>
                           {em}&times;
                         </th>
@@ -172,7 +172,7 @@ export default function Model() {
                   <tbody>
                     <tr className="border-t border-walnut/5">
                       <td className="px-3 py-2 font-semibold text-walnut-light">IRR</td>
-                      {[3, 4, 5, 6, 7, 8].map(em => {
+                      {[1, 2, 3, 4, 5, 6].map(em => {
                         const r = runModelWith(activeInputs, { exitMultiple: em });
                         const active = em === activeInputs.exitMultiple;
                         return (
@@ -184,7 +184,7 @@ export default function Model() {
                     </tr>
                     <tr className="border-t border-walnut/5">
                       <td className="px-3 py-2 font-semibold text-walnut-light">MOIC</td>
-                      {[3, 4, 5, 6, 7, 8].map(em => {
+                      {[1, 2, 3, 4, 5, 6].map(em => {
                         const r = runModelWith(activeInputs, { exitMultiple: em });
                         const active = em === activeInputs.exitMultiple;
                         return (
