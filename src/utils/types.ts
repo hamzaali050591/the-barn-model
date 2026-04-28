@@ -190,10 +190,10 @@ export const DEFAULT_INPUTS: ModelInputs = {
   // Gas config (from spreadsheet Gas tab — food vendors only)
   gas: {
     equipment: [
-      { name: '40lb Fryer', btu: 120_000, duty: 0.5 },
-      { name: '2ft Flat Top Griddle', btu: 48_000, duty: 0.45 },
-      { name: '2ft Charbroiler', btu: 56_000, duty: 0.3 },
-      { name: '6-Burner Range', btu: 150_000, duty: 0.35 },
+      { name: '40lb Fryer', btu: 120_000, duty: 0.33 },
+      { name: '2ft Flat Top Griddle', btu: 48_000, duty: 0.30 },
+      { name: '2ft Charbroiler', btu: 56_000, duty: 0.20 },
+      { name: '6-Burner Range', btu: 150_000, duty: 0.23 },
     ],
     hoursPerDay: 12,
     daysPerMonth: 30,
@@ -206,15 +206,15 @@ export const DEFAULT_INPUTS: ModelInputs = {
   // Electric config (from spreadsheet Electric tab)
   electric: {
     baseLoad: [
-      { name: 'Double-door commercial fridge', kw: 1.8, duty: 0.6, hrs: 24 },
-      { name: 'Double-door commercial freezer', kw: 2.2, duty: 0.7, hrs: 24 },
-      { name: '2 refrigerated prep tables', kw: 1, duty: 0.5, hrs: 24 },
-      { name: 'Stall lighting + POS/misc', kw: 0.5, duty: 1, hrs: 12 },
+      { name: 'Double-door commercial fridge', kw: 1.8, duty: 0.45, hrs: 24 },
+      { name: 'Double-door commercial freezer', kw: 2.2, duty: 0.53, hrs: 24 },
+      { name: '2 refrigerated prep tables', kw: 1, duty: 0.38, hrs: 24 },
+      { name: 'Stall lighting + POS/misc', kw: 0.5, duty: 0.75, hrs: 12 },
     ],
     foodAddOn: [
-      { name: 'Steam table / warmers', kw: 1.5, duty: 0.8, hrs: 12 },
-      { name: 'Heat lamp', kw: 0.5, duty: 0.7, hrs: 12 },
-      { name: 'Rice cooker', kw: 1, duty: 0.3, hrs: 12 },
+      { name: 'Steam table / warmers', kw: 1.5, duty: 0.60, hrs: 12 },
+      { name: 'Heat lamp', kw: 0.5, duty: 0.53, hrs: 12 },
+      { name: 'Rice cooker', kw: 1, duty: 0.23, hrs: 12 },
     ],
     commonArea: [
       { name: 'HVAC (40 tons, 70% duty)', kw: 48, duty: 0.7, hrs: 16 },
@@ -234,8 +234,8 @@ export const DEFAULT_INPUTS: ModelInputs = {
 
   // Water config (from spreadsheet Water tab)
   water: {
-    foodGalPerDay: 350,
-    nonFoodGalPerDay: 157,
+    foodGalPerDay: 263,
+    nonFoodGalPerDay: 118,
     daysPerMonth: 30,
     commonArea: [
       { name: 'Restrooms (~300 customers/day)', galPerDay: 600 },
