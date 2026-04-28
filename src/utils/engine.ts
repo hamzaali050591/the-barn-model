@@ -283,20 +283,35 @@ export function runModel(inputs: ModelInputs): ModelOutputs {
   const totalDistributions = monthly.reduce((s, r) => s + r.distributions, 0);
   const exitProceedsTotal = monthly.reduce((s, r) => s + r.exitProceeds, 0);
   const totalReturns = totalDistributions + exitProceedsTotal;
-  const roi = totalEquity > 0 ? (totalReturns - totalEquity) / totalEquity : 0;
-  const moic = totalEquity > 0 ? totalReturns / totalEquity : 0;
-  const avgCoC = totalEquity > 0 ? totalDistributions / totalEquity / (holdMonths / 12) : 0;
+  const roi = totalEquity > 0 ? (totalReturns - totalEquity) / totalEquity : NaN;
+  const moic = totalEquity > 0 ? totalReturns / totalEquity : NaN;
 
+  // Avg CoC: meaningful only if there's equity AND a non-zero hold AND
+  // at least one distribution month — otherwise the metric is undefined.
+  const avgCoC =
+    totalEquity > 0 && holdMonths > 0 && totalDistributions > 0
+      ? totalDistributions / totalEquity / (holdMonths / 12)
+      : NaN;
+
+  // Stabilized CoC: only meaningful once the deal is in steady state at the
+  // exit month — every active location must have cleared its ramp. Earlier
+  // months in the T12 window may still be ramping in, which does understate
+  // the run-rate yield slightly, but the last-month gate catches the cases
+  // where there's literally nothing distributing yet (short hold). NaN flows
+  // through fmtPct as "—" so the UI doesn't show a misleading 0%.
   const lastMonth = monthly[monthly.length - 1];
-  let stabilizedAnnualDist = 0;
-  if (lastMonth && lastMonth.nDistributing > 0) {
-    const last12 = monthly.slice(-12);
-    stabilizedAnnualDist = last12.reduce((s, r) => s + r.distributions, 0);
-  }
-  const stabilizedCoC = totalEquity > 0 ? stabilizedAnnualDist / totalEquity : 0;
+  const last12 = monthly.slice(-12);
+  const stabilizedAnnualDist = last12.reduce((s, r) => s + r.distributions, 0);
+  const isStabilized =
+    !!lastMonth &&
+    lastMonth.nActive > 0 &&
+    lastMonth.nDistributing === lastMonth.nActive &&
+    last12.length === 12;
+  const stabilizedCoC =
+    totalEquity > 0 && isStabilized ? stabilizedAnnualDist / totalEquity : NaN;
 
   const cashFlows = monthly.map(r => r.netCashFlow);
-  const irr = xirrFromMonthly(cashFlows);
+  const irr = totalEquity > 0 ? xirrFromMonthly(cashFlows) : NaN;
 
   return {
     monthly, totalEquity, totalDistributions, exitProceeds: exitProceedsTotal,

@@ -18,9 +18,11 @@ export function fmtDollarFull(n: number): string {
 }
 
 export function fmtPct(n: number): string {
+  if (!isFinite(n)) return '—';
   return (n * 100).toFixed(1) + '%';
 }
 
 export function fmtMultiple(n: number): string {
+  if (!isFinite(n)) return '—';
   return n.toFixed(2) + 'x';
 }
