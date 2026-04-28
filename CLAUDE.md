@@ -11,15 +11,22 @@ Interactive investor-facing companion to The Barn's pitch deck and financial mod
 
 ## Source of truth
 
-**The web app is now the source of truth for financial-model math** (as of April 2026). The Excel file in the parent folder is regenerated from the web app, not hand-maintained:
+**The web app is now the source of truth for financial-model math** (as of April 2026). Two Excel files in the parent folder are regenerated from the web app, not hand-maintained:
 
 ```
-../../The Barn — Financial Model.xlsx          ← generated artifact, do not hand-edit
-./build_xlsx.py                                ← generator script (committed)
+../../The Barn — Financial Model.xlsx          ← portfolio (7-loc) generated artifact
+../../Richmond Financial Model.xlsx            ← Richmond-only (1-loc) generated artifact
+./build_xlsx.py                                ← portfolio generator (committed)
+./build_richmond_xlsx.py                       ← Richmond generator (committed)
 ../../Archive Docs/xlsx-backups/               ← date-stamped snapshots from prior versions
 ```
 
-**Standing rule (April 2026):** Any time `DEFAULT_INPUTS` (`src/utils/types.ts`) or `runModel` (`src/utils/engine.ts`) changes, regenerate the xlsx in the same task: `python3 build_xlsx.py` from the project root. The xlsx is what investors see during pitch conversations — it must agree with the web app to the dollar. If a new input field or new MonthlyRow column is added, update `build_xlsx.py` first (Inputs sheet + downstream formulas) before regenerating.
+**Standing rule (April 2026):** Any time `DEFAULT_INPUTS` (`src/utils/types.ts`) or `runModel` (`src/utils/engine.ts`) changes, regenerate **both** xlsx files in the same task:
+```
+python3 build_xlsx.py
+python3 build_richmond_xlsx.py
+```
+Both must agree with the web app to the dollar. If a new input field or new MonthlyRow column is added, update both generator scripts first (Inputs sheet + downstream formulas) before regenerating. Don't hand-edit either xlsx — re-run the script.
 
 Verification after regen: run `npx tsx audit.ts` for the web-app baseline, then sanity-check the xlsx KPIs sheet against those numbers. They should match within ~1bp on IRR (Excel uses uniform-period IRR annualized; web app uses XIRR with day counts) and exactly on MOIC / CoC / equity / distributions / exit.
 
