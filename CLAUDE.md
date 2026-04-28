@@ -11,13 +11,19 @@ Interactive investor-facing companion to The Barn's pitch deck and financial mod
 
 ## Source of truth
 
-The authoritative financial model lives in the parent folder:
+**The web app is now the source of truth for financial-model math** (as of April 2026). The Excel file in the parent folder is regenerated from the web app, not hand-maintained:
 
 ```
-../../The Barn — Financial Model.xlsx
+../../The Barn — Financial Model.xlsx          ← generated artifact, do not hand-edit
+./build_xlsx.py                                ← generator script (committed)
+../../Archive Docs/xlsx-backups/               ← date-stamped snapshots from prior versions
 ```
 
-When changing default inputs (`DEFAULT_INPUTS` in `src/utils/types.ts`) or formulas in `src/utils/engine.ts`, cross-check against the xlsx. Other reference assets in `../../`:
+**Standing rule (April 2026):** Any time `DEFAULT_INPUTS` (`src/utils/types.ts`) or `runModel` (`src/utils/engine.ts`) changes, regenerate the xlsx in the same task: `python3 build_xlsx.py` from the project root. The xlsx is what investors see during pitch conversations — it must agree with the web app to the dollar. If a new input field or new MonthlyRow column is added, update `build_xlsx.py` first (Inputs sheet + downstream formulas) before regenerating.
+
+Verification after regen: run `npx tsx audit.ts` for the web-app baseline, then sanity-check the xlsx KPIs sheet against those numbers. They should match within ~1bp on IRR (Excel uses uniform-period IRR annualized; web app uses XIRR with day counts) and exactly on MOIC / CoC / equity / distributions / exit.
+
+Other reference assets in `../../`:
 
 - `Initial Decks/Barn Full Proposal.pdf` — narrative long-form
 - `Initial Decks/Barn Deck.pdf` — pitch deck
@@ -88,8 +94,9 @@ Single shared state via `src/utils/ModelContext.tsx` → `ModelProvider` wraps t
 - **Exit EBITDA** = T12 `preCompEBITDA` (owner comp added back per industry PE normalization), NOT post-salary. Net exit to investors = gross × (1 − profitSharePct).
 - **Operator's profit share (`profitSharePct`, default 10%)** applies to BOTH ongoing distributions and exit proceeds. No preferred return, no waterfall, no catch-up.
 - **Ramp is a distribution reserve, not a revenue ramp.** The hall is pre-leased from day 1; revenue and opex start at 100% the month a location opens. `rampMonths` simply delays distributions (builds operating cash reserve).
-- **Model is equity-only, pre-tax.** No debt, no tax. `gpInvestment` is a pure GP/LP split — it does not affect aggregate investor IRR/MOIC/CoC (invariant).
-- **MonthlyRow fields:** `preCompEBITDA` (pre-owner-comp), `postSalaryEBITDA` (after corp salary), `distributableNOI`, `profitShare` (monthly promote), `distributions` (net to investors), `exitProceeds` (net to investors on exit), `exitProfitShare` (operator's exit promote, shown for transparency).
+- **Model is pre-tax.** No tax modeling. `gpInvestment` is a pure GP/LP split when there's no debt — it does not affect aggregate investor IRR/MOIC/CoC (invariant). With debt, GP still doesn't move investor-aggregate KPIs but it does shift the LP residual.
+- **MonthlyRow fields:** `preCompEBITDA` (pre-owner-comp), `postSalaryEBITDA` (after corp salary), `interestExpense`, `debtPrincipalPaid`, `debtServicePayment` (the full P&I number), `distributableNOI`, `profitShare` (monthly promote), `distributions` (net to investors), `exitProceeds` (net to investors on exit), `exitProfitShare` (operator's exit promote, shown for transparency).
+- **Undefined-KPI handling (added Apr 2026):** when a metric is genuinely undefined for a given scenario, the engine returns `NaN` so `fmtPct` / `fmtMultiple` render `"—"` rather than a misleading 0%. Triggers: IRR/MOIC/ROI when totalEquity = 0; AvgCoC when no distributions ever flowed; StabilizedCoC unless the deal is actually stabilized (last month has all active locations distributing AND a full 12-row T12 window). The hold slider can reach 0 (in 6-mo steps) so these guards keep the dashboard sensible at slider edges.
 - **Annual escalators (added Apr 2026):** three independent compounding escalators on `ModelInputs`:
   - `rentEscalatorPct` (default 3) — applies to base rent only. Base mode: full rent escalates. Mixed mode: only the base portion escalates. % of Sales mode: nothing escalates (sales assumed flat).
   - `opexEscalatorPct` (default 3) — applies to vendor utilities, common-area utilities, non-utility OpEx, AND operator salary (`salaryBase` + `salaryStep`). Profit share is excluded by definition (it's a % of NOI).
@@ -99,7 +106,9 @@ Single shared state via `src/utils/ModelContext.tsx` → `ModelProvider` wraps t
   - **Exit math:** unchanged structurally — still `exitMultiple × T12 preCompEBITDA × (1 − profitShare)`. T12 at exit naturally captures whatever year each location is in, so escalators flow into exit value automatically.
 - **Senior debt (added Apr 2026):** `debtPerLocation` (default $0, range $0–$1M) and `debtRatePct` (default 0%, range 0–20%). Conservative structure — fully amortizing (level monthly P&I) over the period from each location's capital-call month to `holdMonths`, so the loan balance is **$0 at exit (no balloon)**. Rationale: investor-friendly + lender-friendly + simplifies the exit math (no debt to retire from exit proceeds). The trade-off: this is a non-standard loan term. Real construction lenders rarely write 4-yr fully-amortizing loans; the realistic structure is interest-only construction debt converting to a 5–10 yr amortizing term loan with a balloon. If a real lender quote comes in, may need to revisit. Engine details: `interestExpense` and `debtServicePayment` are subtracted from `postSalaryEBITDA` *before* the ramp ratio (debt service is a hard cost). `MonthlyRow` exposes `interestExpense`, `debtPrincipalPaid`, `debtServicePayment`. Default exit multiple lowered to 3× (down from 6×) — slider 1–8× covers the full range.
 
-**Richmond vs Portfolio:** `Model.tsx` overrides `numLocations: 1`, `openSchedule: [4]` (L1 opens m=4, capital called m=1), and `holdMonths` is driven by the Hold Period slider inside `RichmondDealTermsPanel` (range 24–72 mo, default 48). The portfolio `InvestorPanel` hides in Richmond mode; the `RichmondDealTermsPanel` takes its 4th-column slot. `OpexPanel` accepts `isRichmond` and hides the Salary Increment slider (inert with 1 location).
+**Richmond vs Portfolio:** `Model.tsx` overrides `numLocations: 1`, `openSchedule: [4]` (L1 opens m=4, capital called m=1), and `holdMonths` is driven by the Hold Period slider inside `RichmondDealTermsPanel`. **Hold Period slider** (both Richmond and Portfolio): range 0–72 mo in 6-mo steps. Sliding to 0 produces an empty cash flow array; KPIs render as "—". The portfolio `InvestorPanel` hides in Richmond mode; the `RichmondDealTermsPanel` takes its 4th-column slot. `OpexPanel` accepts `isRichmond` and hides the Salary Increment slider (inert with 1 location).
+
+**Current default baseline (Richmond 48mo, Apr 2026):** at all defaults — IRR 19.32%, MOIC 1.72×, Stab CoC 23.89%, Exit $1.00M, Total Distributions $815k, Total Returns $1.82M. Portfolio 7×48mo: IRR 16.67%, MOIC 1.36×, Stab CoC 25.69%, Exit $6.43M, Total Returns $10.03M. These flow from: 9,180 sf × $150 = $1.378M CapEx; $321k TI; $1.056M investor equity (200k GP + 856k LP); $76k/mo total vendor rent (8×$7k food + 4×$5k non-food); $22.8k/mo total OpEx (Year 0); $26.8k/mo master lease; 3% rent + 3% OpEx + 0% lease escalators; $0 debt; 3× exit multiple; 10% promote; 48-mo hold.
 
 ## Design system
 
@@ -145,7 +154,15 @@ Site: Building F, Level 2, Marcel Harvest Green, 18806 W Airport Blvd, Richmond,
 
 **Critical infrastructure flag — gas service upgrade (P02.F00):** Current Bldg F gas is 7,000 CFH @ 5 PSI for all tenants. V1 needs 32,000–35,000 CFH peak; V2 needs 64,000–70,000 CFH. CenterPoint upgrade confirmed available by DPEG but must be scheduled early in Discovery/Design or buildout permits will hold.
 
-**Model reconciled to V1 (April 2026):** `DEFAULT_INPUTS.sqft = 9_180` and vendor array = 8 Food + 4 Non-Food kiosks (12 total — Non-Food consolidated into one row covering the HB + Coffee + 2 Dessert kiosks). Total monthly vendor rent baseline = $76k (8×$7k food + 4×$5k non-food). Non-food kiosks all share $25k/mo sales for the percent-of-sales mode. `audit.ts` sqft perturbation updated to 7,344 / 11,016 (±20% of 9,180). If V2 ever becomes the modelled case, bump `sqft` to ~14,500 and roughly double food-vendor count (16) + non-food kiosks (6).
+**Model reconciled to V1 (April 2026):** `DEFAULT_INPUTS.sqft = 9_180` and vendor array = 8 Food + 4 Non-Food kiosks (12 total — Non-Food consolidated into one row covering the HB + Coffee + 2 Dessert kiosks). Total monthly vendor rent baseline = $76k (8×$7k food + 4×$5k non-food). Non-food kiosks all share $25k/mo sales for the percent-of-sales mode.
+
+Vendor utility usage was lowered in late April 2026 (rates unchanged, market-realistic):
+- Gas equipment duty cycles cut ~33%: Fryer 0.50→0.33, Griddle 0.45→0.30, Charbroiler 0.30→0.20, Range 0.35→0.23.
+- Electric vendor duty cycles cut 25% (baseLoad + foodAddOn). Common-area loads untouched.
+- Water vendor gallons-per-day cut 25%: food 350→263, non-food 157→118. Common-area gallons untouched.
+- Net: monthly vendor utilities $11.0k → $6.6k. Total Year-0 monthly OpEx ≈ $22.8k.
+
+`audit.ts` sqft perturbation set to 7,344 / 11,016 (±20% of 9,180). If V2 ever becomes the modelled case, bump `sqft` to ~14,500 and roughly double food-vendor count (16) + non-food kiosks (6).
 
 **Floor-plan rendering on `/layout`:** V1 renders the birdseye blueprint image (`public/renderings/15-birdseye-blueprint.jpg`, sourced from `Visual Assets 2/15. Birdseye Blueprint.png`) via a simple `<img>` in the `V1FloorPlan` component — this is the investor-facing artifact, keep it in sync with any spec changes. V2 still uses the hand-built ASCII/CSS `V2FloorPlan` (no V2 blueprint rendered yet); if/when a V2 blueprint arrives, drop the PNG into `Visual Assets 2/`, re-export to `public/renderings/` at JPG Q85, and swap `V2FloorPlan` to the same `<img>` pattern as V1.
 
@@ -170,12 +187,13 @@ Two top-level tabs sit alongside Strategy / Financial Model / Space Layout in th
 ## Conventions & gotchas
 
 - **Shared state:** always read/write model inputs through `useModel()`. Panel components take `{ inputs, onChange }` props and delegate `onChange(setInputs)` up from `Model.tsx`.
-- **Money formatting:** `fmtDollarFull` / `fmtDollar` / `fmtPct` from `src/utils/format.ts`. Don't roll your own.
+- **Money formatting:** `fmtDollarFull` / `fmtDollar` / `fmtPct` / `fmtMultiple` from `src/utils/format.ts`. Don't roll your own. `fmtPct` and `fmtMultiple` render any non-finite value (NaN/Infinity) as "—" — relied on by the engine to signal undefined KPIs at slider edges.
 - **Richmond overrides must not mutate `inputs`** — compute `activeInputs` via `useMemo`, as `Model.tsx` already does. All sliders stay bound to full portfolio state.
 - **OpEx detail pages** (`/model/opex/*`) read directly from `useModel()` and write back via `setInputs`. Keep the URL structure stable — links from `OpexPanel` AND from the `/opex` top-level tab point to them. Editing happens here; `/opex` is read-only.
 - **Scenario rates:** `low / mid / high` for gas/electric/water rates live inside each config object and are selected via `scenarioRate()` in the engine.
 - **No comments in code** unless the *why* is non-obvious. The existing code follows this.
 - **Don't create new docs/READMEs** unless asked.
+- **xlsx must stay in sync with the web app.** Any change to `DEFAULT_INPUTS` or `runModel` requires running `python3 build_xlsx.py` from the project root in the same task. The xlsx is what investors see in pitch conversations; it lives at `~/Documents/The Barn/The Barn — Financial Model.xlsx` (outside the repo) and must agree with the app to the dollar. Backups go to `~/Documents/The Barn/Archive Docs/xlsx-backups/`. Don't hand-edit the xlsx — re-run the generator. New ModelInputs fields or MonthlyRow columns require updating `build_xlsx.py` first (Inputs sheet + downstream formulas).
 
 ## Working with this repo
 
