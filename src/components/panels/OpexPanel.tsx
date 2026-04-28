@@ -204,11 +204,10 @@ export default function OpexPanel({ inputs, onChange, isRichmond = false }: Prop
         </div>
         <SliderRow
           label="OpEx Escalator"
-          sublabel="annual, compounding — applies to utilities, non-utility, and operator salary"
           value={inputs.opexEscalatorPct}
           min={0} max={6} step={0.25}
           format={v => v.toFixed(2) + '%'}
-          info="Compounds annually from each location's open month. Profit share is excluded — it stays at the set % of NOI. Master lease has its own separate escalator."
+          info="Annual, compounding — applies to vendor utilities, common-area utilities, non-utility OpEx, and operator salary. Compounds from each location's open month. Profit share is excluded (stays at the set % of NOI). Master lease has its own separate escalator."
           onChange={v => set('opexEscalatorPct', v)}
         />
       </div>
