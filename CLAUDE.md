@@ -72,7 +72,7 @@ npm run preview   # preview built output
 Single shared state via `src/utils/ModelContext.tsx` → `ModelProvider` wraps the whole app.
 
 **Inputs** (`src/utils/types.ts` → `ModelInputs`):
-- Capital stack: `sqft`, `tiPSF`, `leasePSF`, `capexPSF`, `gpInvestment`, `debtPerLocation`, `debtRatePct`
+- Capital stack: `sqft`, `tiPSF`, `baseRentPSF`, `nnnPSF`, `capexPSF`, `gpInvestment`, `debtPerLocation`, `debtRatePct`
   - Total CapEx is derived: `sqft × capexPSF` (default $150/psf × 9,180 sf ≈ $1.38M — V1 Richmond left-zone baseline). Never store a total-dollar CapEx field — the PSF coupling keeps sqft, TI, lease, and CapEx moving together, which is the CFO-defensible behavior.
   - Capital stack order: `TI + Debt + GP + LP = CapEx`. Debt is clamped at `max(0, capex − TI − GP)` so it can't squeeze LP below zero — the slider visually appears "stuck" past that point and the summary row shows "(capped)".
 - Revenue: `vendors[]`, `revenueModel` (`'base' | 'pct' | 'mixed'`), `pctOfSalesRate`, `mixedBaseRent`, `mixedPctRate`, `rentIncludesUtilities`, `nonRentRevenue` (per-location $/mo, default $0, escalates with rent), `spaceLeasedPct` (default 100%, scales rent only — OpEx unchanged)
@@ -100,7 +100,8 @@ Single shared state via `src/utils/ModelContext.tsx` → `ModelProvider` wraps t
 - **Annual escalators (added Apr 2026):** three independent compounding escalators on `ModelInputs`:
   - `rentEscalatorPct` (default 3) — applies to base rent only. Base mode: full rent escalates. Mixed mode: only the base portion escalates. % of Sales mode: nothing escalates (sales assumed flat).
   - `opexEscalatorPct` (default 3) — applies to vendor utilities, common-area utilities, non-utility OpEx, AND operator salary (`salaryBase` + `salaryStep`). Profit share is excluded by definition (it's a % of NOI).
-  - `leaseEscalatorPct` (default 0) — applies only to the master lease.
+  - `baseRentEscalatorPct` (default 0) — applies only to the contract base rent.
+  - `nnnEscalatorPct` (default 2) — applies only to NNN pass-throughs (CAM + property tax + insurance), which typically inflate faster than base rent.
   - **Clock convention:** per-location, Year 0 = first 12 months from each location's open month. Year 1 starts at month 12, Year 2 at month 24, etc. Factor at month-since-open `k` = `(1 + esc)^floor(k/12)`. Salary uses L1's open as a single portfolio-wide clock since salary is corporate, not per-location.
   - **Lease holiday interaction:** `l1LeaseHolidayMonths` zeroes the lease for L1's first N months regardless of escalator. The escalator clock keeps ticking from open month, so the holiday doesn't reset Year 0.
   - **Exit math:** unchanged structurally — still `exitMultiple × T12 preCompEBITDA × (1 − profitShare)`. T12 at exit naturally captures whatever year each location is in, so escalators flow into exit value automatically.
@@ -108,7 +109,7 @@ Single shared state via `src/utils/ModelContext.tsx` → `ModelProvider` wraps t
 
 **Richmond vs Portfolio:** `Model.tsx` overrides `numLocations: 1`, `openSchedule: [4]` (L1 opens m=4, capital called m=1), and `holdMonths` is driven by the Hold Period slider inside `RichmondDealTermsPanel`. **Hold Period slider** (both Richmond and Portfolio): range 0–72 mo in 6-mo steps. Sliding to 0 produces an empty cash flow array; KPIs render as "—". The portfolio `InvestorPanel` hides in Richmond mode; the `RichmondDealTermsPanel` takes its 4th-column slot. `OpexPanel` accepts `isRichmond` and hides the Salary Increment slider (inert with 1 location).
 
-**Current default baseline (Richmond 48mo, Apr 2026):** at all defaults — IRR 19.32%, MOIC 1.72×, Stab CoC 23.89%, Exit $1.00M, Total Distributions $815k, Total Returns $1.82M. Portfolio 7×48mo: IRR 16.67%, MOIC 1.36×, Stab CoC 25.69%, Exit $6.43M, Total Returns $10.03M. These flow from: 9,180 sf × $150 = $1.378M CapEx; $321k TI; $1.056M investor equity (200k GP + 856k LP); $76k/mo total vendor rent (8×$7k food + 4×$5k non-food); $22.8k/mo total OpEx (Year 0); $26.8k/mo master lease; 3% rent + 3% OpEx + 0% lease escalators; $0 debt; 3× exit multiple; 10% promote; 48-mo hold.
+**Current default baseline (Richmond 48mo, Apr 2026):** at all defaults — IRR 18.90%, MOIC 1.70×, Stab CoC 23.50%, Exit $990k, Total Distributions $807k, Total Returns $1.80M. Portfolio 7×48mo: IRR 16.36%, MOIC 1.35×, Stab CoC 25.53%, Exit $6.39M, Total Returns $9.98M. These flow from: 9,180 sf × $150 = $1.378M CapEx; $321k TI; $1.056M investor equity (200k GP + 856k LP); $76k/mo total vendor rent (8×$7k food + 4×$5k non-food); $22.8k/mo total OpEx (Year 0); $26.8k/mo lease (Year 0 = base $26 + NNN $9 × 9180 sf / 12); 3% rent + 3% OpEx + 0% base-rent + 2% NNN escalators; $0 debt; 3× exit multiple; 10% promote; 48-mo hold.
 
 ## Design system
 

@@ -177,9 +177,9 @@ export function opexPerLocation(inputs: ModelInputs): number {
 // ── Monthly cash flow engine ──
 export function runModel(inputs: ModelInputs): ModelOutputs {
   const {
-    numLocations, exitMultiple, leasePSF, sqft, profitSharePct,
+    numLocations, exitMultiple, baseRentPSF, nnnPSF, sqft, profitSharePct,
     salaryBase, salaryStep, rampMonths, l1LeaseHolidayMonths, holdMonths,
-    rentEscalatorPct, opexEscalatorPct, leaseEscalatorPct,
+    rentEscalatorPct, opexEscalatorPct, baseRentEscalatorPct, nnnEscalatorPct,
     debtRatePct,
   } = inputs;
 
@@ -191,11 +191,13 @@ export function runModel(inputs: ModelInputs): ModelOutputs {
   const monthly: MonthlyRow[] = [];
   let cumulativeEquity = 0;
   let cumulativeDistributions = 0;
-  const monthlyLeasePerLocation = (leasePSF * sqft) / 12;
+  const monthlyBaseRentPerLocation = (baseRentPSF * sqft) / 12;
+  const monthlyNnnPerLocation = (nnnPSF * sqft) / 12;
   const profitShareRate = profitSharePct / 100;
   const rentEsc = 1 + rentEscalatorPct / 100;
   const opexEsc = 1 + opexEscalatorPct / 100;
-  const leaseEsc = 1 + leaseEscalatorPct / 100;
+  const baseRentEsc = 1 + baseRentEscalatorPct / 100;
+  const nnnEsc = 1 + nnnEscalatorPct / 100;
   const l1OpenMonth = schedule[0] ?? 1;
 
   // Debt schedule per location: loan funds at the capital-call month
@@ -221,10 +223,11 @@ export function runModel(inputs: ModelInputs): ModelOutputs {
       const yearsOpen = Math.floor((m - om) / 12);
       const rentFactor = Math.pow(rentEsc, yearsOpen);
       const opexFactor = Math.pow(opexEsc, yearsOpen);
-      const leaseFactor = Math.pow(leaseEsc, yearsOpen);
+      const baseRentFactor = Math.pow(baseRentEsc, yearsOpen);
+      const nnnFactor = Math.pow(nnnEsc, yearsOpen);
       revenue += escalatingRent * rentFactor + flatRent + inputs.nonRentRevenue * rentFactor;
       opex += monthlyOpexPerLocation * opexFactor;
-      let locLease = monthlyLeasePerLocation * leaseFactor;
+      let locLease = monthlyBaseRentPerLocation * baseRentFactor + monthlyNnnPerLocation * nnnFactor;
       if (om === l1OpenMonth && m >= om && m < om + l1LeaseHolidayMonths) {
         locLease = 0;
       }

@@ -16,14 +16,16 @@ from datetime import date
 OUT = "/Users/hamzaali/Documents/The Barn/The Barn — Financial Model.xlsx"
 
 # ───── Defaults (mirror DEFAULT_INPUTS) ─────
-SQFT, TI_PSF, LEASE_PSF, CAPEX_PSF = 9180, 35, 35, 150
+SQFT, TI_PSF, CAPEX_PSF = 9180, 35, 150
+BASE_RENT_PSF, NNN_PSF = 26, 9
 GP_INVESTMENT = 200_000
 DEBT_PER_LOC, DEBT_RATE_PCT = 0, 0
 NUM_LOCATIONS, EXIT_MULTIPLE = 7, 3
 RAMP_MONTHS, L1_HOLIDAY = 3, 3
 OPEN_SCHEDULE = [4, 16, 20, 24, 28, 32, 36]
 HOLD_MONTHS = 48
-RENT_ESC, OPEX_ESC, LEASE_ESC = 3, 3, 0
+RENT_ESC, OPEX_ESC = 3, 3
+BASE_RENT_ESC, NNN_ESC = 0, 2
 SALARY_BASE, SALARY_STEP, PROFIT_SHARE = 84_000, 20_000, 10
 REV_MODEL = "base"
 PCT_OF_SALES, MIXED_BASE, MIXED_PCT = 20, 3500, 6
@@ -179,7 +181,8 @@ inp = [
     ("CAPITAL STACK", None, None, None),  # section header
     ("Square Feet", SQFT, "sqft", "#,##0"),
     ("TI Allowance ($/PSF)", TI_PSF, "tiPSF", USD0),
-    ("Master Lease ($/PSF/yr)", LEASE_PSF, "leasePSF", USD0),
+    ("Base Rent ($/PSF/yr)", BASE_RENT_PSF, "baseRentPSF", USD0),
+    ("NNN ($/PSF/yr)", NNN_PSF, "nnnPSF", USD0),
     ("CapEx Buildout ($/PSF)", CAPEX_PSF, "capexPSF", USD0),
     ("GP Investment ($)", GP_INVESTMENT, "gpInvestment", USD0),
     ("Debt per Location ($)", DEBT_PER_LOC, "debtPerLocation", USD0),
@@ -197,7 +200,8 @@ inp = [
     ("ESCALATORS (annual, compounding, per-location clock)", None, None, None),
     ("Rent Escalator (%)", RENT_ESC/100, "rentEscalatorPct", PCT2),
     ("OpEx Escalator (%)", OPEX_ESC/100, "opexEscalatorPct", PCT2),
-    ("Lease Escalator (%)", LEASE_ESC/100, "leaseEscalatorPct", PCT2),
+    ("Base Rent Escalator (%)", BASE_RENT_ESC/100, "baseRentEscalatorPct", PCT2),
+    ("NNN Escalator (%)", NNN_ESC/100, "nnnEscalatorPct", PCT2),
     ("", None, None, None),
     ("OPERATOR / PROMOTE", None, None, None),
     ("Salary Base ($/yr)", SALARY_BASE, "salaryBase", USD0),
@@ -269,7 +273,9 @@ rows = [
     ("Debt Used (clamped)", "=MIN(MAX(0,debtPerLocation),B6)", USD0),
     ("Investor Equity (LP+GP) per loc", "=MAX(0,B4-B7)", USD0),
     ("LP Investment per loc", "=MAX(0,B8-B5)", USD0),
-    ("Master Lease ($/mo per loc)", "=leasePSF*sqft/12", USD0),
+    ("Base Rent ($/mo per loc)", "=baseRentPSF*sqft/12", USD0),
+    ("NNN ($/mo per loc)", "=nnnPSF*sqft/12", USD0),
+    ("Total Master Lease ($/mo per loc, Year 0)", "=B9+B10", USD0),
 ]
 for i, (label, formula, fmt) in enumerate(rows):
     r = i + 2
@@ -285,7 +291,8 @@ named(wb, "gpUsed", "'Capital Stack'!$B$5")
 named(wb, "debtUsed", "'Capital Stack'!$B$7")
 named(wb, "investorEquityPerLoc", "'Capital Stack'!$B$8")
 named(wb, "lpPerLoc", "'Capital Stack'!$B$9")
-named(wb, "monthlyLeasePerLoc", "'Capital Stack'!$B$10")
+named(wb, "monthlyBaseRentPerLoc", "'Capital Stack'!$B$10")
+named(wb, "monthlyNnnPerLoc", "'Capital Stack'!$B$11")
 
 # ═════ Sheet 4: Vendor Revenue ═════
 ws = wb.create_sheet("Vendor Revenue")
@@ -630,14 +637,14 @@ for m in range(1, MAX_MONTHS + 1):
         # j-OpEx = active * (monthlyOpex * (1+opexEsc)^yrs)
         ws.cell(r, OPEX_OFF + j - 1,
                 f"=IF({cl(ACTIVE_OFF+j-1)}{r}=1,monthlyOpexPerLoc*(1+opexEscalatorPct)^{cl(YR_OFF+j-1)}{r},0)")
-        # j-Lease = active * monthlyLease * (1+leaseEsc)^yrs, MINUS for L1 holiday
-        # L1 holiday: if j==1 and openMo_1 <= m < openMo_1 + l1LeaseHolidayMonths, lease=0
+        # j-Lease = active * (baseRent*(1+baseRentEsc)^yrs + nnn*(1+nnnEsc)^yrs)
+        # L1 holiday zeroes the full lease (base + NNN) for the first N months.
         if j == 1:
             ws.cell(r, LEASE_OFF + j - 1,
-                    f"=IF({cl(ACTIVE_OFF+j-1)}{r}=0,0,IF(AND(A{r}>=openMo_1,A{r}<openMo_1+l1LeaseHolidayMonths),0,monthlyLeasePerLoc*(1+leaseEscalatorPct)^{cl(YR_OFF+j-1)}{r}))")
+                    f"=IF({cl(ACTIVE_OFF+j-1)}{r}=0,0,IF(AND(A{r}>=openMo_1,A{r}<openMo_1+l1LeaseHolidayMonths),0,monthlyBaseRentPerLoc*(1+baseRentEscalatorPct)^{cl(YR_OFF+j-1)}{r}+monthlyNnnPerLoc*(1+nnnEscalatorPct)^{cl(YR_OFF+j-1)}{r}))")
         else:
             ws.cell(r, LEASE_OFF + j - 1,
-                    f"=IF({cl(ACTIVE_OFF+j-1)}{r}=1,monthlyLeasePerLoc*(1+leaseEscalatorPct)^{cl(YR_OFF+j-1)}{r},0)")
+                    f"=IF({cl(ACTIVE_OFF+j-1)}{r}=1,monthlyBaseRentPerLoc*(1+baseRentEscalatorPct)^{cl(YR_OFF+j-1)}{r}+monthlyNnnPerLoc*(1+nnnEscalatorPct)^{cl(YR_OFF+j-1)}{r},0)")
         # j-DebtSvc: payment if m >= callMo and m < callMo + term and j is in stack
         ws.cell(r, DEBT_OFF + j - 1,
                 f"=IF(AND(locActive_{j}=1,A{r}>=callMo_{j},A{r}<callMo_{j}+loanTerm_{j},A{r}<=holdMonths),levelPmt_{j},0)")

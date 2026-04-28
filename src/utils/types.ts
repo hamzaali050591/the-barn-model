@@ -76,7 +76,8 @@ export interface ModelInputs {
   // Capital Stack
   sqft: number;
   tiPSF: number;
-  leasePSF: number;
+  baseRentPSF: number;
+  nnnPSF: number;
   capexPSF: number;
   gpInvestment: number;
   debtPerLocation: number;
@@ -94,7 +95,8 @@ export interface ModelInputs {
   // Annual escalators (% per year, compounding, per-location clock)
   rentEscalatorPct: number;
   opexEscalatorPct: number;
-  leaseEscalatorPct: number;
+  baseRentEscalatorPct: number;
+  nnnEscalatorPct: number;
 
   // Rent terms
   rentIncludesUtilities: boolean;
@@ -167,7 +169,8 @@ export const DEFAULT_INPUTS: ModelInputs = {
   // Capital Stack
   sqft: 9_180,
   tiPSF: 35,
-  leasePSF: 35,
+  baseRentPSF: 26,
+  nnnPSF: 9,
   capexPSF: 150,
   gpInvestment: 200_000,
   debtPerLocation: 0,
@@ -187,7 +190,8 @@ export const DEFAULT_INPUTS: ModelInputs = {
 
   rentEscalatorPct: 3,
   opexEscalatorPct: 3,
-  leaseEscalatorPct: 0,
+  baseRentEscalatorPct: 0,
+  nnnEscalatorPct: 2,
 
   rentIncludesUtilities: true,
 

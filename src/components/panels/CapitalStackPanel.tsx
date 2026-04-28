@@ -46,19 +46,36 @@ export default function CapitalStackPanel({ inputs, onChange }: Props) {
         onChange={v => set('tiPSF', v)}
       />
       <SliderRow
-        label="Master Lease"
-        value={inputs.leasePSF}
-        min={25} max={50} step={1}
+        label="Base Rent"
+        value={inputs.baseRentPSF}
+        min={20} max={45} step={1}
         format={v => '$' + v + '/PSF/yr'}
-        onChange={v => set('leasePSF', v)}
+        info="Contract base rent paid to DPEG. Quoted in $/PSF/yr. Negotiated upfront with explicit escalation terms in the lease."
+        onChange={v => set('baseRentPSF', v)}
       />
       <SliderRow
-        label="Lease Escalator"
-        value={inputs.leaseEscalatorPct}
+        label="Base Rent Escalator"
+        value={inputs.baseRentEscalatorPct}
         min={0} max={6} step={0.25}
         format={v => v.toFixed(2) + '%'}
-        info="Annual, compounding — applies only to the master lease. Compounds from each location's open month. Default 0% (DPEG lease terms TBD)."
-        onChange={v => set('leaseEscalatorPct', v)}
+        info="Annual compounding bump on the base rent only, on each location's clock. Default 0% — flat base rent. Typical leases write 2–3% annual escalators or CPI."
+        onChange={v => set('baseRentEscalatorPct', v)}
+      />
+      <SliderRow
+        label="NNN (CAM + Tax + Insurance)"
+        value={inputs.nnnPSF}
+        min={0} max={15} step={0.5}
+        format={v => '$' + v + '/PSF/yr'}
+        info="Triple-net pass-throughs: common area maintenance + property tax + insurance. Reconciled annually based on landlord's actual costs. TX commercial property tax (~2.3% effective) is the biggest piece."
+        onChange={v => set('nnnPSF', v)}
+      />
+      <SliderRow
+        label="NNN Escalator"
+        value={inputs.nnnEscalatorPct}
+        min={0} max={6} step={0.25}
+        format={v => v.toFixed(2) + '%'}
+        info="Annual compounding bump on NNN only. NNN typically inflates faster than base rent because property tax + insurance both track underlying market increases. Insurance has been hardening 5–15%/yr post-2020 — stress-test up here."
+        onChange={v => set('nnnEscalatorPct', v)}
       />
       <SliderRow
         label="CapEx (Buildout PSF)"
