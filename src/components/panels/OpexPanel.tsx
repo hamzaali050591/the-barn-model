@@ -197,6 +197,22 @@ export default function OpexPanel({ inputs, onChange, isRichmond = false }: Prop
         />
       </div>
 
+      {/* Annual OpEx Escalator */}
+      <div className="mt-4 pt-3 border-t border-walnut/10">
+        <div className="text-[10px] font-semibold text-walnut-light uppercase tracking-wider mb-2">
+          Annual OpEx Escalator
+        </div>
+        <SliderRow
+          label="OpEx Escalator"
+          sublabel="annual, compounding — applies to utilities, non-utility, and operator salary"
+          value={inputs.opexEscalatorPct}
+          min={0} max={6} step={0.25}
+          format={v => v.toFixed(2) + '%'}
+          info="Compounds annually from each location's open month. Profit share is excluded — it stays at the set % of NOI. Master lease has its own separate escalator."
+          onChange={v => set('opexEscalatorPct', v)}
+        />
+      </div>
+
       {/* Total Monthly & Annual Expenses (bottom-aligned) */}
       <div className="mt-auto pt-4 border-t-2 border-honey/30 space-y-1.5">
         <div className="flex justify-between items-center py-2 px-3 rounded-md bg-walnut text-cream">

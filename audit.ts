@@ -135,7 +135,8 @@ console.log(`  Total TI   (9,180 × $35)             = ${fmt$(cs.tiTotal)}      
 console.log(`  Investor Eq/loc  (capex − TI)        = ${fmt$(cs.investorEquityPerLocation)}`);
 console.log(`  Monthly vendor rent (base model)      = ${fmt$(vt.monthlyVendorRentPerLocation)}   (8×$7k + 4×$5k = $76,000)`);
 console.log(`  Monthly OpEx total                   = ${fmt$(ob.total)}   (vendor util ${fmt$(ob.vendorUtilities)} + common ${fmt$(ob.commonAreaUtilities)} + non-util ${fmt$(ob.nonUtilities)})`);
-console.log(`  Stabilized preComp EBITDA (Richmond) = ${fmt$(76000 - ob.total - 35 * 9180 / 12)}/mo`);
+console.log(`  Year-0 preComp EBITDA  (pre-escalator) = ${fmt$(76000 - ob.total - 35 * 9180 / 12)}/mo`);
+console.log(`  (With default escalators 3%/3%/0%, Year 1+ revenue and OpEx scale up — exit T12 reflects last-12-month figure.)`);
 
 // ────────────────────────────────────────────────────────────────────
 // SECTION 2 — ±20% on EVERY variable (Richmond 48mo baseline)
@@ -307,6 +308,30 @@ const perturbations: Perturbation[] = [
     hi: richmond({}, 58),
     expectDirIRR: 'down',
     note: 'Longer hold → more total distributions (MOIC up) but IRR ↓ because exit is deferred. Stab CoC unchanged.',
+  },
+  {
+    name: '[21] rentEscalatorPct',
+    caption: '3%/yr  → 0% / 6%',
+    lo: richmond({ rentEscalatorPct: 0 }),
+    hi: richmond({ rentEscalatorPct: 6 }),
+    expectDirIRR: 'up',
+    note: 'Compounds annually on each location\'s open clock. Higher rent escalator → revenue grows faster → higher T12 EBITDA at exit → higher IRR/MOIC. % of sales does not escalate.',
+  },
+  {
+    name: '[22] opexEscalatorPct',
+    caption: '3%/yr  → 0% / 6%',
+    lo: richmond({ opexEscalatorPct: 0 }),
+    hi: richmond({ opexEscalatorPct: 6 }),
+    expectDirIRR: 'down',
+    note: 'Compounds annually on each location\'s open clock. Hits utilities, non-utility OpEx, and operator salary. Master lease has its own escalator. Higher → margin compression → lower IRR/MOIC.',
+  },
+  {
+    name: '[23] leaseEscalatorPct',
+    caption: '0%/yr  → 0% / 6%   (default 0)',
+    lo: richmond({ leaseEscalatorPct: 0 }),
+    hi: richmond({ leaseEscalatorPct: 6 }),
+    expectDirIRR: 'down',
+    note: 'Master lease only. LO = baseline (default already 0). HI = aggressive 6% escalator → bigger lease bill every year → lower EBITDA, lower IRR/MOIC.',
   },
 ];
 

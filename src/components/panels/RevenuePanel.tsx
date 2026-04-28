@@ -138,6 +138,22 @@ export default function RevenuePanel({ inputs, onChange }: Props) {
         </div>
       ))}
 
+      {/* Annual Rent Escalator */}
+      <div className="mt-4 pt-3 border-t border-walnut/10">
+        <div className="text-[10px] font-semibold text-walnut-light uppercase tracking-wider mb-2">
+          Annual Rent Escalator
+        </div>
+        <SliderRow
+          label="Rent Escalator"
+          sublabel="annual, compounding — applies to base rent only"
+          value={inputs.rentEscalatorPct}
+          min={0} max={6} step={0.25}
+          format={v => v.toFixed(2) + '%'}
+          info="Compounds annually from each location's open month. Applies to base rent in Base mode and the base portion in Base+% mode. % of Sales does not escalate (assumes vendor sales stay flat)."
+          onChange={v => set('rentEscalatorPct', v)}
+        />
+      </div>
+
       {/* Rent Structure (now inside, above KPIs) */}
       <div className="mt-4 pt-3 border-t border-walnut/10">
         <div className="text-[10px] font-semibold text-walnut-light uppercase tracking-wider mb-2">

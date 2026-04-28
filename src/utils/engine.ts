@@ -14,25 +14,37 @@ export function capitalStack(inputs: ModelInputs) {
 }
 
 // ── Revenue ──
+// Splits monthly vendor rent into:
+//   - escalatingRent: portion that grows with the rent escalator (base rents)
+//   - flatRent: portion that does not (% of sales — assumed sales stay flat)
+// In 'base' mode all rent escalates; in 'pct' mode none escalates;
+// in 'mixed' mode only the base-rent component escalates.
 export function vendorTotals(inputs: ModelInputs) {
   const numVendors = inputs.vendors.reduce((s, v) => s + v.count, 0);
   const numFoodVendors = inputs.vendors.reduce((s, v) => s + (v.isFood ? v.count : 0), 0);
   const numNonFoodVendors = numVendors - numFoodVendors;
 
-  let monthlyVendorRentPerLocation = 0;
+  let escalatingRent = 0;
+  let flatRent = 0;
+
   if (inputs.revenueModel === 'base') {
-    monthlyVendorRentPerLocation = inputs.vendors.reduce((s, v) => s + v.count * v.rent, 0);
+    escalatingRent = inputs.vendors.reduce((s, v) => s + v.count * v.rent, 0);
   } else if (inputs.revenueModel === 'pct') {
     const totalSales = inputs.vendors.reduce((s, v) => s + v.count * v.sales, 0);
-    monthlyVendorRentPerLocation = totalSales * (inputs.pctOfSalesRate / 100);
+    flatRent = totalSales * (inputs.pctOfSalesRate / 100);
   } else {
     const totalSales = inputs.vendors.reduce((s, v) => s + v.count * v.sales, 0);
-    const baseTotal = numVendors * inputs.mixedBaseRent;
-    const pctTotal = totalSales * (inputs.mixedPctRate / 100);
-    monthlyVendorRentPerLocation = baseTotal + pctTotal;
+    escalatingRent = numVendors * inputs.mixedBaseRent;
+    flatRent = totalSales * (inputs.mixedPctRate / 100);
   }
 
-  return { numVendors, numFoodVendors, numNonFoodVendors, monthlyVendorRentPerLocation };
+  const monthlyVendorRentPerLocation = escalatingRent + flatRent;
+
+  return {
+    numVendors, numFoodVendors, numNonFoodVendors,
+    monthlyVendorRentPerLocation,
+    escalatingRent, flatRent,
+  };
 }
 
 // ── Detailed OpEx calculations (match spreadsheet formulas) ──
@@ -148,11 +160,12 @@ export function runModel(inputs: ModelInputs): ModelOutputs {
   const {
     numLocations, exitMultiple, leasePSF, sqft, profitSharePct,
     salaryBase, salaryStep, rampMonths, l1LeaseHolidayMonths, holdMonths,
+    rentEscalatorPct, opexEscalatorPct, leaseEscalatorPct,
   } = inputs;
 
   const schedule = inputs.openSchedule.slice(0, numLocations);
   const { tiTotal, investorEquityPerLocation, lpInvestment } = capitalStack(inputs);
-  const { numVendors, monthlyVendorRentPerLocation } = vendorTotals(inputs);
+  const { numVendors, monthlyVendorRentPerLocation, escalatingRent, flatRent } = vendorTotals(inputs);
   const monthlyOpexPerLocation = opexPerLocation(inputs);
 
   const monthly: MonthlyRow[] = [];
@@ -160,21 +173,37 @@ export function runModel(inputs: ModelInputs): ModelOutputs {
   let cumulativeDistributions = 0;
   const monthlyLeasePerLocation = (leasePSF * sqft) / 12;
   const profitShareRate = profitSharePct / 100;
+  const rentEsc = 1 + rentEscalatorPct / 100;
+  const opexEsc = 1 + opexEscalatorPct / 100;
+  const leaseEsc = 1 + leaseEscalatorPct / 100;
+  const l1OpenMonth = schedule[0] ?? 1;
 
   for (let m = 1; m <= holdMonths; m++) {
     const nActive = schedule.filter(om => om <= m).length;
     const nDistributing = schedule.filter(om => om <= m - rampMonths).length;
-    const revenue = nActive * monthlyVendorRentPerLocation;
-    const opex = nActive * monthlyOpexPerLocation;
 
-    let masterLease = nActive * monthlyLeasePerLocation;
-    const l1OpenMonth = schedule[0] ?? 1;
-    if (m >= l1OpenMonth && m < l1OpenMonth + l1LeaseHolidayMonths) {
-      masterLease -= monthlyLeasePerLocation;
+    let revenue = 0;
+    let opex = 0;
+    let masterLease = 0;
+    for (const om of schedule) {
+      if (om > m) continue;
+      const yearsOpen = Math.floor((m - om) / 12);
+      const rentFactor = Math.pow(rentEsc, yearsOpen);
+      const opexFactor = Math.pow(opexEsc, yearsOpen);
+      const leaseFactor = Math.pow(leaseEsc, yearsOpen);
+      revenue += escalatingRent * rentFactor + flatRent;
+      opex += monthlyOpexPerLocation * opexFactor;
+      let locLease = monthlyLeasePerLocation * leaseFactor;
+      if (om === l1OpenMonth && m >= om && m < om + l1LeaseHolidayMonths) {
+        locLease = 0;
+      }
+      masterLease += locLease;
     }
 
     const preCompEBITDA = revenue - opex - masterLease;
-    const corpSalary = nActive > 0 ? (salaryBase + salaryStep * (nActive - 1)) / 12 : 0;
+    const salaryYearsOpen = nActive > 0 ? Math.floor((m - l1OpenMonth) / 12) : 0;
+    const salaryFactor = Math.pow(opexEsc, Math.max(0, salaryYearsOpen));
+    const corpSalary = nActive > 0 ? ((salaryBase + salaryStep * (nActive - 1)) / 12) * salaryFactor : 0;
     const postSalaryEBITDA = preCompEBITDA - corpSalary;
     const distributableNOI = nActive > 0 ? (nDistributing / nActive) * postSalaryEBITDA : 0;
     const profitShare = Math.max(0, distributableNOI) * profitShareRate;

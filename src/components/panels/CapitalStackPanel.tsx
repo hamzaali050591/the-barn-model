@@ -52,6 +52,15 @@ export default function CapitalStackPanel({ inputs, onChange }: Props) {
         onChange={v => set('leasePSF', v)}
       />
       <SliderRow
+        label="Lease Escalator"
+        sublabel="annual, compounding"
+        value={inputs.leaseEscalatorPct}
+        min={0} max={6} step={0.25}
+        format={v => v.toFixed(2) + '%'}
+        info="Annual compounding bump on the master lease, on each location's own clock. Default 0% — DPEG lease terms TBD."
+        onChange={v => set('leaseEscalatorPct', v)}
+      />
+      <SliderRow
         label="CapEx (Buildout PSF)"
         value={inputs.capexPSF}
         min={50} max={300} step={5}

@@ -76,10 +76,10 @@ Single shared state via `src/utils/ModelContext.tsx` → `ModelProvider` wraps t
 
 **Engine** (`src/utils/engine.ts`):
 - `capitalStack()` → `totalCapex`, `tiTotal`, `investorEquityPerLocation`, `lpInvestment`
-- `vendorTotals()` → `monthlyVendorRentPerLocation` (handles all 3 revenue modes)
+- `vendorTotals()` → `monthlyVendorRentPerLocation` + `escalatingRent` / `flatRent` split (drives the rent escalator)
 - `gasMonthly()`, `electricMonthly()`, `waterMonthly()`, `nonUtilityBreakdown()` — mirror xlsx formulas
 - `opexBreakdown()` → vendor + common + non-utility totals (respects `rentIncludesUtilities`)
-- `runModel()` → monthly cash-flow array + IRR/MOIC/CoC/stabilized CoC/exit proceeds (net to investors)
+- `runModel()` → monthly cash-flow array + IRR/MOIC/CoC/stabilized CoC/exit proceeds (net to investors). Iterates per-location every month so escalators apply on each location's own clock.
 - `xirrFromMonthly()` in `src/utils/xirr.ts`
 
 **Key engine conventions (CFO-signed-off):**
@@ -89,6 +89,13 @@ Single shared state via `src/utils/ModelContext.tsx` → `ModelProvider` wraps t
 - **Ramp is a distribution reserve, not a revenue ramp.** The hall is pre-leased from day 1; revenue and opex start at 100% the month a location opens. `rampMonths` simply delays distributions (builds operating cash reserve).
 - **Model is equity-only, pre-tax.** No debt, no tax. `gpInvestment` is a pure GP/LP split — it does not affect aggregate investor IRR/MOIC/CoC (invariant).
 - **MonthlyRow fields:** `preCompEBITDA` (pre-owner-comp), `postSalaryEBITDA` (after corp salary), `distributableNOI`, `profitShare` (monthly promote), `distributions` (net to investors), `exitProceeds` (net to investors on exit), `exitProfitShare` (operator's exit promote, shown for transparency).
+- **Annual escalators (added Apr 2026):** three independent compounding escalators on `ModelInputs`:
+  - `rentEscalatorPct` (default 3) — applies to base rent only. Base mode: full rent escalates. Mixed mode: only the base portion escalates. % of Sales mode: nothing escalates (sales assumed flat).
+  - `opexEscalatorPct` (default 3) — applies to vendor utilities, common-area utilities, non-utility OpEx, AND operator salary (`salaryBase` + `salaryStep`). Profit share is excluded by definition (it's a % of NOI).
+  - `leaseEscalatorPct` (default 0) — applies only to the master lease.
+  - **Clock convention:** per-location, Year 0 = first 12 months from each location's open month. Year 1 starts at month 12, Year 2 at month 24, etc. Factor at month-since-open `k` = `(1 + esc)^floor(k/12)`. Salary uses L1's open as a single portfolio-wide clock since salary is corporate, not per-location.
+  - **Lease holiday interaction:** `l1LeaseHolidayMonths` zeroes the lease for L1's first N months regardless of escalator. The escalator clock keeps ticking from open month, so the holiday doesn't reset Year 0.
+  - **Exit math:** unchanged structurally — still `exitMultiple × T12 preCompEBITDA × (1 − profitShare)`. T12 at exit naturally captures whatever year each location is in, so escalators flow into exit value automatically.
 
 **Richmond vs Portfolio:** `Model.tsx` overrides `numLocations: 1`, `openSchedule: [4]` (L1 opens m=4, capital called m=1), and `holdMonths` is driven by the Hold Period slider inside `RichmondDealTermsPanel` (range 24–72 mo, default 48). The portfolio `InvestorPanel` hides in Richmond mode; the `RichmondDealTermsPanel` takes its 4th-column slot. `OpexPanel` accepts `isRichmond` and hides the Salary Increment slider (inert with 1 location).
 
