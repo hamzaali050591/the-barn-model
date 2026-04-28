@@ -161,9 +161,7 @@ export const DEFAULT_INPUTS: ModelInputs = {
   // Revenue Model
   vendors: [
     { name: 'Food Vendors', count: 8, rent: 7_000, sales: 35_000, isFood: true },
-    { name: 'Health Bar', count: 1, rent: 6_000, sales: 25_000, isFood: false },
-    { name: 'Desserts', count: 2, rent: 6_000, sales: 25_000, isFood: false },
-    { name: 'Coffee', count: 1, rent: 6_000, sales: 25_000, isFood: false },
+    { name: 'Non-Food Vendors', count: 4, rent: 5_000, sales: 25_000, isFood: false },
   ],
   revenueModel: 'base',
   pctOfSalesRate: 20,

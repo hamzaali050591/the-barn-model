@@ -133,9 +133,9 @@ console.log('\nManual sanity:');
 console.log(`  Total CapEx (9,180 × $150)           = ${fmt$(cs.totalCapex)}   engine ${fmt$(cs.totalCapex)}`);
 console.log(`  Total TI   (9,180 × $35)             = ${fmt$(cs.tiTotal)}      engine ${fmt$(cs.tiTotal)}`);
 console.log(`  Investor Eq/loc  (capex − TI)        = ${fmt$(cs.investorEquityPerLocation)}`);
-console.log(`  Monthly vendor rent (base model)      = ${fmt$(vt.monthlyVendorRentPerLocation)}   (8×$7k + 4×$6k = $80,000)`);
+console.log(`  Monthly vendor rent (base model)      = ${fmt$(vt.monthlyVendorRentPerLocation)}   (8×$7k + 4×$5k = $76,000)`);
 console.log(`  Monthly OpEx total                   = ${fmt$(ob.total)}   (vendor util ${fmt$(ob.vendorUtilities)} + common ${fmt$(ob.commonAreaUtilities)} + non-util ${fmt$(ob.nonUtilities)})`);
-console.log(`  Stabilized preComp EBITDA (Richmond) = ${fmt$(80000 - ob.total - 35 * 9180 / 12)}/mo`);
+console.log(`  Stabilized preComp EBITDA (Richmond) = ${fmt$(76000 - ob.total - 35 * 9180 / 12)}/mo`);
 
 // ────────────────────────────────────────────────────────────────────
 // SECTION 2 — ±20% on EVERY variable (Richmond 48mo baseline)

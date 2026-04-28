@@ -67,11 +67,11 @@ export default function CapitalStackPanel({ inputs, onChange }: Props) {
       />
 
       <div className="mt-auto pt-3 border-t border-walnut/10 space-y-1.5">
-        <DerivedRow label="Total CapEx" value={fmtDollarFull(totalCapex)} accent />
         <DerivedRow label="Total TI (DPEG)" value={fmtDollarFull(tiTotal)} />
         <DerivedRow label="GP Investment" value={fmtDollarFull(inputs.gpInvestment)} />
         <DerivedRow label="LP Investment" value={fmtDollarFull(lpInvestment)} />
-        <DerivedRow label="Investor Equity (GP+LP)" value={fmtDollarFull(investorEquityPerLocation)} accent />
+        <DerivedRow label="Investor Equity (LP+GP)" value={fmtDollarFull(investorEquityPerLocation)} />
+        <DerivedRow label="Total CapEx" value={fmtDollarFull(totalCapex)} accent />
       </div>
     </div>
   );
