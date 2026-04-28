@@ -50,7 +50,7 @@ export default function OpexPanel({ inputs, onChange, isRichmond = false }: Prop
     onChange({ ...inputs, [key]: value });
 
   const bd = opexBreakdown(inputs);
-  const { vendorUtilities, commonAreaUtilities, nonUtilities, total: totalMonthlyOpex, gas, electric, water, nu } = bd;
+  const { vendorUtilities, commonAreaUtilities, nonUtilities, total: totalMonthlyOpex, gas, electric, water, nu, foodVendorUtilTotal, nonFoodVendorUtilTotal } = bd;
 
   const monthlySalary = inputs.salaryBase / 12;
   const totalMonthlyExpenses = totalMonthlyOpex + monthlySalary;
@@ -84,11 +84,17 @@ export default function OpexPanel({ inputs, onChange, isRichmond = false }: Prop
           </div>
           {vendorUtilsOpen && (
             <div className="mt-1 py-1.5 rounded-md bg-white/30">
-              <div className="text-[10px] font-semibold text-walnut-light uppercase tracking-wider px-3 pt-1">Per Food Vendor</div>
+              <div className="flex justify-between items-baseline px-3 pt-1">
+                <span className="text-[10px] font-semibold text-walnut-light uppercase tracking-wider">Per Food Vendor</span>
+                <span className="text-xs font-bold text-walnut tabular-nums">{fmtDollarFull(foodVendorUtilTotal)}</span>
+              </div>
               <ReadonlyLine label="Gas" value={fmtDollarFull(gas.foodVendor)} />
               <ReadonlyLine label="Electric" value={fmtDollarFull(electric.foodVendor)} />
               <ReadonlyLine label="Water" value={fmtDollarFull(water.foodVendor)} />
-              <div className="text-[10px] font-semibold text-walnut-light uppercase tracking-wider px-3 pt-2">Per Non-Food Vendor</div>
+              <div className="flex justify-between items-baseline px-3 pt-2">
+                <span className="text-[10px] font-semibold text-walnut-light uppercase tracking-wider">Per Non-Food Vendor</span>
+                <span className="text-xs font-bold text-walnut tabular-nums">{fmtDollarFull(nonFoodVendorUtilTotal)}</span>
+              </div>
               <ReadonlyLine label="Gas" value={fmtDollarFull(gas.nonFoodVendor)} />
               <ReadonlyLine label="Electric" value={fmtDollarFull(electric.nonFoodVendor)} />
               <ReadonlyLine label="Water" value={fmtDollarFull(water.nonFoodVendor)} />
