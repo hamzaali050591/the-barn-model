@@ -84,7 +84,7 @@ export default function InvestorPanel({ inputs, onChange }: Props) {
         <SliderRow
           label="Hold Period"
           value={inputs.holdMonths}
-          min={24} max={72} step={1}
+          min={0} max={72} step={6}
           format={fmtMo}
           onChange={v => set('holdMonths', v)}
         />

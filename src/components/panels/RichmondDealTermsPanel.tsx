@@ -40,7 +40,7 @@ export default function RichmondDealTermsPanel({ inputs, onChange, holdMonths, o
       <SliderRow
         label="Hold Period"
         value={holdMonths}
-        min={24} max={72} step={1}
+        min={0} max={72} step={6}
         format={fmtMo}
         onChange={onHoldChange}
       />
