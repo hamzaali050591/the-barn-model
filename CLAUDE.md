@@ -61,18 +61,22 @@ npm run preview   # preview built output
 
 ## Routes & page responsibilities
 
-| Route | File | Purpose |
-|---|---|---|
-| `/` | `src/pages/Landing.tsx` | Feature-wall hero + 6 nav buttons (Strategy / Financial Model / Space Layout / CapEx / OpEx / Renderings) |
-| `/strategy` | `src/pages/Strategy.tsx` | Narrative: The Plan → Scale Vision → Richmond at a Glance → Opportunity → Concept → Tech → Brand |
-| `/model` | `src/pages/Model.tsx` | Interactive model with **Richmond / Full Portfolio** toggle |
-| `/model/opex/vendor-utilities` | `src/pages/OpexVendorUtilities.tsx` | Detailed gas/electric/water breakdown per vendor (editable) |
-| `/model/opex/common-utilities` | `src/pages/OpexCommonUtilities.tsx` | Common-area utilities (editable) |
-| `/model/opex/non-utility` | `src/pages/OpexNonUtility.tsx` | Marketing, cleaning, grease, security, etc. (editable) |
-| `/layout` | `src/pages/Layout.tsx` | V1 / V2 toggle — V1 Left Zone (~9,180 sf, Path A single row at core wall) vs V2 Full L2 (~14,500+ sf, mirrored Path A) |
-| `/capex` | `src/pages/CapEx.tsx` | Full Richmond V1 SOW — 9 categories, 59 line items, $1.754M. Static (data inlined from `Richmond SOW Internal.pdf`). |
-| `/opex` | `src/pages/Opex.tsx` | Unified read-only OpEx roll-up driven live from `useModel()`. Each block has an "Edit Details" link to the corresponding `/model/opex/*` page. |
-| `/renderings` | `src/pages/Renderings.tsx` | Single-scroll photo essay of 18 V1 concept renderings (hero → moods → exterior → interior → vendor detail → birds-eye → app UI), each with a numbered title and short caption. Images live in `public/renderings/`. |
+**Tab labels** (April 2026 rebrand — URLs unchanged):
+The Vision · The Vibe · The Layout · CapEx · OpEx · The Numbers
+(was: Strategy · Financial Model · Space Layout · CapEx · OpEx · Renderings)
+
+| Route | File | Display label | Purpose |
+|---|---|---|---|
+| `/` | `src/pages/Landing.tsx` | — | Feature-wall hero + 6 nav buttons in display order: The Vision / The Vibe / The Layout / CapEx / OpEx / The Numbers |
+| `/strategy` | `src/pages/Strategy.tsx` | **The Vision** | Narrative: The Plan → Scale Vision → Richmond at a Glance → Opportunity → Concept → Tech → Brand |
+| `/renderings` | `src/pages/Renderings.tsx` | **The Vibe** | Single-scroll photo essay of 18 V1 concept renderings (hero → moods → exterior → interior → vendor detail → birds-eye → app UI), each with a numbered title and short caption. Images live in `public/renderings/`. |
+| `/layout` | `src/pages/Layout.tsx` | **The Layout** | V1 / V2 toggle — V1 Left Zone (~9,180 sf, Path A single row at core wall) vs V2 Full L2 (~14,500+ sf, mirrored Path A) |
+| `/capex` | `src/pages/CapEx.tsx` | **CapEx** | Full Richmond V1 SOW — 9 categories, 59 line items, $1.754M. Static (data inlined from `Richmond SOW Internal.pdf`). |
+| `/opex` | `src/pages/Opex.tsx` | **OpEx** | Unified read-only OpEx roll-up driven live from `useModel()`. Each block has an "Edit Details" link to the corresponding `/model/opex/*` page. |
+| `/model` | `src/pages/Model.tsx` | **The Numbers** | Interactive model with **Richmond / Full Portfolio** toggle |
+| `/model/opex/vendor-utilities` | `src/pages/OpexVendorUtilities.tsx` | (subroute) | Detailed gas/electric/water breakdown per vendor (editable) |
+| `/model/opex/common-utilities` | `src/pages/OpexCommonUtilities.tsx` | (subroute) | Common-area gas + electric + water (editable) |
+| `/model/opex/non-utility` | `src/pages/OpexNonUtility.tsx` | (subroute) | Marketing, cleaning, grease, security, maintenance, insurance, technology, misc (editable) |
 
 ## Model architecture
 
@@ -116,7 +120,11 @@ Single shared state via `src/utils/ModelContext.tsx` → `ModelProvider` wraps t
 
 **Richmond vs Portfolio:** `Model.tsx` overrides `numLocations: 1`, `openSchedule: [4]` (L1 opens m=4, capital called m=1), and `holdMonths` is driven by the Hold Period slider inside `RichmondDealTermsPanel`. **Hold Period slider** (both Richmond and Portfolio): range 0–72 mo in 6-mo steps. Sliding to 0 produces an empty cash flow array; KPIs render as "—". The portfolio `InvestorPanel` hides in Richmond mode; the `RichmondDealTermsPanel` takes its 4th-column slot. `OpexPanel` accepts `isRichmond` and hides the Salary Increment slider (inert with 1 location).
 
-**Current default baseline (Richmond 48mo, Apr 2026):** at all defaults — IRR 18.90%, MOIC 1.70×, Stab CoC 23.50%, Exit $990k, Total Distributions $807k, Total Returns $1.80M. Portfolio 7×48mo: IRR 16.36%, MOIC 1.35×, Stab CoC 25.53%, Exit $6.39M, Total Returns $9.98M. These flow from: 9,180 sf × $150 = $1.378M CapEx; $321k TI; $1.056M investor equity (200k GP + 856k LP); $76k/mo total vendor rent (8×$7k food + 4×$5k non-food); $22.8k/mo total OpEx (Year 0); $26.8k/mo lease (Year 0 = base $26 + NNN $9 × 9180 sf / 12); 3% rent + 3% OpEx + 0% base-rent + 2% NNN escalators; $0 debt; 3× exit multiple; 10% promote; 48-mo hold.
+**Current default baseline (Apr 28 2026, post-OpEx-tightening):**
+- Richmond 48mo: **IRR 22.34%, MOIC 1.846×, Stab CoC 25.76%**, Exit $1.06M, Total Distributions $899k, Total Returns $1.96M.
+- Portfolio 7×48mo: **IRR 20.89%, MOIC 1.456×, Stab CoC 27.63%**, Exit $6.86M, Total Returns $10.76M.
+
+These flow from: 9,180 sf × $150 = $1.378M CapEx; $321k TI; $1.056M investor equity (200k GP + 856k LP); $76k/mo total vendor rent (8×$7k food + 4×$5k non-food); **$20.8k/mo total Year-0 OpEx** (vendor utils $6.6k + common utils $2.6k including new common gas + non-utils $11.5k); $26.8k/mo lease (Year 0 = base $26 + NNN $9 × 9180 sf / 12); 3% rent + 3% OpEx + 0% base-rent + 2% NNN escalators; $0 debt; 3× exit multiple; 10% promote; 48-mo hold.
 
 ## Design system
 
@@ -168,7 +176,19 @@ Vendor utility usage was lowered in late April 2026 (rates unchanged, market-rea
 - Gas equipment duty cycles cut ~33%: Fryer 0.50→0.33, Griddle 0.45→0.30, Charbroiler 0.30→0.20, Range 0.35→0.23.
 - Electric vendor duty cycles cut 25% (baseLoad + foodAddOn). Common-area loads untouched.
 - Water vendor gallons-per-day cut 25%: food 350→263, non-food 157→118. Common-area gallons untouched.
-- Net: monthly vendor utilities $11.0k → $6.6k. Total Year-0 monthly OpEx ≈ $22.8k.
+- Net: monthly vendor utilities $11.0k → $6.6k.
+
+Common-area gas added (was missing — gas was food-vendor-only):
+- 2-line breakdown: water heater (75 therms/mo, year-round) + space heating (175 therms/mo, annualized — assumes gas furnace).
+- $263/mo at $1.05/therm midRate. Editable on `/model/opex/common-utilities`.
+
+Non-utility OpEx tightened (Apr 28 2026):
+- **Insurance** simplified from 7 lines to 3 (still $2k total): GL $700, Property + Business Income $1,000, Umbrella $300. (Removed Liquor / Workers Comp / Cyber / Crime — fold into Property when broker quote arrives.)
+- **Cleaning** $5,000 → $2,700 (from 2 staff to 1 staff @ 6h/day × 30 days × $15/hr) + $500 supplies = $3,200 total. Saves $2,300/mo.
+- **Marketing** $3,000 → $2,500 (5 lines scaled proportionally). Saves $500/mo.
+- **Technology** $900 → $700 (removed POS line — vendors carry their own POS). Saves $200/mo.
+
+Total Year-0 monthly OpEx: $20.8k (was $23.8k pre-tightening).
 
 `audit.ts` sqft perturbation set to 7,344 / 11,016 (±20% of 9,180). If V2 ever becomes the modelled case, bump `sqft` to ~14,500 and roughly double food-vendor count (16) + non-food kiosks (6).
 
@@ -201,7 +221,9 @@ Two top-level tabs sit alongside Strategy / Financial Model / Space Layout in th
 - **Scenario rates:** `low / mid / high` for gas/electric/water rates live inside each config object and are selected via `scenarioRate()` in the engine.
 - **No comments in code** unless the *why* is non-obvious. The existing code follows this.
 - **Don't create new docs/READMEs** unless asked.
-- **xlsx must stay in sync with the web app.** Any change to `DEFAULT_INPUTS` or `runModel` requires running `python3 build_xlsx.py` from the project root in the same task. The xlsx is what investors see in pitch conversations; it lives at `~/Documents/The Barn/The Barn — Financial Model.xlsx` (outside the repo) and must agree with the app to the dollar. Backups go to `~/Documents/The Barn/Archive Docs/xlsx-backups/`. Don't hand-edit the xlsx — re-run the generator. New ModelInputs fields or MonthlyRow columns require updating `build_xlsx.py` first (Inputs sheet + downstream formulas).
+- **xlsx must stay in sync with the web app.** Any change to `DEFAULT_INPUTS` or `runModel` requires regenerating BOTH `python3 build_xlsx.py` (portfolio) AND `python3 build_richmond_xlsx.py` (Richmond) from the project root in the same task. Both xlsx files live at `~/Documents/The Barn/` (outside the repo) and must agree with the app to the dollar. Backups go to `~/Documents/The Barn/Archive Docs/xlsx-backups/`. Don't hand-edit either xlsx — re-run the generator. New ModelInputs fields or MonthlyRow columns require updating both generator scripts first (Inputs sheet + downstream formulas).
+- **Scroll-to-top on navigation:** `src/components/ScrollToTop.tsx` resets scroll on every route change. Mounted once in `App.tsx` inside the Router. Browser auto-scroll-restoration is disabled in `main.tsx` (`history.scrollRestoration = 'manual'`) so back/forward navigation also lands at the top. If a future page wants to preserve scroll (e.g., long detail page with deep-link anchors), it must opt-in explicitly — don't unwind this convention by default.
+- **Mobile patterns:** `NavBar.tsx` collapses to a hamburger drawer below `md`. `InfoTooltip.tsx` is tap-to-toggle with outside-tap close + viewport-clamped width (`max-w-[min(16rem,calc(100vw-2rem))]`) so it can't overflow. Wide tables use the `.scroll-fade-x` utility (defined in `src/index.css`) which adds a right-edge gradient hint below `md`. Expandable sections use a prominent honey-tinted circular chevron badge next to the title (NOT a tiny far-right caret) — see `Opex.tsx`, `CapEx.tsx`, `Layout.tsx` for the pattern.
 
 ## Working with this repo
 
