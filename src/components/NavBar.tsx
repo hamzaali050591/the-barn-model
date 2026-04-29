@@ -6,12 +6,12 @@ interface Props {
 }
 
 const links = [
-  { path: '/strategy', label: 'Strategy' },
-  { path: '/model', label: 'Financial Model' },
-  { path: '/layout', label: 'Space Layout' },
+  { path: '/strategy', label: 'The Vision' },
+  { path: '/renderings', label: 'The Vibe' },
+  { path: '/layout', label: 'The Layout' },
   { path: '/capex', label: 'CapEx' },
   { path: '/opex', label: 'OpEx' },
-  { path: '/renderings', label: 'Renderings' },
+  { path: '/model', label: 'The Numbers' },
 ];
 
 export default function NavBar({ current }: Props) {

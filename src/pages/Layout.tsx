@@ -421,7 +421,7 @@ export default function LayoutPage() {
         <div className="mb-6">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-walnut">Space Layout & Specifications</h1>
+              <h1 className="text-2xl md:text-3xl font-bold text-walnut">The Layout</h1>
               <p className="text-walnut-light text-sm mt-1">{spec.dims}</p>
               <div className="flex gap-2 mt-2 flex-wrap">
                 <InfoBadge text="Path A — food row at core wall" tone="honey" />

@@ -272,7 +272,7 @@ export default function Opex() {
       subblocks: vendorUtilSubblocks,
       footnote: inputs.rentIncludesUtilities
         ? 'Rates and equipment loads are editable on the Vendor Utilities detail page (linked above).'
-        : 'Rent-includes-utilities toggle is off in the model — vendors pay utilities directly. Toggle on the Revenue panel of the Financial Model to capture as Barn OpEx.',
+        : 'Rent-includes-utilities toggle is off in the model — vendors pay utilities directly. Toggle on the Revenue panel of the Numbers tab to capture as Barn OpEx.',
     },
     {
       num: '2',
@@ -304,7 +304,7 @@ export default function Opex() {
         <div className="mb-6">
           <h1 className="text-2xl md:text-3xl font-bold text-walnut">Operating Expenses — Per Location</h1>
           <p className="text-walnut-light text-sm mt-1">
-            Full monthly OpEx picture · Vendor Utilities · Common Area · Non-Utilities · live values from the Financial Model
+            Full monthly OpEx picture · Vendor Utilities · Common Area · Non-Utilities · live values from the Numbers tab
           </p>
           <div className="flex gap-2 mt-3 flex-wrap text-[10px]">
             <span className="px-2 py-0.5 rounded-full border border-honey/30 bg-honey/15 text-walnut font-semibold tabular-nums">{fmtDollarFull(bd.total)}/mo OpEx</span>
@@ -364,7 +364,7 @@ export default function Opex() {
           <div className="glass rounded-2xl p-5 md:p-6">
             <h2 className="text-lg font-bold text-walnut mb-3">How OpEx Flows Into the Model</h2>
             <ul className="space-y-2 text-xs text-walnut-light leading-relaxed">
-              <li><span className="text-walnut font-semibold">Per-location basis.</span> Every figure here is one location’s monthly OpEx. Portfolio runs in the Financial Model multiply by active locations each month.</li>
+              <li><span className="text-walnut font-semibold">Per-location basis.</span> Every figure here is one location’s monthly OpEx. Portfolio runs in the Numbers tab multiply by active locations each month.</li>
               <li><span className="text-walnut font-semibold">Vendor utilities pass through rent.</span> When the &ldquo;rent includes utilities&rdquo; toggle is on (default), vendor utility costs are Barn OpEx; when off, vendors pay directly and this category is $0.</li>
               <li><span className="text-walnut font-semibold">Scenario rates.</span> Gas, electric, and water each have low/mid/high rates. Active scenario is set on the Vendor Utilities detail page and applies to common area as well.</li>
               <li><span className="text-walnut font-semibold">Non-utility line items are static.</span> They do not scale with vendor count or sqft — they flex only when you edit them on the Non-Utility detail page.</li>

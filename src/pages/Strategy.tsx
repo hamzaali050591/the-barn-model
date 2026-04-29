@@ -128,7 +128,7 @@ export default function Strategy() {
         <img src="/barn-interior.jpg" alt="The Barn interior" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-walnut/80 to-walnut/20" />
         <div className="absolute bottom-6 left-6 md:left-10">
-          <h1 className="text-3xl md:text-4xl font-bold text-cream">Strategy & Vision</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-cream">The Vision</h1>
           <p className="text-cream/70 text-sm md:text-base mt-1">The Barn — Where Neighborhoods Gather</p>
         </div>
       </div>

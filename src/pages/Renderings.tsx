@@ -153,7 +153,7 @@ export default function Renderings() {
 
       <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 md:py-10">
         <div className="mb-10">
-          <h1 className="text-3xl md:text-4xl font-bold text-walnut">Renderings</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-walnut">The Vibe</h1>
           <p className="text-walnut-light text-sm md:text-base mt-2 max-w-2xl leading-relaxed">
             What it looks like, what it feels like, and how it works — the room, the vendors, the
             birds-eye plan, and the tech that ties it all together.
