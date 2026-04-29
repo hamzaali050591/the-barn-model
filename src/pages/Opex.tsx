@@ -46,11 +46,17 @@ function LineRow({ line }: { line: DisplayLine }) {
     <div className="border-b border-walnut/5 last:border-b-0">
       <button
         onClick={() => expandable && setOpen(!open)}
-        className={`w-full flex items-center gap-3 px-3 py-2 text-left transition-colors ${expandable ? 'hover:bg-honey/5 cursor-pointer' : 'cursor-default'}`}
+        className={`w-full flex items-center gap-2 px-3 py-2 text-left transition-colors ${expandable ? 'hover:bg-honey/5 cursor-pointer' : 'cursor-default'}`}
       >
-        <span className="text-xs text-walnut flex-1 min-w-0">{line.name}</span>
-        <span className="text-xs font-bold text-walnut tabular-nums shrink-0">{fmtDollarFull(line.monthly)}<span className="text-[10px] font-normal text-walnut-light">/mo</span></span>
-        {expandable && <span className={`text-walnut-light text-[10px] transition-transform shrink-0 ${open ? 'rotate-180' : ''}`}>&#9662;</span>}
+        <span className="text-xs text-walnut min-w-0 truncate">{line.name}</span>
+        {expandable && (
+          <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full bg-honey/20 text-honey transition-transform shrink-0 ${open ? 'rotate-180' : ''}`} aria-hidden>
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+            </svg>
+          </span>
+        )}
+        <span className="ml-auto text-xs font-bold text-walnut tabular-nums shrink-0">{fmtDollarFull(line.monthly)}<span className="text-[10px] font-normal text-walnut-light">/mo</span></span>
       </button>
       {expandable && open && (
         <div className="px-3 pb-3 -mt-1">
@@ -72,14 +78,20 @@ function SubBlockCard({ sub, tone }: { sub: SubBlock; tone: Tone }) {
       >
         <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${ts.chip} shrink-0`}>{sub.key}</span>
         <div className="flex-1 min-w-0">
-          <div className="font-semibold text-walnut text-xs">{sub.title}</div>
+          <div className="font-semibold text-walnut text-xs flex items-center gap-2">
+            <span className="truncate">{sub.title}</span>
+            <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full bg-honey/20 text-honey transition-transform shrink-0 ${open ? 'rotate-180' : ''}`} aria-hidden>
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.75} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+              </svg>
+            </span>
+          </div>
           {sub.description && <div className="text-[11px] text-walnut-light mt-0.5 hidden md:block">{sub.description}</div>}
         </div>
         <div className="text-right shrink-0">
           <div className="font-bold text-walnut text-sm tabular-nums">{fmtDollarFull(sub.subtotal)}<span className="text-[10px] font-normal text-walnut-light">/mo</span></div>
           <div className="text-[10px] text-walnut-light tabular-nums">{fmtDollarFull(sub.subtotal * 12)}/yr</div>
         </div>
-        <span className={`text-walnut-light text-[10px] transition-transform shrink-0 ${open ? 'rotate-180' : ''}`}>&#9662;</span>
       </button>
       {open && (
         <div className="border-t border-walnut/5">
@@ -106,7 +118,14 @@ function BlockCard({ block }: { block: Block }) {
           {block.num}
         </span>
         <div className="flex-1 min-w-0">
-          <div className="font-bold text-walnut text-sm">{block.title}</div>
+          <div className="font-bold text-walnut text-sm flex items-center gap-2">
+            <span className="truncate">{block.title}</span>
+            <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full bg-honey/25 text-honey transition-transform shrink-0 ring-1 ring-honey/30 ${open ? 'rotate-180' : ''}`} aria-hidden>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.75} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+              </svg>
+            </span>
+          </div>
           <div className="text-xs text-walnut-light mt-0.5 hidden md:block">{block.description}</div>
         </div>
         <button
@@ -122,7 +141,6 @@ function BlockCard({ block }: { block: Block }) {
           <div className="font-bold text-walnut tabular-nums">{fmtDollarFull(block.subtotal)}<span className="text-xs font-normal text-walnut-light">/mo</span></div>
           <div className="text-[10px] text-walnut-light tabular-nums">{fmtDollarFull(block.subtotal * 12)}/yr</div>
         </div>
-        <span className={`text-walnut-light text-xs transition-transform shrink-0 ${open ? 'rotate-180' : ''}`}>&#9662;</span>
       </button>
 
       {open && (

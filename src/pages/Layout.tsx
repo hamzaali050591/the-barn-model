@@ -512,9 +512,16 @@ export default function LayoutPage() {
               >
                 <div className="flex items-center gap-3 px-4 py-3">
                   <div className={`w-4 h-4 rounded ${z.color} shrink-0`} />
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
                     <span className="font-semibold text-walnut text-sm">{z.name}</span>
-                    <span className="text-walnut-light text-xs ml-2 hidden sm:inline">{z.description}</span>
+                    {z.details && (
+                      <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full bg-honey/25 text-honey transition-transform shrink-0 ring-1 ring-honey/30 ${expandedZone === i ? 'rotate-180' : ''}`} aria-hidden>
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.75} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                        </svg>
+                      </span>
+                    )}
+                    <span className="text-walnut-light text-xs hidden sm:inline">{z.description}</span>
                   </div>
                   <div className="text-right shrink-0">
                     {z.sqft ? (
@@ -526,9 +533,6 @@ export default function LayoutPage() {
                       <span className="text-walnut-light text-xs italic">within gathering</span>
                     )}
                   </div>
-                  <span className={`text-walnut-light text-xs transition-transform ${expandedZone === i ? 'rotate-180' : ''}`}>
-                    &#9662;
-                  </span>
                 </div>
                 {expandedZone === i && z.details && (
                   <div className="px-4 pb-3 pt-0 border-t border-walnut/5">
@@ -579,10 +583,14 @@ export default function LayoutPage() {
         <section className="mb-8">
           <button
             onClick={() => setShowDecisions(!showDecisions)}
-            className="flex items-center gap-2 text-lg font-bold text-walnut mb-4 cursor-pointer hover:text-honey transition-colors"
+            className="flex items-center gap-3 text-lg font-bold text-walnut mb-4 cursor-pointer hover:text-honey transition-colors"
           >
             Design Decisions & Rationale
-            <span className={`text-sm transition-transform ${showDecisions ? 'rotate-180' : ''}`}>&#9662;</span>
+            <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full bg-honey/25 text-honey transition-transform ring-1 ring-honey/30 ${showDecisions ? 'rotate-180' : ''}`} aria-hidden>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.75} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+              </svg>
+            </span>
           </button>
           {showDecisions && (
             <div className="space-y-3">
