@@ -354,7 +354,7 @@ const perturbations: Perturbation[] = [
     lo: richmond({ debtPerLocation: 0, debtRatePct: 0 }),
     hi: richmond({ debtPerLocation: 400_000, debtRatePct: 8 }),
     expectDirIRR: 'up',
-    note: 'Senior debt replaces LP equity dollar-for-dollar. Fully amortizes by exit (no balloon). Positive leverage when debt rate < operating return — $400k @ 8% should boost IRR.',
+    note: 'Senior debt replaces LP equity dollar-for-dollar. Amortizes on default 10-yr term, leaving a balloon at exit (paid off from gross exit proceeds before promote/investor split). Positive leverage at default 8% — $400k @ 8% boosts IRR.',
   },
   {
     name: '[25] debtRatePct on $400k debt',
@@ -363,6 +363,14 @@ const perturbations: Perturbation[] = [
     hi: richmond({ debtPerLocation: 400_000, debtRatePct: 16 }),
     expectDirIRR: 'either',
     note: 'Cross-baseline asymmetric test (both arms have $400k debt vs no-debt baseline). Direction check disabled. Verify HI < LO: higher rate = bigger interest drag = lower IRR. Above the operating-return threshold this becomes negative leverage.',
+  },
+  {
+    name: '[25b] debtTermYears on $400k @ 8%',
+    caption: '5-yr term  →  20-yr term  (default 10)',
+    lo: richmond({ debtPerLocation: 400_000, debtRatePct: 8, debtTermYears: 5 }),
+    hi: richmond({ debtPerLocation: 400_000, debtRatePct: 8, debtTermYears: 20 }),
+    expectDirIRR: 'either',
+    note: 'Loan amortization period (decoupled from hold). Shorter term → higher P&I drag during hold + smaller balloon at exit. Longer term → lower P&I + bigger balloon. Direction check disabled — net IRR depends on the trade.',
   },
   {
     name: '[26] nonRentRevenue',

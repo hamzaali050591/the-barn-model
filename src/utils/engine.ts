@@ -17,7 +17,7 @@ export function capitalStack(inputs: ModelInputs) {
   return { totalCapex, tiTotal, investorEquityPerLocation, lpInvestment, debtUsedPerLocation };
 }
 
-// ── Debt amortization (fully amortizing — no balloon at exit) ──
+// ── Debt amortization (fixed term — may leave a balloon at exit) ──
 // Returns the level monthly P&I payment given principal P, monthly rate r,
 // and term in months n. If r=0, it's straight principal-only paydown.
 function levelPayment(principal: number, monthlyRate: number, termMonths: number): number {
@@ -183,7 +183,7 @@ export function runModel(inputs: ModelInputs): ModelOutputs {
     numLocations, exitMultiple, baseRentPSF, nnnPSF, sqft, profitSharePct,
     salaryBase, salaryStep, rampMonths, l1LeaseHolidayMonths, holdMonths,
     rentEscalatorPct, opexEscalatorPct, baseRentEscalatorPct, nnnEscalatorPct,
-    debtRatePct,
+    debtRatePct, debtTermYears,
   } = inputs;
 
   const schedule = inputs.openSchedule.slice(0, numLocations);
@@ -204,14 +204,16 @@ export function runModel(inputs: ModelInputs): ModelOutputs {
   const l1OpenMonth = schedule[0] ?? 1;
 
   // Debt schedule per location: loan funds at the capital-call month
-  // (max(1, openMonth - 3)) and fully amortizes by holdMonths so balance = 0
-  // at exit. Term = holdMonths - callMonth + 1.
+  // (max(1, openMonth - 3)) on a fixed amortization term (debtTermYears).
+  // If term > hold, the remaining balance at exit is paid off from gross
+  // exit proceeds (balloon). If term <= hold, the loan fully amortizes
+  // mid-hold and there is no balloon.
   const monthlyDebtRate = debtRatePct / 100 / 12;
+  const termMonthsFixed = Math.max(1, Math.round(debtTermYears * 12));
   const debtSchedules = schedule.map(om => {
     const callMonth = Math.max(1, om - 3);
-    const termMonths = Math.max(0, holdMonths - callMonth + 1);
-    const payment = levelPayment(debtUsedPerLocation, monthlyDebtRate, termMonths);
-    return { callMonth, termMonths, payment, balance: debtUsedPerLocation };
+    const payment = levelPayment(debtUsedPerLocation, monthlyDebtRate, termMonthsFixed);
+    return { callMonth, termMonths: termMonthsFixed, payment, balance: debtUsedPerLocation };
   });
 
   for (let m = 1; m <= holdMonths; m++) {
@@ -265,15 +267,20 @@ export function runModel(inputs: ModelInputs): ModelOutputs {
     const locationsCallingCapital = schedule.filter(om => Math.max(1, om - 3) === m).length;
     const capitalCall = -locationsCallingCapital * investorEquityPerLocation;
 
+    const loanBalance = debtSchedules.reduce((s, ds) => s + ds.balance, 0);
+
     let exitProceeds = 0;
     let exitProfitShare = 0;
+    let debtPayoff = 0;
     if (m === holdMonths) {
       const trailing = monthly.slice(Math.max(0, monthly.length - 11));
       let t12PreComp = preCompEBITDA;
       for (const r of trailing) t12PreComp += r.preCompEBITDA;
       const grossExit = exitMultiple * t12PreComp;
-      exitProfitShare = Math.max(0, grossExit) * profitShareRate;
-      exitProceeds = grossExit - exitProfitShare;
+      debtPayoff = loanBalance;
+      const netEquity = Math.max(0, grossExit - debtPayoff);
+      exitProfitShare = netEquity * profitShareRate;
+      exitProceeds = netEquity - exitProfitShare;
     }
 
     const netCashFlow = distributions + capitalCall + exitProceeds;
@@ -284,6 +291,7 @@ export function runModel(inputs: ModelInputs): ModelOutputs {
       month: m, nActive, nDistributing, revenue, opex, masterLease,
       preCompEBITDA, corpSalary, postSalaryEBITDA,
       interestExpense, debtPrincipalPaid, debtServicePayment,
+      loanBalance, debtPayoff,
       distributableNOI,
       profitShare, distributions, capitalCall, exitProceeds, exitProfitShare, netCashFlow,
       cumulativeEquity, cumulativeDistributions,

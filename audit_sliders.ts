@@ -109,6 +109,15 @@ const tests: Test[] = [
     expect: 'down',
     note: 'On a fixed $400k debt, raising rate from 0% to 4% adds interest drag → IRR ↓.',
   },
+  {
+    label: 'debtTermYears (5 / 10 / 20 on $400k @ 8%)',
+    lo: RICH({ debtPerLocation: 400_000, debtRatePct: 8, debtTermYears: 5 }),
+    base: RICH({ debtPerLocation: 400_000, debtRatePct: 8, debtTermYears: 10 }),
+    hi: RICH({ debtPerLocation: 400_000, debtRatePct: 8, debtTermYears: 20 }),
+    loVal: '5-yr term', baseVal: '10-yr term', hiVal: '20-yr term',
+    expect: 'either',
+    note: 'Loan term decoupled from hold. Shorter term → bigger P&I drag, smaller balloon. Longer term → less P&I drag, bigger balloon at exit.',
+  },
 
   // ── REVENUE ──
   {

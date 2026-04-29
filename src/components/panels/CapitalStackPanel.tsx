@@ -96,7 +96,7 @@ export default function CapitalStackPanel({ inputs, onChange }: Props) {
         value={inputs.debtPerLocation}
         min={0} max={1_000_000} step={100_000}
         format={fmt$}
-        info="Per-location senior debt that replaces LP equity dollar-for-dollar. Funds at the capital-call month (3 months before open) and fully amortizes by exit on a level monthly P&I schedule — no balloon. If the slider exceeds the available LP slot (CapEx − TI − GP), the model clamps debt at that ceiling."
+        info="Per-location senior debt that replaces LP equity dollar-for-dollar. Funds at the capital-call month (3 months before open) and amortizes on a level monthly P&I schedule over the loan-term slider below. If the term outruns the hold, the remaining balance is paid off from gross exit proceeds (balloon). If the slider exceeds the available LP slot (CapEx − TI − GP), the model clamps debt at that ceiling."
         onChange={v => set('debtPerLocation', v)}
       />
       <SliderRow
@@ -106,6 +106,14 @@ export default function CapitalStackPanel({ inputs, onChange }: Props) {
         format={v => v.toFixed(0) + '%'}
         info="Annual interest rate on the senior debt. Applied to the outstanding balance each month. Positive leverage when this is below the operating return; negative leverage above it."
         onChange={v => set('debtRatePct', v)}
+      />
+      <SliderRow
+        label="Loan Term"
+        value={inputs.debtTermYears}
+        min={5} max={20} step={5}
+        format={v => v + ' yr'}
+        info="Amortization period for the senior debt. Default 10-yr amort matches typical CRE term-loan structures: lower monthly P&I than a hold-period-matched loan, but a balloon balance remains at exit, paid off from gross exit proceeds before the operator promote and investor split."
+        onChange={v => set('debtTermYears', v)}
       />
 
       <div className="mt-auto pt-3 border-t border-walnut/10 space-y-1.5">

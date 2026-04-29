@@ -87,6 +87,7 @@ export interface ModelInputs {
   gpInvestment: number;
   debtPerLocation: number;
   debtRatePct: number;
+  debtTermYears: number;
 
   // Revenue Model
   vendors: VendorCategory[];
@@ -139,6 +140,8 @@ export interface MonthlyRow {
   interestExpense: number;
   debtPrincipalPaid: number;
   debtServicePayment: number;
+  loanBalance: number;
+  debtPayoff: number;
   distributableNOI: number;
   profitShare: number;
   distributions: number;
@@ -180,6 +183,7 @@ export const DEFAULT_INPUTS: ModelInputs = {
   gpInvestment: 200_000,
   debtPerLocation: 0,
   debtRatePct: 0,
+  debtTermYears: 10,
 
   // Revenue Model
   vendors: [

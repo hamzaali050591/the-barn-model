@@ -19,7 +19,7 @@ OUT = "/Users/hamzaali/Documents/The Barn/The Barn — Financial Model.xlsx"
 SQFT, TI_PSF, CAPEX_PSF = 9180, 35, 150
 BASE_RENT_PSF, NNN_PSF = 26, 9
 GP_INVESTMENT = 200_000
-DEBT_PER_LOC, DEBT_RATE_PCT = 0, 0
+DEBT_PER_LOC, DEBT_RATE_PCT, DEBT_TERM_YEARS = 0, 0, 10
 NUM_LOCATIONS, EXIT_MULTIPLE = 7, 3
 RAMP_MONTHS, L1_HOLIDAY = 3, 3
 OPEN_SCHEDULE = [4, 16, 20, 24, 28, 32, 36]
@@ -155,15 +155,15 @@ notes = [
     "  Water            — vendor gallons + common loads + CCF rates",
     "  Non-Utility OpEx — line items by category (marketing, cleaning, grease, etc.)",
     "  OpEx Summary     — Year-0 monthly OpEx aggregated",
-    "  Debt Schedule    — per-location amortization (level monthly P&I to zero balance at exit)",
+    "  Debt Schedule    — fixed-term amortization per location + balloon balance at exit",
     "  Monthly Cash Flow— 72 months × per-location detail + portfolio aggregation",
     "  KPIs             — IRR, MOIC, ROI, CoC, total dist, exit, equity",
     "",
     "Conventions match the web app:",
     "  • Capital call fires at max(1, openMonth − 3) — 3-month buildout window",
     "  • Per-location annual escalators apply on each location's open clock",
-    "  • Senior debt amortizes fully by exit (no balloon) — debtServicePayment is a hard cost",
-    "  • Exit = exitMultiple × T12 preCompEBITDA × (1 − profitShare%)",
+    "  • Senior debt amortizes on debtTermYears (fixed); balloon balance paid off from gross exit",
+    "  • Exit = MAX(0, exitMultiple × T12 preCompEBITDA − debtPayoff) × (1 − profitShare%)",
     "  • Operator profit share applies to both ongoing distributions and exit",
     "",
     "Backup of the prior xlsx is saved alongside this file with a date-stamped filename.",
@@ -189,6 +189,7 @@ inp = [
     ("GP Investment ($)", GP_INVESTMENT, "gpInvestment", USD0),
     ("Debt per Location ($)", DEBT_PER_LOC, "debtPerLocation", USD0),
     ("Debt Rate (% annual)", DEBT_RATE_PCT/100, "debtRatePct", PCT1),
+    ("Loan Term (years)", DEBT_TERM_YEARS, "debtTermYears", "0"),
     ("", None, None, None),
     ("REVENUE MODEL", None, None, None),
     ("Revenue Mode (base / pct / mixed)", REV_MODEL, "revenueModel", None),
@@ -519,26 +520,36 @@ named(wb, "monthlyOpexPerLoc", "'OpEx Summary'!$B$9")
 # ═════ Sheet 10: Debt Schedule ═════
 ws = wb.create_sheet("Debt Schedule")
 setw(ws, [22] + [13]*7)
-ws['A1'] = "DEBT SCHEDULE — per location, fully amortizing to zero at exit"; ws['A1'].font = Font(bold=True, size=12, color="5C4033")
+ws['A1'] = "DEBT SCHEDULE — fixed amortization term per location; balloon at exit if term > hold"; ws['A1'].font = Font(bold=True, size=12, color="5C4033")
 ws.cell(3, 1, "Metric").font = HDR
 for j in range(1, 8):
     ws.cell(3, j+1, f"L{j}").font = HDR; ws.cell(3, j+1).fill = HDR_FILL; ws.cell(3, j+1).font = HDR
 ws.cell(4, 1, "Open Month")
 ws.cell(5, 1, "Capital Call Month = MAX(1, Open−3)")
-ws.cell(6, 1, "Loan Term (mo) = HoldMonths − Call + 1")
+ws.cell(6, 1, "Loan Term (mo) = debtTermYears × 12")
 ws.cell(7, 1, "Active in Stack (j ≤ numLocations)")
 ws.cell(8, 1, "Monthly Rate")
 ws.cell(9, 1, "Level Monthly P&I")
+ws.cell(10, 1, "Payments Made by holdMonths")
+ws.cell(11, 1, "Loan Balance @ Exit (balloon)")
 for j in range(1, 8):
     c = j + 1
     ws.cell(4, c, f"=openMonth_{j}")
     ws.cell(5, c, f"=MAX(1,openMonth_{j}-3)")
-    ws.cell(6, c, f"=MAX(0,holdMonths-{col(c)}5+1)")
+    ws.cell(6, c, f"=MAX(1,debtTermYears*12)")
     ws.cell(7, c, f"=IF({j}<=numLocations,1,0)")
     ws.cell(8, c, "=debtRatePct/12")
     ws.cell(8, c).number_format = "0.00%"
     ws.cell(9, c, f'=IF(OR(debtUsed=0,{col(c)}6=0,{col(c)}7=0),0,IF({col(c)}8=0,debtUsed/{col(c)}6,debtUsed*({col(c)}8*(1+{col(c)}8)^{col(c)}6)/((1+{col(c)}8)^{col(c)}6-1)))')
     ws.cell(9, c).number_format = USD2
+    ws.cell(10, c, f'=IF({col(c)}7=0,0,MIN({col(c)}6,MAX(0,holdMonths-{col(c)}5+1)))')
+    ws.cell(10, c).number_format = "0"
+    ws.cell(11, c,
+        f'=IF(OR({col(c)}7=0,debtUsed=0,{col(c)}6=0,{col(c)}5>holdMonths),0,'
+        f'IF({col(c)}8=0,'
+        f'MAX(0,debtUsed*(1-{col(c)}10/{col(c)}6)),'
+        f'MAX(0,debtUsed*((1+{col(c)}8)^{col(c)}6-(1+{col(c)}8)^{col(c)}10)/((1+{col(c)}8)^{col(c)}6-1))))')
+    ws.cell(11, c).number_format = USD0
 
 # Named ranges for the per-location lookups (used in Monthly sheet)
 for j in range(1, 8):
@@ -549,6 +560,9 @@ for j in range(1, 8):
     named(wb, f"locActive_{j}", f"'Debt Schedule'!${col(c)}$7")
     named(wb, f"monthlyRate_{j}", f"'Debt Schedule'!${col(c)}$8")
     named(wb, f"levelPmt_{j}", f"'Debt Schedule'!${col(c)}$9")
+
+# Total balloon payoff at exit — sum of per-location balances row
+named(wb, "debtPayoff", "'Debt Schedule'!$B$11:$H$11")
 
 # ═════ Sheet 11: Monthly Cash Flow ═════
 ws = wb.create_sheet("Monthly Cash Flow")
@@ -699,16 +713,16 @@ for m in range(1, MAX_MONTHS + 1):
     ws.cell(r, NETCF,   f"={cl(DIST)}{r}+{cl(CALL)}{r}+{cl(EXIT)}{r}")
 
 # Fix exit formulas — only on row where m == holdMonths
-# Since hold can be variable, we use an IF gate based on the actual month value
+# Net equity = MAX(0, gross exit - debt balloon). Promote applied to net.
 for m in range(1, MAX_MONTHS + 1):
     r = m + 1
-    # exitProceeds (gross net of promote) — applied when A{r} = holdMonths
-    # Sum of last 12 rows of preCompEBITDA = sum from row max(2, r-11) to r
-    # But we need this conditional on A{r}=holdMonths. Build with INDEX/SUMPRODUCT.
+    gross = (f'exitMultiple*SUMPRODUCT(({cl(PRECOMP)}2:{cl(PRECOMP)}{MAX_MONTHS+1})'
+             f'*(A2:A{MAX_MONTHS+1}>holdMonths-12)*(A2:A{MAX_MONTHS+1}<=holdMonths))')
+    netEquity = f'MAX(0,{gross}-SUM(debtPayoff))'
     ws.cell(r, EXIT,
-        f'=IF(A{r}=holdMonths,exitMultiple*SUMPRODUCT(({cl(PRECOMP)}2:{cl(PRECOMP)}{MAX_MONTHS+1})*(A2:A{MAX_MONTHS+1}>holdMonths-12)*(A2:A{MAX_MONTHS+1}<=holdMonths))*(1-profitSharePct),0)')
+        f'=IF(A{r}=holdMonths,{netEquity}*(1-profitSharePct),0)')
     ws.cell(r, EXITP,
-        f'=IF(A{r}=holdMonths,exitMultiple*SUMPRODUCT(({cl(PRECOMP)}2:{cl(PRECOMP)}{MAX_MONTHS+1})*(A2:A{MAX_MONTHS+1}>holdMonths-12)*(A2:A{MAX_MONTHS+1}<=holdMonths))*profitSharePct,0)')
+        f'=IF(A{r}=holdMonths,{netEquity}*profitSharePct,0)')
     ws.cell(r, NETCF,
         f"={cl(DIST)}{r}+{cl(CALL)}{r}+{cl(EXIT)}{r}")
 
@@ -769,7 +783,6 @@ ws.cell(21, 1, "Total TI (DPEG)"); ws.cell(21, 2, "=tiTotal*numLocations"); ws.c
 ws.cell(23, 1, "Notes").font = SUB
 ws.cell(24, 1, "Annualized IRR: Excel IRR returns a monthly rate; this cell raises (1+r)^12-1.").font = NOTE_FONT
 ws.cell(25, 1, "Stabilized CoC: shows #N/A unless every active location is distributing in the exit month.").font = NOTE_FONT
-ws.cell(26, 1, "Cross-check vs web app: at defaults, Annualized IRR ≈ 19.3%, MOIC ≈ 1.72×, Stab CoC ≈ 23.9%.").font = NOTE_FONT
 
 # Set sheet ordering
 order = ["README", "Inputs", "Capital Stack", "Vendor Revenue",
