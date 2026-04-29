@@ -156,6 +156,14 @@ const tests: Test[] = [
     expect: 'up',
   },
   {
+    label: 'Non-Food Vendor sales ($25k → $22.5k/$27.5k) — only matters in pct mode',
+    lo: setVendor(1, 'sales', 22_500, { ...DEFAULT_INPUTS, revenueModel: 'pct' }),
+    base: { ...DEFAULT_INPUTS, revenueModel: 'pct' },
+    hi: setVendor(1, 'sales', 27_500, { ...DEFAULT_INPUTS, revenueModel: 'pct' }),
+    loVal: '$22.5k', baseVal: '$25k', hiVal: '$27.5k',
+    expect: 'up',
+  },
+  {
     label: 'pctOfSalesRate (20% → 18%/22%) — pct mode only',
     lo: { ...DEFAULT_INPUTS, revenueModel: 'pct', pctOfSalesRate: 18 },
     base: { ...DEFAULT_INPUTS, revenueModel: 'pct' },
@@ -279,6 +287,22 @@ const tests: Test[] = [
     loVal: '42 mo', baseVal: '48 mo', hiVal: '54 mo',
     expect: 'either',
     note: 'Direction depends on exit/operating-cash balance under current escalators.',
+  },
+  {
+    label: 'L1 Open Month (4 → 3/5) — Richmond',
+    lo: RICH({ openSchedule: [3] }), base: RICH(), hi: RICH({ openSchedule: [5] }),
+    loVal: 'Mo 3', baseVal: 'Mo 4', hiVal: 'Mo 5',
+    expect: 'down',
+    note: 'Earlier open at fixed hold = more operating months before exit → IRR ↑. LO opens earlier so IRR ↑ at LO; expecting "down" direction LO→HI.',
+  },
+  {
+    label: 'L7 Open Month (36 → 33/39) — portfolio',
+    lo: PORT({ openSchedule: [4, 16, 20, 24, 28, 32, 33] }),
+    base: PORT(),
+    hi: PORT({ openSchedule: [4, 16, 20, 24, 28, 32, 39] }),
+    loVal: 'L7 Mo 33', baseVal: 'L7 Mo 36', hiVal: 'L7 Mo 39',
+    expect: 'down',
+    note: 'Last location: earlier open → more distribution months before exit → IRR ↑.',
   },
 ];
 
