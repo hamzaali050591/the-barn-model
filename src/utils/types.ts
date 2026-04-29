@@ -269,14 +269,14 @@ export const DEFAULT_INPUTS: ModelInputs = {
   // Non-Utility config (from spreadsheet Non-Utility OpEx tab + Marketing)
   nonUtility: {
     marketing: [
-      { name: 'Social media content creation', monthly: 800 },
-      { name: 'Paid social (IG, FB, TikTok)', monthly: 1200 },
-      { name: 'Event promotion / print / signage', monthly: 500 },
-      { name: 'App marketing / push notifications', monthly: 300 },
-      { name: 'Influencer / blogger activations', monthly: 200 },
+      { name: 'Social media content creation', monthly: 665 },
+      { name: 'Paid social (IG, FB, TikTok)', monthly: 1000 },
+      { name: 'Event promotion / print / signage', monthly: 415 },
+      { name: 'App marketing / push notifications', monthly: 250 },
+      { name: 'Influencer / blogger activations', monthly: 170 },
     ],
     cleaning: [
-      { name: '2 staff splitting 84 hrs/wk', monthly: 5000 },
+      { name: '1 staff (6 hrs/day × 30 days × $15/hr)', monthly: 2700 },
       { name: 'Cleaning supplies / restroom stock', monthly: 500 },
     ],
     grease: [
@@ -295,16 +295,11 @@ export const DEFAULT_INPUTS: ModelInputs = {
       { name: 'Fire suppression', monthly: 100 },
     ],
     insurance: [
-      { name: 'General Liability', monthly: 400 },
-      { name: 'Commercial Property + Business Income', monthly: 700 },
-      { name: 'Umbrella policy', monthly: 200 },
-      { name: 'Liquor Liability', monthly: 300 },
-      { name: 'Workers Comp', monthly: 250 },
-      { name: 'Cyber / Data Breach', monthly: 100 },
-      { name: 'Crime / Employee Dishonesty', monthly: 50 },
+      { name: 'General Liability', monthly: 700 },
+      { name: 'Commercial Property + Business Income', monthly: 1000 },
+      { name: 'Umbrella policy', monthly: 300 },
     ],
     technology: [
-      { name: 'POS / ordering platform', monthly: 200 },
       { name: 'WiFi (commercial-grade)', monthly: 300 },
       { name: 'Dashboards / analytics', monthly: 200 },
       { name: 'Loyalty / membership platform', monthly: 200 },
