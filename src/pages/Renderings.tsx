@@ -165,6 +165,26 @@ export default function Renderings() {
           </div>
         </div>
 
+        <section className="reveal mb-12 md:mb-16">
+          <div className="mb-3 flex items-baseline gap-3">
+            <span className="font-mono text-xs text-honey font-semibold tabular-nums">00</span>
+            <h2 className="text-xl md:text-2xl font-bold text-walnut">The Barn — Concept Film</h2>
+          </div>
+          <div className="rounded-2xl overflow-hidden border border-walnut/10 shadow-lg shadow-walnut/10 bg-black aspect-video">
+            <video
+              src="/renderings/the-barn-final-compressed.mp4"
+              poster="/renderings/01-hero.jpg"
+              controls
+              preload="metadata"
+              playsInline
+              className="w-full h-full block"
+            />
+          </div>
+          <p className="text-sm md:text-base text-walnut-light leading-relaxed mt-4 max-w-3xl">
+            A short walkthrough of the Richmond concept — the room, the vendors, the feel. Best with sound on.
+          </p>
+        </section>
+
         <div className="space-y-12 md:space-y-16">
           {renderings.map((r, i) => <RenderingFrame key={r.src} r={r} idx={i} />)}
         </div>

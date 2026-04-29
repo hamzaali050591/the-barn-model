@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Original uncompressed concept video — only the compressed variant ships
+public/renderings/the-barn-final.mp4
