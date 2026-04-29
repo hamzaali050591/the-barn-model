@@ -178,8 +178,8 @@ export const DEFAULT_INPUTS: ModelInputs = {
   sqft: 9_180,
   tiPSF: 35,
   baseRentPSF: 26,
-  nnnPSF: 9,
-  capexPSF: 150,
+  nnnPSF: 9.5,
+  capexPSF: 170,
   gpInvestment: 200_000,
   debtPerLocation: 0,
   debtRatePct: 0,
@@ -187,7 +187,7 @@ export const DEFAULT_INPUTS: ModelInputs = {
 
   // Revenue Model
   vendors: [
-    { name: 'Food Vendors', count: 8, rent: 7_000, sales: 35_000, isFood: true },
+    { name: 'Food Vendors', count: 8, rent: 6_500, sales: 35_000, isFood: true },
     { name: 'Non-Food Vendors', count: 4, rent: 5_000, sales: 25_000, isFood: false },
   ],
   revenueModel: 'base',
@@ -197,9 +197,9 @@ export const DEFAULT_INPUTS: ModelInputs = {
   nonRentRevenue: 0,
   spaceLeasedPct: 100,
 
-  rentEscalatorPct: 3,
+  rentEscalatorPct: 4,
   opexEscalatorPct: 3,
-  baseRentEscalatorPct: 0,
+  baseRentEscalatorPct: 2,
   nnnEscalatorPct: 2,
 
   rentIncludesUtilities: true,
@@ -321,9 +321,9 @@ export const DEFAULT_INPUTS: ModelInputs = {
 
   // Deal terms
   numLocations: 7,
-  exitMultiple: 3,
+  exitMultiple: 4,
   rampMonths: 3,
-  l1LeaseHolidayMonths: 3,
+  l1LeaseHolidayMonths: 0,
   openSchedule: [4, 16, 20, 24, 28, 32, 36],
   holdMonths: 48,
 };

@@ -24,7 +24,7 @@ export default function Model() {
   const revealRef = useReveal();
 
   // Richmond mode overrides: 1 location; hold period adjustable via panel slider
-  const [richmondHold, setRichmondHold] = useState<number>(48);
+  const [richmondHold, setRichmondHold] = useState<number>(36);
 
   const activeInputs = useMemo(() => {
     if (viewMode === 'richmond') {
