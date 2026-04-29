@@ -171,7 +171,7 @@ export default function Strategy() {
                 {
                   num: '4',
                   title: 'Exit',
-                  sub: '6× EBITDA',
+                  sub: '3× EBITDA',
                   body: 'Sell the stabilized portfolio at a premium multiple. Return capital plus appreciation to GP and LP investors.',
                   accent: 'bg-walnut/15 text-walnut',
                 },
@@ -211,8 +211,8 @@ export default function Strategy() {
             </div>
             <div className="glass rounded-2xl p-5 text-center glow-hover">
               <div className="text-[10px] font-semibold text-walnut-light uppercase tracking-wider mb-1">Exit Multiple</div>
-              <div className="text-3xl md:text-4xl font-bold text-terracotta tabular-nums">6×</div>
-              <div className="text-xs text-walnut mt-1">EBITDA at portfolio maturity</div>
+              <div className="text-3xl md:text-4xl font-bold text-terracotta tabular-nums">3×</div>
+              <div className="text-xs text-walnut mt-1">EBITDA at portfolio maturity (conservative base)</div>
             </div>
           </div>
         </Section>
@@ -239,10 +239,10 @@ export default function Strategy() {
         <Section title="Richmond at a Glance">
           <div className="glass rounded-2xl p-6 md:p-8">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <Stat value="10,000" label="Square Feet" />
+              <Stat value="9,180" label="Square Feet" />
               <Stat value="12" label="Vendor Stalls" />
-              <Stat value="$960K" label="Annual Rent Revenue" />
-              <Stat value="$1.5M" label="Total Buildout" />
+              <Stat value="$912K" label="Annual Rent Revenue" />
+              <Stat value="$1.4M" label="Total Buildout" />
             </div>
           </div>
         </Section>

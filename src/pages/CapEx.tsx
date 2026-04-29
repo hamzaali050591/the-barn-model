@@ -422,8 +422,8 @@ export default function CapEx() {
           </p>
           <div className="flex gap-2 mt-3 flex-wrap text-[10px]">
             <span className="px-2 py-0.5 rounded-full border border-honey/30 bg-honey/15 text-walnut font-semibold">$1.754M total project cost</span>
-            <span className="px-2 py-0.5 rounded-full border border-sage/30 bg-sage/15 text-walnut font-semibold">DPEG TI: $350K</span>
-            <span className="px-2 py-0.5 rounded-full border border-terracotta/30 bg-terracotta/15 text-walnut font-semibold">Net equity: ~$1.40M</span>
+            <span className="px-2 py-0.5 rounded-full border border-sage/30 bg-sage/15 text-walnut font-semibold">DPEG TI: $321K (9,180 × $35/PSF)</span>
+            <span className="px-2 py-0.5 rounded-full border border-terracotta/30 bg-terracotta/15 text-walnut font-semibold">Net equity: ~$1.43M</span>
           </div>
         </div>
 
