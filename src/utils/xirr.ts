@@ -32,14 +32,14 @@ function dnpv(rate: number, flows: CashFlow[], d0: Date): number {
 }
 
 export function xirr(cashFlows: CashFlow[], guess: number = 0.1): number {
-  if (cashFlows.length < 2) return 0;
+  if (cashFlows.length < 2) return NaN;
 
   const d0 = cashFlows[0].date;
 
-  // Check that there's at least one negative and one positive flow
+  // XIRR is undefined unless there's at least one positive AND one negative flow.
   const hasNeg = cashFlows.some(cf => cf.amount < 0);
   const hasPos = cashFlows.some(cf => cf.amount > 0);
-  if (!hasNeg || !hasPos) return 0;
+  if (!hasNeg || !hasPos) return NaN;
 
   let rate = guess;
   const maxIter = 200;
@@ -47,13 +47,13 @@ export function xirr(cashFlows: CashFlow[], guess: number = 0.1): number {
 
   for (let i = 0; i < maxIter; i++) {
     const f = npv(rate, cashFlows, d0);
-    const df = dnpv(rate, cashFlows, d0);
+    if (Math.abs(f) < tolerance) return rate;
 
+    const df = dnpv(rate, cashFlows, d0);
     if (Math.abs(df) < 1e-14) break;
 
     const newRate = rate - f / df;
 
-    // Clamp to prevent divergence
     if (newRate < -0.99) {
       rate = (rate + -0.99) / 2;
     } else if (newRate > 10) {
@@ -61,11 +61,13 @@ export function xirr(cashFlows: CashFlow[], guess: number = 0.1): number {
     } else {
       rate = newRate;
     }
-
-    if (Math.abs(f) < tolerance) return rate;
   }
 
-  return rate;
+  // Did not converge. Confirm by checking residual NPV at the final rate.
+  // Returning NaN here is intentional — the UI's fmtPct surfaces "—" rather
+  // than the misleading clamp-ceiling rate (10.0 = 1000%) that this loop
+  // would otherwise return for genuinely-broken cash-flow profiles.
+  return Math.abs(npv(rate, cashFlows, d0)) < tolerance * 1000 ? rate : NaN;
 }
 
 /**
