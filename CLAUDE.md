@@ -102,9 +102,9 @@ Single shared state via `src/utils/ModelContext.tsx` → `ModelProvider` wraps t
 
 **Key engine conventions (CFO-signed-off):**
 - **Capital calls fire at `max(1, openSchedule[i] − 3)`** — 3-month buildout period where CapEx is actually spent.
-- **Exit EBITDA** = T12 `preCompEBITDA` (owner comp added back per industry PE normalization), NOT post-salary. Net exit to investors = gross × (1 − profitSharePct).
+- **Exit EBITDA** = T12 `preCompEBITDA` (owner comp added back per industry PE normalization), NOT post-salary. Gross exit = `exitMultiple × T12 preCompEBITDA`. Net equity proceeds = `MAX(0, grossExit − debtPayoff)` (balloon paid off first if any debt remains). Investor exit = netEquity × (1 − profitSharePct); operator promote on the same net-of-debt base.
 - **Operator's profit share (`profitSharePct`, default 10%)** applies to BOTH ongoing distributions and exit proceeds. No preferred return, no waterfall, no catch-up.
-- **Ramp is a distribution reserve, not a revenue ramp.** The hall is pre-leased from day 1; revenue and opex start at 100% the month a location opens. `rampMonths` simply delays distributions (builds operating cash reserve).
+- **Ramp is a distribution reserve, not a revenue ramp.** The hall is pre-leased from day 1; revenue and opex start at 100% the month a location opens. `rampMonths` simply delays distributions (builds operating cash reserve). **Side effect:** any cost or savings that lands inside the ramp window (months `openMonth` through `openMonth + rampMonths − 1`) is silently absorbed by the reserve and never reaches investor cash flow. Concretely, dropping `l1LeaseHolidayMonths` from 3 → 2 at default doesn't change IRR because month 6 is still within ramp; raising it from 3 → 4 DOES help, because month 7 is post-ramp. This is conservative for investor returns by design — don't "fix" it without changing the ramp-as-reserve convention.
 - **Model is pre-tax.** No tax modeling. `gpInvestment` is a pure GP/LP split when there's no debt — it does not affect aggregate investor IRR/MOIC/CoC (invariant). With debt, GP still doesn't move investor-aggregate KPIs but it does shift the LP residual.
 - **MonthlyRow fields:** `preCompEBITDA` (pre-owner-comp), `postSalaryEBITDA` (after corp salary), `interestExpense`, `debtPrincipalPaid`, `debtServicePayment` (the full P&I number), `distributableNOI`, `profitShare` (monthly promote), `distributions` (net to investors), `exitProceeds` (net to investors on exit), `exitProfitShare` (operator's exit promote, shown for transparency).
 - **Undefined-KPI handling (added Apr 2026):** when a metric is genuinely undefined for a given scenario, the engine returns `NaN` so `fmtPct` / `fmtMultiple` render `"—"` rather than a misleading 0%. Triggers: IRR/MOIC/ROI when totalEquity = 0; AvgCoC when no distributions ever flowed; StabilizedCoC unless the deal is actually stabilized (last month has all active locations distributing AND a full 12-row T12 window). The hold slider can reach 0 (in 6-mo steps) so these guards keep the dashboard sensible at slider edges.
@@ -115,14 +115,14 @@ Single shared state via `src/utils/ModelContext.tsx` → `ModelProvider` wraps t
   - `nnnEscalatorPct` (default 2) — applies only to NNN pass-throughs (CAM + property tax + insurance), which typically inflate faster than base rent.
   - **Clock convention:** per-location, Year 0 = first 12 months from each location's open month. Year 1 starts at month 12, Year 2 at month 24, etc. Factor at month-since-open `k` = `(1 + esc)^floor(k/12)`. Salary uses L1's open as a single portfolio-wide clock since salary is corporate, not per-location.
   - **Lease holiday interaction:** `l1LeaseHolidayMonths` zeroes the lease for L1's first N months regardless of escalator. The escalator clock keeps ticking from open month, so the holiday doesn't reset Year 0.
-  - **Exit math:** unchanged structurally — still `exitMultiple × T12 preCompEBITDA × (1 − profitShare)`. T12 at exit naturally captures whatever year each location is in, so escalators flow into exit value automatically.
+  - **Exit math:** `MAX(0, exitMultiple × T12 preCompEBITDA − debtPayoff) × (1 − profitShare)` net to investors. T12 at exit naturally captures whatever year each location is in, so escalators flow into exit value automatically. `debtPayoff` is the sum of remaining loan balances at the exit month (zero unless senior debt is configured with `debtTermYears > holdMonths/12`).
 - **Senior debt:** `debtPerLocation` (default $0, range $0–$1M), `debtRatePct` (default 0%, range 0–20%), `debtTermYears` (default 10, slider 5–20 in 5-yr steps). Loan funds at each location's capital-call month (`max(1, openMonth − 3)`) and amortizes on a fixed level-monthly-P&I schedule of `debtTermYears × 12` months — **decoupled from `holdMonths`**. If term > hold, the remaining balance at exit is the **balloon**, paid off from gross exit proceeds before the operator promote and investor split. If term ≤ hold, the loan fully amortizes mid-hold and there is no balloon. Engine details: `interestExpense` and `debtServicePayment` are subtracted from `postSalaryEBITDA` *before* the ramp ratio (debt service is a hard cost). `MonthlyRow` exposes `interestExpense`, `debtPrincipalPaid`, `debtServicePayment`, `loanBalance`, `debtPayoff`. Exit math is **`MAX(0, exitMultiple × T12 preCompEBITDA − debtPayoff) × (1 − profitSharePct)`** to investors; operator promote is on net-of-debt equity proceeds. Default 10-yr term matches typical CRE term-loan structures (lower P&I drag than a hold-matched loan, balloon refinanced or paid at exit). Default exit multiple lowered to 3× (down from 6×) — slider 1–8× covers the full range.
 
 **Richmond vs Portfolio:** `Model.tsx` overrides `numLocations: 1`, `openSchedule: [4]` (L1 opens m=4, capital called m=1), and `holdMonths` is driven by the Hold Period slider inside `RichmondDealTermsPanel`. **Hold Period slider** (both Richmond and Portfolio): range 0–72 mo in 6-mo steps. Sliding to 0 produces an empty cash flow array; KPIs render as "—". The portfolio `InvestorPanel` hides in Richmond mode; the `RichmondDealTermsPanel` takes its 4th-column slot. `OpexPanel` accepts `isRichmond` and hides the Salary Increment slider (inert with 1 location).
 
-**Current default baseline (Apr 28 2026, post-OpEx-tightening):**
-- Richmond 48mo: **IRR 22.34%, MOIC 1.846×, Stab CoC 25.76%**, Exit $1.06M, Total Distributions $899k, Total Returns $1.96M.
-- Portfolio 7×48mo: **IRR 20.89%, MOIC 1.456×, Stab CoC 27.63%**, Exit $6.86M, Total Returns $10.76M.
+**Current default baseline (Apr 29 2026, post-loan-term-slider):**
+- Richmond 48mo: **IRR 22.34%, MOIC 1.846×, Stab CoC 25.76%**, Exit $1,061,775, Total Distributions $887,381, Total Returns $1,949,156.
+- Portfolio 7×48mo: **IRR 20.89%, MOIC 1.456×, Stab CoC 27.63%**, Exit $6,869,654, Total Returns $10,761,915.
 
 These flow from: 9,180 sf × $150 = $1.378M CapEx; $321k TI; $1.056M investor equity (200k GP + 856k LP); $76k/mo total vendor rent (8×$7k food + 4×$5k non-food); **$20.8k/mo total Year-0 OpEx** (vendor utils $6.6k + common utils $2.6k including new common gas + non-utils $11.5k); $26.8k/mo lease (Year 0 = base $26 + NNN $9 × 9180 sf / 12); 3% rent + 3% OpEx + 0% base-rent + 2% NNN escalators; $0 debt; 3× exit multiple; 10% promote; 48-mo hold.
 
@@ -248,7 +248,7 @@ Trigger phrase: **"run financial model audit"** (or any close variant). Executes
 6. **Industry-method cross-checks (all must reconcile):**
    - MOIC = `totalReturns / totalEquity`
    - Stab CoC = last-12-month distributions ÷ total equity
-   - Exit = `exitMultiple × T12 preCompEBITDA × (1 − profitSharePct)`
+   - Exit = `MAX(0, exitMultiple × T12 preCompEBITDA − debtPayoff) × (1 − profitSharePct)` (debtPayoff is the sum of per-location balloon balances at the exit month — zero by default since `debtPerLocation = 0`)
    - IRR NPV = 0 at the computed rate (verify XIRR convergence)
    - Capital call month = `openSchedule[0] − 3` (clamped at 1)
    - `gpInvestment` invariant: IRR/MOIC identical for any GP amount
@@ -263,6 +263,6 @@ Trigger phrase: **"run financial model audit"** (or any close variant). Executes
 
 Run via `npx tsx audit_sliders.ts`. Faster, focused, NaN-aware: for sliders whose default sits at 0 or at a slider boundary, uses a sensible perturbative value instead of strict ±10%. When IRR is undefined (XIRR can't converge — degenerate cash flows), falls back to MOIC for the direction check. Use this when you want a quick read on whether anything's moved in the wrong direction across the full UI surface.
 
-Both audits should pass before the model goes in front of investors. The two are complementary: `audit.ts` is the deep cross-check pass; `audit_sliders.ts` is the sweep across every slider in 30 short rows.
+Both audits should pass before the model goes in front of investors. The two are complementary: `audit.ts` is the deep cross-check pass; `audit_sliders.ts` is the sweep across every slider in 34 short rows (covers all CapitalStack / Revenue / OpEx / Investor / Richmond panels including per-location open-schedule sliders and the loan-term slider).
 
 **Delivery format:** concise CFO-grade markdown summary with a ✅/⚠️/🚨 bucket structure — GREEN items (math verified), YELLOW items (design choices to confirm), RED items (probable demo hazards).
