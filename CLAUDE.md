@@ -94,7 +94,7 @@ Single shared state via `src/utils/ModelContext.tsx` → `ModelProvider` wraps t
 - `gasMonthly()`, `electricMonthly()`, `waterMonthly()`, `nonUtilityBreakdown()` — mirror xlsx formulas
 - `opexBreakdown()` → vendor + common + non-utility totals (respects `rentIncludesUtilities`)
 - `runModel()` → monthly cash-flow array + IRR/MOIC/CoC/stabilized CoC/exit proceeds (net to investors). Iterates per-location every month so escalators apply on each location's own clock.
-- `xirrFromMonthly()` in `src/utils/xirr.ts`
+- `xirrFromMonthly()` in `src/utils/xirr.ts` — Newton-Raphson XIRR. Returns `NaN` (not a clamp value) when it can't converge to within tolerance. This matters: prior versions silently clamped at 1000% on degenerate cash flows, producing bogus dashboard readings; the engine now propagates `NaN` and the UI renders `"—"`.
 
 **Key engine conventions (CFO-signed-off):**
 - **Capital calls fire at `max(1, openSchedule[i] − 3)`** — 3-month buildout period where CapEx is actually spent.
@@ -209,14 +209,18 @@ Two top-level tabs sit alongside Strategy / Financial Model / Space Layout in th
 - Investor-facing polish matters: type hierarchy, spacing, currency formatting, hover states. Test visually in the browser after UI changes.
 - Memory system at `~/.claude/projects/-Users-hamzaali-Documents-The-Barn-Claude-Code-the-barn-model/memory/` holds cross-session context; this file holds in-repo context.
 
-## Financial model audit (`run financial model audit`)
+## Financial model audit
 
-Trigger phrase: **"run financial model audit"** (or any close variant). Executes `audit.ts` at the project root via `npx tsx audit.ts` and delivers a CFO-grade report.
+Two complementary audit scripts live at the project root. Both are committed.
+
+### `audit.ts` — comprehensive ±20% audit + cross-checks
+
+Trigger phrase: **"run financial model audit"** (or any close variant). Executes `audit.ts` via `npx tsx audit.ts` and delivers a CFO-grade report.
 
 **What the audit must always test:**
 1. **Baselines** — Richmond 48-mo and Portfolio 48-mo at `DEFAULT_INPUTS`, with a manual sanity cross-check of capital stack, monthly vendor rent, monthly OpEx, and stabilized pre-comp EBITDA against first principles.
 2. **±20% on every adjustable variable** — each slider-controlled field tested at default, default × 0.8, and default × 1.2. Round cleanly for integer fields (months, `numLocations`). Print a 3-column LO/BASELINE/HI table per variable covering: IRR, MOIC, StabCoC, TotDist, Exit, Equity. Assert expected IRR direction; flag mismatches.
-3. **Revenue model toggles** — test `pctOfSalesRate`, `mixedBaseRent`, `mixedPctRate` within their own models (note: comparing a mixed-model run to a base-model baseline will show artifactual direction mismatches — that's expected, not a bug).
+3. **Revenue model toggles** — test `pctOfSalesRate`, `mixedBaseRent`, `mixedPctRate` within their own models (cross-mode comparisons should be marked `'either'` direction so they don't false-positive flag).
 4. **OpEx scenario lattice** — run all-LOW / all-MID / all-HIGH plus single-axis-HIGH rows to show utilities sensitivity range.
 5. **Portfolio-only variables** — `numLocations`, `salaryStep` (inert in Richmond).
 6. **Industry-method cross-checks (all must reconcile):**
@@ -229,8 +233,14 @@ Trigger phrase: **"run financial model audit"** (or any close variant). Executes
    - `salaryStep` inert in Richmond
    - Distributions reconciliation: `sum(monthly.distributions) === totalDistributions`
 
-**What "pass" looks like:** every ± direction matches expectation, every manual reconciliation matches engine to within rounding, every invariant holds. Any ⚠️ must be explained — most mixed-model direction flags are false positives and should be labeled as such in the report.
+**What "pass" looks like:** every ± direction matches expectation, every manual reconciliation matches engine to within rounding, every invariant holds. Any ⚠️ must be explained.
 
-**Running:** `npx tsx audit.ts` from the project root. The script lives at `./audit.ts` and is committed — edit it when inputs/formulas change so the audit stays in sync. If a slider is added to a panel, add the corresponding ±20% test to the `perturbations` array.
+**Maintenance:** if a new slider is added to a panel, add a corresponding ±20% test to the `perturbations` array. For asymmetric tests where both arms differ from baseline in the same direction (e.g., perturbing a default-zero input upward), use `expectDirIRR: 'either'` with a note explaining the LO vs HI relationship — symmetric direction-checks don't apply there.
+
+### `audit_sliders.ts` — ±10% sensitivity sweep across every UI slider
+
+Run via `npx tsx audit_sliders.ts`. Faster, focused, NaN-aware: for sliders whose default sits at 0 or at a slider boundary, uses a sensible perturbative value instead of strict ±10%. When IRR is undefined (XIRR can't converge — degenerate cash flows), falls back to MOIC for the direction check. Use this when you want a quick read on whether anything's moved in the wrong direction across the full UI surface.
+
+Both audits should pass before the model goes in front of investors. The two are complementary: `audit.ts` is the deep cross-check pass; `audit_sliders.ts` is the sweep across every slider in 30 short rows.
 
 **Delivery format:** concise CFO-grade markdown summary with a ✅/⚠️/🚨 bucket structure — GREEN items (math verified), YELLOW items (design choices to confirm), RED items (probable demo hazards).
