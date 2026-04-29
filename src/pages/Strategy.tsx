@@ -226,8 +226,9 @@ export default function Strategy() {
           </p>
 
           {/* Timeline tick-mark visual */}
-          <div className="glass rounded-2xl p-4 md:p-6 reveal overflow-x-auto">
+          <div className="glass rounded-2xl p-4 md:p-6 reveal overflow-x-auto scroll-fade-x">
             <h3 className="text-sm font-bold text-walnut mb-1">Opening Timeline</h3>
+            <p className="text-[10px] text-walnut-light mb-2 md:hidden">↔ scroll to see all 7 locations</p>
             <div className="min-w-[700px]">
               <TimelineVis locations={scaleLocations} />
             </div>

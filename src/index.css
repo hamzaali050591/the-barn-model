@@ -234,3 +234,22 @@ section {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(92, 64, 51, 0.35);
 }
+
+/* ── Horizontal-scroll affordance for wide tables on mobile ──
+   Visual gradient hint on the right edge so phone users know there's
+   more content to scroll to. Disabled on md+ where everything fits. */
+.scroll-fade-x {
+  position: relative;
+}
+.scroll-fade-x::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: 24px;
+  pointer-events: none;
+  background: linear-gradient(to left, rgba(250, 248, 245, 0.95), rgba(250, 248, 245, 0));
+  border-radius: 0 0.75rem 0.75rem 0;
+}
+@media (min-width: 768px) {
+  .scroll-fade-x::after { display: none; }
+}

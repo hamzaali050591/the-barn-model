@@ -84,7 +84,7 @@ export default function AnnualTable({ monthly, holdMonths }: Props) {
   ];
 
   return (
-    <div className="glass rounded-2xl overflow-x-auto">
+    <div className="glass rounded-2xl overflow-x-auto scroll-fade-x">
       <h3 className="text-base font-bold text-walnut px-5 pt-4 pb-2">Annual Breakdown</h3>
       <table className="w-full text-xs md:text-sm">
         <thead>

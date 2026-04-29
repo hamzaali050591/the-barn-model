@@ -321,7 +321,8 @@ function V1FloorPlan() {
 
 function V2FloorPlan() {
   return (
-    <div className="bg-cream rounded-xl border border-walnut/10 p-3 md:p-5 font-mono text-[10px] md:text-xs leading-relaxed overflow-x-auto">
+    <div className="bg-cream rounded-xl border border-walnut/10 p-3 md:p-5 font-mono text-[10px] md:text-xs leading-relaxed overflow-x-auto scroll-fade-x">
+      <p className="text-[10px] text-walnut-light mb-2 md:hidden font-sans">↔ scroll to see the full floor plan</p>
       <div className="min-w-[700px]">
         <div className="text-center text-[9px] text-walnut-light mb-1">■ WINDOWS (North) ■</div>
 

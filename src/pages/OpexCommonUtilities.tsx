@@ -33,7 +33,7 @@ export default function OpexCommonUtilities() {
 
       {/* Electric Common Area */}
       <DetailSection title="Common Area Electric" subtitle="HVAC, lighting, security, etc. — not pass-through to vendors">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto scroll-fade-x">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-walnut/10 bg-walnut/5 text-xs">
@@ -73,7 +73,7 @@ export default function OpexCommonUtilities() {
 
       {/* Water Common Area */}
       <DetailSection title="Common Area Water" subtitle="Restrooms, floor cleaning, hot water, landscaping">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto scroll-fade-x">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-walnut/10 bg-walnut/5 text-xs">

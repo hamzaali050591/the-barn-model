@@ -44,7 +44,7 @@ export default function OpexNonUtility() {
 
       {categories.map(cat => (
         <DetailSection key={cat.key} title={cat.title} subtitle={cat.subtitle}>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto scroll-fade-x">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-walnut/10 bg-walnut/5 text-xs">

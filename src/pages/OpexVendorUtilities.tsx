@@ -65,7 +65,7 @@ export default function OpexVendorUtilities() {
 
       {/* GAS */}
       <DetailSection title="Gas" subtitle="Applies only to Food Vendors — therm-based usage per vendor">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto scroll-fade-x">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-walnut/10 bg-walnut/5 text-xs">
@@ -145,7 +145,7 @@ export default function OpexVendorUtilities() {
       {/* ELECTRIC */}
       <DetailSection title="Electric" subtitle="Base load (all vendors) + food add-ons — kWh based, common area handled separately">
         <div className="text-xs font-semibold text-walnut-light uppercase tracking-wider mb-2">Per-Vendor Base Load (all vendors)</div>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto scroll-fade-x">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-walnut/10 bg-walnut/5 text-xs">
@@ -175,7 +175,7 @@ export default function OpexVendorUtilities() {
         </div>
 
         <div className="text-xs font-semibold text-walnut-light uppercase tracking-wider mt-5 mb-2">Food Vendor Add-Ons</div>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto scroll-fade-x">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-walnut/10 bg-walnut/5 text-xs">

@@ -26,7 +26,7 @@ export default function SensitivityTable({ inputs }: Props) {
   return (
     <div className="glass rounded-2xl p-4 md:p-5">
       <h3 className="text-base font-bold text-walnut mb-3">Sensitivity: IRR by Exit Multiple & # Locations</h3>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto scroll-fade-x">
         <table className="w-full text-xs md:text-sm">
           <thead>
             <tr>

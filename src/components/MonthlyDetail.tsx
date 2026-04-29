@@ -26,7 +26,7 @@ export default function MonthlyDetail({ monthly }: Props) {
       </button>
 
       {open && (
-        <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
+        <div className="overflow-x-auto max-h-[500px] overflow-y-auto scroll-fade-x">
           <table className="w-full text-xs">
             <thead className="sticky top-0 bg-cream z-10">
               <tr className="border-b border-walnut/10">
