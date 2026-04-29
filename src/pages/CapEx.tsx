@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import NavBar from '../components/NavBar';
+import InfoTooltip from '../components/InfoTooltip';
 import { fmtDollarFull } from '../utils/format';
 import { useReveal } from '../utils/useReveal';
+
+const LEASE_SQFT = 9_180;
 
 interface LineItem {
   num: number;
@@ -221,12 +224,67 @@ const categories: Category[] = [
   },
 ];
 
-const HARD_COSTS = categories.slice(0, 8).reduce((s, c) => s + c.subtotal, 0);
-const CONTINGENCY = cat9Items[cat9Items.length - 1].cost;
-const SOFT_COSTS = categories[8].subtotal - CONTINGENCY;
-const TOTAL_PROJECT_COST = HARD_COSTS + SOFT_COSTS + CONTINGENCY;
-const TI_ALLOWANCE = 321_300;
-const NET_EQUITY = TOTAL_PROJECT_COST - TI_ALLOWANCE;
+// ── V2 line items ──
+// Initialized as deep clones of V1. Replace any of these with explicit
+// literal arrays to make V2 diverge from V1.
+const cat1ItemsV2: LineItem[] = cat1Items.map(i => ({ ...i }));
+const cat2aItemsV2: LineItem[] = cat2aItems.map(i => ({ ...i }));
+const cat2bItemsV2: LineItem[] = cat2bItems.map(i => ({ ...i }));
+const cat2cItemsV2: LineItem[] = cat2cItems.map(i => ({ ...i }));
+const cat2dItemsV2: LineItem[] = cat2dItems.map(i => ({ ...i }));
+const cat2eItemsV2: LineItem[] = cat2eItems.map(i => ({ ...i }));
+const cat2fItemsV2: LineItem[] = cat2fItems.map(i => ({ ...i }));
+const cat2gItemsV2: LineItem[] = cat2gItems.map(i => ({ ...i }));
+const cat3ItemsV2: LineItem[] = cat3Items.map(i => ({ ...i }));
+const cat4ItemsV2: LineItem[] = cat4Items.map(i => ({ ...i }));
+const cat5ItemsV2: LineItem[] = cat5Items.map(i => ({ ...i }));
+const cat6ItemsV2: LineItem[] = cat6Items.map(i => ({ ...i }));
+const cat7ItemsV2: LineItem[] = cat7Items.map(i => ({ ...i }));
+const cat8ItemsV2: LineItem[] = cat8Items.map(i => ({ ...i }));
+const cat9ItemsV2: LineItem[] = cat9Items.map(i => ({ ...i }));
+
+const cat2SubsV2: SubCategory[] = [
+  { key: '2a', title: 'HVAC, Ventilation & BMS', description: cat2Subs[0].description, items: cat2aItemsV2, subtotal: sum(cat2aItemsV2) },
+  { key: '2b', title: 'Kitchen Hood System', description: cat2Subs[1].description, items: cat2bItemsV2, subtotal: sum(cat2bItemsV2) },
+  { key: '2c', title: 'Electrical', description: cat2Subs[2].description, items: cat2cItemsV2, subtotal: sum(cat2cItemsV2) },
+  { key: '2d', title: 'Plumbing', description: cat2Subs[3].description, items: cat2dItemsV2, subtotal: sum(cat2dItemsV2) },
+  { key: '2e', title: 'Gas (Service Upgrade + Distribution)', description: cat2Subs[4].description, items: cat2eItemsV2, subtotal: sum(cat2eItemsV2) },
+  { key: '2f', title: 'Fire Protection', description: cat2Subs[5].description, items: cat2fItemsV2, subtotal: sum(cat2fItemsV2) },
+  { key: '2g', title: 'Low-Voltage (Data / AV / Security)', description: cat2Subs[6].description, items: cat2gItemsV2, subtotal: sum(cat2gItemsV2) },
+];
+
+const categoriesV2: Category[] = categories.map((c, idx) => {
+  if (c.num === '2') {
+    return { ...c, subcategories: cat2SubsV2, subtotal: cat2SubsV2.reduce((s, sc) => s + sc.subtotal, 0) };
+  }
+  const v2Items = [cat1ItemsV2, undefined, cat3ItemsV2, cat4ItemsV2, cat5ItemsV2, cat6ItemsV2, cat7ItemsV2, cat8ItemsV2, cat9ItemsV2][idx];
+  return { ...c, items: v2Items, subtotal: sum(v2Items!) };
+});
+
+interface CapExData {
+  categories: Category[];
+  hardCosts: number;
+  softCosts: number;
+  contingency: number;
+  totalProjectCost: number;
+  tiAllowance: number;
+  netEquity: number;
+  capexPSF: number;
+}
+
+function computeTotals(cats: Category[], cat9: LineItem[]): CapExData {
+  const hardCosts = cats.slice(0, 8).reduce((s, c) => s + c.subtotal, 0);
+  const contingency = cat9[cat9.length - 1].cost;
+  const softCosts = cats[8].subtotal - contingency;
+  const totalProjectCost = hardCosts + softCosts + contingency;
+  const tiAllowance = 321_300;
+  const netEquity = totalProjectCost - tiAllowance;
+  const capexPSF = totalProjectCost / LEASE_SQFT;
+  return { categories: cats, hardCosts, softCosts, contingency, totalProjectCost, tiAllowance, netEquity, capexPSF };
+}
+
+const V1_DATA: CapExData = computeTotals(categories, cat9Items);
+const V2_DATA: CapExData = computeTotals(categoriesV2, cat9ItemsV2);
 
 const toneStyles: Record<Category['tone'], { dot: string; chip: string }> = {
   honey: { dot: 'bg-honey', chip: 'bg-honey/15 text-walnut border-honey/30' },
@@ -261,7 +319,7 @@ function LineItemRow({ item }: { item: LineItem }) {
   );
 }
 
-function CategoryCard({ cat }: { cat: Category }) {
+function CategoryCard({ cat, totalProjectCost }: { cat: Category; totalProjectCost: number }) {
   const [open, setOpen] = useState(false);
   const [openSubs, setOpenSubs] = useState<Record<string, boolean>>({});
   const tone = toneStyles[cat.tone];
@@ -289,7 +347,7 @@ function CategoryCard({ cat }: { cat: Category }) {
         <div className="text-right shrink-0">
           <div className="font-bold text-walnut tabular-nums">{fmtDollarFull(cat.subtotal)}</div>
           <div className="text-[10px] text-walnut-light">
-            {((cat.subtotal / TOTAL_PROJECT_COST) * 100).toFixed(1)}% of total
+            {((cat.subtotal / totalProjectCost) * 100).toFixed(1)}% of total
           </div>
         </div>
       </button>
@@ -372,7 +430,7 @@ function GasFlagCallout() {
   );
 }
 
-function SummaryCard() {
+function SummaryCard({ data }: { data: CapExData }) {
   return (
     <div className="glass rounded-2xl p-5 md:p-6">
       <h2 className="text-lg font-bold text-walnut mb-4">Project Cost Summary</h2>
@@ -382,19 +440,23 @@ function SummaryCard() {
           <div className="space-y-1.5 text-sm">
             <div className="flex justify-between py-1.5 border-b border-walnut/5">
               <span className="text-walnut-light">Hard Construction Cost</span>
-              <span className="font-semibold text-walnut tabular-nums">{fmtDollarFull(HARD_COSTS)}</span>
+              <span className="font-semibold text-walnut tabular-nums">{fmtDollarFull(data.hardCosts)}</span>
             </div>
             <div className="flex justify-between py-1.5 border-b border-walnut/5">
               <span className="text-walnut-light">Soft Costs (A&amp;E, Permits, CM, Insurance)</span>
-              <span className="font-semibold text-walnut tabular-nums">{fmtDollarFull(SOFT_COSTS)}</span>
+              <span className="font-semibold text-walnut tabular-nums">{fmtDollarFull(data.softCosts)}</span>
             </div>
             <div className="flex justify-between py-1.5 border-b border-walnut/5">
               <span className="text-walnut-light">Contingency (10% of Hard Costs)</span>
-              <span className="font-semibold text-walnut tabular-nums">{fmtDollarFull(CONTINGENCY)}</span>
+              <span className="font-semibold text-walnut tabular-nums">{fmtDollarFull(data.contingency)}</span>
             </div>
             <div className="flex justify-between py-2 mt-1 bg-walnut text-cream rounded-md px-3">
               <span className="font-semibold uppercase tracking-wider text-xs">Total Project Cost</span>
-              <span className="font-bold tabular-nums">{fmtDollarFull(TOTAL_PROJECT_COST)}</span>
+              <span className="font-bold tabular-nums">{fmtDollarFull(data.totalProjectCost)}</span>
+            </div>
+            <div className="flex justify-between py-1.5 px-3">
+              <span className="text-[11px] text-walnut-light italic">CapEx $/PSF (Total ÷ {LEASE_SQFT.toLocaleString()} sf)</span>
+              <span className="text-xs font-semibold text-walnut tabular-nums">${data.capexPSF.toFixed(2)}/sf</span>
             </div>
           </div>
         </div>
@@ -402,19 +464,19 @@ function SummaryCard() {
           <div className="text-[10px] font-semibold text-walnut-light uppercase tracking-wider mb-2">Funding Structure</div>
           <div className="space-y-1.5 text-sm">
             <div className="flex justify-between py-1.5 border-b border-walnut/5">
-              <span className="text-walnut-light">DPEG TI Allowance ($35/PSF × 9,180)</span>
-              <span className="font-semibold text-walnut tabular-nums">{fmtDollarFull(TI_ALLOWANCE)}</span>
+              <span className="text-walnut-light">DPEG TI Allowance ($35/PSF × {LEASE_SQFT.toLocaleString()})</span>
+              <span className="font-semibold text-walnut tabular-nums">{fmtDollarFull(data.tiAllowance)}</span>
             </div>
             <div className="flex justify-between py-1.5 border-b border-walnut/5">
               <span className="text-walnut-light">Net Equity Requirement (GP + LP)</span>
-              <span className="font-semibold text-walnut tabular-nums">{fmtDollarFull(NET_EQUITY)}</span>
+              <span className="font-semibold text-walnut tabular-nums">{fmtDollarFull(data.netEquity)}</span>
             </div>
             <div className="flex justify-between py-2 mt-1 bg-honey/20 rounded-md px-3">
               <span className="font-semibold uppercase tracking-wider text-xs text-walnut">Total Project Cost</span>
-              <span className="font-bold text-walnut tabular-nums">{fmtDollarFull(TOTAL_PROJECT_COST)}</span>
+              <span className="font-bold text-walnut tabular-nums">{fmtDollarFull(data.totalProjectCost)}</span>
             </div>
             <p className="text-[10px] text-walnut-light italic mt-2 leading-relaxed">
-              TI excluded from CoC equity base. Equity ask reflects $1.51M hard + $95K soft + $149K contingency at $1.754M total.
+              TI excluded from CoC equity base. Equity ask reflects {fmtDollarFull(data.hardCosts)} hard + {fmtDollarFull(data.softCosts)} soft + {fmtDollarFull(data.contingency)} contingency at {fmtDollarFull(data.totalProjectCost)} total.
             </p>
           </div>
         </div>
@@ -423,8 +485,12 @@ function SummaryCard() {
   );
 }
 
+type CapExVersion = 'v1' | 'v2';
+
 export default function CapEx() {
   const revealRef = useReveal();
+  const [version, setVersion] = useState<CapExVersion>('v1');
+  const data = version === 'v1' ? V1_DATA : V2_DATA;
 
   return (
     <div className="min-h-screen bg-cream" ref={revealRef}>
@@ -434,17 +500,37 @@ export default function CapEx() {
         <div className="mb-6">
           <h1 className="text-2xl md:text-3xl font-bold text-walnut">Capital Expenditure — Richmond V1</h1>
           <p className="text-walnut-light text-sm mt-1">
-            Full SOW · 9 categories · ~9,180 sq ft Left Zone of Bldg F Level 2 · Gensler shell (Issued for Permit 12/17/2021)
+            Full SOW · 9 categories · ~{LEASE_SQFT.toLocaleString()} sq ft Left Zone of Bldg F Level 2 · Gensler shell (Issued for Permit 12/17/2021)
           </p>
           <div className="flex gap-2 mt-3 flex-wrap text-[10px]">
-            <span className="px-2 py-0.5 rounded-full border border-honey/30 bg-honey/15 text-walnut font-semibold">$1.754M total project cost</span>
-            <span className="px-2 py-0.5 rounded-full border border-sage/30 bg-sage/15 text-walnut font-semibold">DPEG TI: $321K (9,180 × $35/PSF)</span>
-            <span className="px-2 py-0.5 rounded-full border border-terracotta/30 bg-terracotta/15 text-walnut font-semibold">Net equity: ~$1.43M</span>
+            <span className="px-2 py-0.5 rounded-full border border-honey/30 bg-honey/15 text-walnut font-semibold">{fmtDollarFull(data.totalProjectCost)} total project cost</span>
+            <span className="px-2 py-0.5 rounded-full border border-sage/30 bg-sage/15 text-walnut font-semibold">DPEG TI: {fmtDollarFull(data.tiAllowance)} ({LEASE_SQFT.toLocaleString()} × $35/PSF)</span>
+            <span className="px-2 py-0.5 rounded-full border border-terracotta/30 bg-terracotta/15 text-walnut font-semibold">Net equity: {fmtDollarFull(data.netEquity)}</span>
           </div>
         </div>
 
         <section className="mb-6">
-          <SummaryCard />
+          <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-walnut/5 border border-walnut/10">
+            <button
+              onClick={() => setVersion('v1')}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${version === 'v1' ? 'bg-walnut text-cream shadow-sm' : 'text-walnut-light hover:text-walnut'}`}
+            >
+              CapEx V1
+            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setVersion('v2')}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${version === 'v2' ? 'bg-walnut text-cream shadow-sm' : 'text-walnut-light hover:text-walnut'}`}
+              >
+                CapEx V2
+              </button>
+              <InfoTooltip content="Updated numbers after meeting with Niyi on Apr 29, 2026." />
+            </div>
+          </div>
+        </section>
+
+        <section className="mb-6">
+          <SummaryCard data={data} />
         </section>
 
         <section className="mb-6">
@@ -457,7 +543,7 @@ export default function CapEx() {
             <p className="text-[11px] text-walnut-light italic">Click a category to expand · click a line item for scope notes</p>
           </div>
           <div className="space-y-3">
-            {categories.map(cat => <CategoryCard key={cat.num} cat={cat} />)}
+            {data.categories.map(cat => <CategoryCard key={cat.num} cat={cat} totalProjectCost={data.totalProjectCost} />)}
           </div>
         </section>
 
