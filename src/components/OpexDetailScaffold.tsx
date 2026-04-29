@@ -24,7 +24,7 @@ export default function OpexDetailScaffold({ title, subtitle, children }: Props)
           <svg className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
           </svg>
-          Back to Financial Model
+          Back to The Numbers
         </button>
 
         {/* Header */}

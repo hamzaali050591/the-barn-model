@@ -183,7 +183,7 @@ const v2Zones: Zone[] = [
 
 const versions: Record<Version, VersionSpec> = {
   v1: {
-    label: 'Version 1 — 10K Left Zone (PRIMARY)',
+    label: 'Version 1 — Left Zone ~9,180 sf (PRIMARY)',
     shortLabel: 'V1 · Left Zone',
     tagline:
       'Left zone of Level 2 only. Path A: single row of 8 food stalls along the core wall; gathering opens west to three window walls. Basis for the Richmond deal + first SOW.',

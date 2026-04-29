@@ -225,7 +225,7 @@ const HARD_COSTS = categories.slice(0, 8).reduce((s, c) => s + c.subtotal, 0);
 const CONTINGENCY = cat9Items[cat9Items.length - 1].cost;
 const SOFT_COSTS = categories[8].subtotal - CONTINGENCY;
 const TOTAL_PROJECT_COST = HARD_COSTS + SOFT_COSTS + CONTINGENCY;
-const TI_ALLOWANCE = 350_000;
+const TI_ALLOWANCE = 321_300;
 const NET_EQUITY = TOTAL_PROJECT_COST - TI_ALLOWANCE;
 
 const toneStyles: Record<Category['tone'], { dot: string; chip: string }> = {
@@ -402,7 +402,7 @@ function SummaryCard() {
           <div className="text-[10px] font-semibold text-walnut-light uppercase tracking-wider mb-2">Funding Structure</div>
           <div className="space-y-1.5 text-sm">
             <div className="flex justify-between py-1.5 border-b border-walnut/5">
-              <span className="text-walnut-light">DPEG TI Allowance ($35/PSF × 10K)</span>
+              <span className="text-walnut-light">DPEG TI Allowance ($35/PSF × 9,180)</span>
               <span className="font-semibold text-walnut tabular-nums">{fmtDollarFull(TI_ALLOWANCE)}</span>
             </div>
             <div className="flex justify-between py-1.5 border-b border-walnut/5">
