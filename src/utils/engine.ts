@@ -80,11 +80,14 @@ export function gasMonthly(g: GasConfig) {
   const monthlyTherms = monthlyBTU / 100_000;
   const rate = scenarioRate(g);
   const foodVendor = monthlyTherms * rate;
+  const commonTherms = (g.commonArea ?? []).reduce((s, l) => s + l.monthlyTherms, 0);
+  const common = commonTherms * rate;
   return {
     totalEffectiveBTU, monthlyBTU, monthlyTherms, rate,
     foodVendor,
     nonFoodVendor: 0,
-    common: 0,
+    commonTherms,
+    common,
   };
 }
 
@@ -158,7 +161,7 @@ export function opexBreakdown(inputs: ModelInputs) {
     ? (numFoodVendors * foodVendorUtilTotal + numNonFoodVendors * nonFoodVendorUtilTotal)
     : 0;
 
-  const commonAreaUtilities = electric.common + water.common;
+  const commonAreaUtilities = gas.common + electric.common + water.common;
   const nonUtilities = nu.total;
 
   const total = vendorUtilities + commonAreaUtilities + nonUtilities;

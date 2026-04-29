@@ -128,6 +128,7 @@ export default function OpexPanel({ inputs, onChange, isRichmond = false }: Prop
         </div>
         {commonUtilsOpen && (
           <div className="mt-1 py-1.5 rounded-md bg-white/30">
+            <ReadonlyLine label="Gas" value={fmtDollarFull(gas.common)} />
             <ReadonlyLine label="Electric" value={fmtDollarFull(electric.common)} />
             <ReadonlyLine label="Water" value={fmtDollarFull(water.common)} />
           </div>

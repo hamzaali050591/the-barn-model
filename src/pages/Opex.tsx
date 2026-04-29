@@ -214,6 +214,17 @@ export default function Opex() {
 
   const commonSubblocks: SubBlock[] = [
     {
+      key: 'gas-common',
+      title: 'Common Area Gas',
+      description: `Building-level gas: water heater (year-round) + space heating (annualized). Rate: $${gas.rate.toFixed(2)}/therm (${inputs.gas.scenario}). Total: ${gas.commonTherms} therms/mo.`,
+      lines: inputs.gas.commonArea.map(l => ({
+        name: l.name,
+        monthly: l.monthlyTherms * gas.rate,
+        detail: `${l.monthlyTherms} therms/mo × $${gas.rate.toFixed(2)}/therm.`,
+      })),
+      subtotal: gas.common,
+    },
+    {
       key: 'elec',
       title: 'Common Area Electric',
       description: `HVAC, lighting, security, etc. — paid by The Barn. Rate: $${electric.rate.toFixed(3)}/kWh (${inputs.electric.scenario}). Total: ${electric.commonKwh.toFixed(0)} kWh/mo.`,

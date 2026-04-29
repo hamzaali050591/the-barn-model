@@ -41,6 +41,8 @@ GAS_EQUIP = [("40lb Fryer", 120000, 0.33),
              ("2ft Charbroiler", 56000, 0.20),
              ("6-Burner Range", 150000, 0.23)]
 GAS_HOURS, GAS_DAYS = 12, 30
+GAS_COMMON = [("Commercial water heater (year-round)", 75),
+              ("Space heating (annualized — peak Dec/Jan)", 175)]
 GAS_RATES = (0.9, 1.05, 1.2)
 GAS_SCENARIO = "mid"
 
@@ -87,8 +89,13 @@ NON_UTIL = [
                      ("General repairs", 300),
                      ("Pest control", 200),
                      ("Fire suppression", 100)]),
-    ("Insurance", [("General liability + property", 1000),
-                   ("Umbrella policy", 300)]),
+    ("Insurance", [("General Liability", 400),
+                   ("Commercial Property + Business Income", 700),
+                   ("Umbrella policy", 200),
+                   ("Liquor Liability", 300),
+                   ("Workers Comp", 250),
+                   ("Cyber / Data Breach", 100),
+                   ("Crime / Employee Dishonesty", 50)]),
     ("Technology", [("POS / ordering platform", 200),
                     ("WiFi (commercial-grade)", 300),
                     ("Dashboards / analytics", 200),
@@ -361,6 +368,20 @@ ws.cell(sum_row+13, 1, "Per Food Vendor / mo (gas cost)").font = SUB
 ws.cell(sum_row+13, 2, f"=B{sum_row+4}*B{sum_row+11}"); ws.cell(sum_row+13, 2).number_format = USD0; ws.cell(sum_row+13, 2).fill = DERIVED_FILL
 named(wb, "gasFoodVendor", f"Gas!$B${sum_row+13}")
 
+# Common-area gas (water heater + space heating)
+ws.cell(sum_row+15, 1, "COMMON AREA GAS — building-level (Barn pays)").font = SUB
+ws.cell(sum_row+16, 1, "Load").font = HDR; ws.cell(sum_row+16, 2, "Therms / mo").font = HDR; ws.cell(sum_row+16, 3, "Monthly $").font = HDR
+for i, (n, therms) in enumerate(GAS_COMMON):
+    r = sum_row + 17 + i
+    ws.cell(r, 1, n)
+    ws.cell(r, 2, therms); ws.cell(r, 2).fill = INPUT_FILL
+    ws.cell(r, 3, f"=B{r}*gasRate"); ws.cell(r, 3).number_format = USD2
+common_end_row = sum_row + 17 + len(GAS_COMMON)
+ws.cell(common_end_row, 1, "Total Common Area Therms / mo").font = SUB
+ws.cell(common_end_row, 2, f"=SUM(B{sum_row+17}:B{common_end_row-1})"); ws.cell(common_end_row, 2).fill = DERIVED_FILL
+ws.cell(common_end_row, 3, f"=SUM(C{sum_row+17}:C{common_end_row-1})"); ws.cell(common_end_row, 3).number_format = USD0; ws.cell(common_end_row, 3).fill = ACCENT_FILL
+named(wb, "gasCommon", f"Gas!$C${common_end_row}")
+
 # ═════ Sheet 6: Electric ═════
 ws = wb.create_sheet("Electric")
 setw(ws, [40, 12, 12, 12, 12, 14])
@@ -485,7 +506,7 @@ rows = [
     ("# Food Vendors × cost", "=numFoodVendors*B2"),
     ("# Non-Food Vendors × cost", "=numNonFoodVendors*B3"),
     ("Vendor Utilities (if rentIncludesUtilities)", "=IF(rentIncludesUtilities=1,B4+B5,0)"),
-    ("Common Area Utilities", "=elecCommon+waterCommon"),
+    ("Common Area Utilities", "=gasCommon+elecCommon+waterCommon"),
     ("Non-Utility OpEx", "=nonUtilityTotal"),
     ("TOTAL Monthly OpEx (Year 0, per loc)", "=B6+B7+B8"),
 ]

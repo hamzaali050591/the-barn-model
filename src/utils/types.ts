@@ -16,10 +16,15 @@ export interface GasEquipment {
   btu: number;
   duty: number;
 }
+export interface GasCommonLoad {
+  name: string;
+  monthlyTherms: number;
+}
 export interface GasConfig {
   equipment: GasEquipment[];
   hoursPerDay: number;
   daysPerMonth: number;
+  commonArea: GasCommonLoad[];   // building-level gas: water heater, space heating
   lowRate: number;   // $/therm
   midRate: number;
   highRate: number;
@@ -195,7 +200,7 @@ export const DEFAULT_INPUTS: ModelInputs = {
 
   rentIncludesUtilities: true,
 
-  // Gas config (from spreadsheet Gas tab — food vendors only)
+  // Gas config — food vendor cooking equipment + building-level common gas
   gas: {
     equipment: [
       { name: '40lb Fryer', btu: 120_000, duty: 0.33 },
@@ -205,6 +210,10 @@ export const DEFAULT_INPUTS: ModelInputs = {
     ],
     hoursPerDay: 12,
     daysPerMonth: 30,
+    commonArea: [
+      { name: 'Commercial water heater (year-round)', monthlyTherms: 75 },
+      { name: 'Space heating (annualized — peak Dec/Jan)', monthlyTherms: 175 },
+    ],
     lowRate: 0.9,
     midRate: 1.05,
     highRate: 1.2,
@@ -286,8 +295,13 @@ export const DEFAULT_INPUTS: ModelInputs = {
       { name: 'Fire suppression', monthly: 100 },
     ],
     insurance: [
-      { name: 'General liability + property', monthly: 1000 },
-      { name: 'Umbrella policy', monthly: 300 },
+      { name: 'General Liability', monthly: 400 },
+      { name: 'Commercial Property + Business Income', monthly: 700 },
+      { name: 'Umbrella policy', monthly: 200 },
+      { name: 'Liquor Liability', monthly: 300 },
+      { name: 'Workers Comp', monthly: 250 },
+      { name: 'Cyber / Data Breach', monthly: 100 },
+      { name: 'Crime / Employee Dishonesty', monthly: 50 },
     ],
     technology: [
       { name: 'POS / ordering platform', monthly: 200 },
