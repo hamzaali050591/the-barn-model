@@ -9,11 +9,13 @@ import Renderings from './pages/Renderings';
 import OpexVendorUtilities from './pages/OpexVendorUtilities';
 import OpexCommonUtilities from './pages/OpexCommonUtilities';
 import OpexNonUtility from './pages/OpexNonUtility';
+import ScrollToTop from './components/ScrollToTop';
 import { ModelProvider } from './utils/ModelContext';
 
 function App() {
   return (
     <ModelProvider>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/strategy" element={<Strategy />} />
