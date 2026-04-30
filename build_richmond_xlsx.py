@@ -288,6 +288,7 @@ rows = [
     ("Base Rent ($/mo per loc)", "=baseRentPSF*sqft/12", USD0),
     ("NNN ($/mo per loc)", "=nnnPSF*sqft/12", USD0),
     ("Total Master Lease ($/mo per loc, Year 0)", "=B10+B11", USD0),
+    ("L1 Holiday Credit (upfront equity reduction)", "=MIN(B8,B10*l1LeaseHolidayMonths)", USD0),
 ]
 for i, (label, formula, fmt) in enumerate(rows):
     r = i + 2
@@ -305,6 +306,7 @@ named(wb, "investorEquityPerLoc", "'Capital Stack'!$B$8")
 named(wb, "lpPerLoc", "'Capital Stack'!$B$9")
 named(wb, "monthlyBaseRentPerLoc", "'Capital Stack'!$B$10")
 named(wb, "monthlyNnnPerLoc", "'Capital Stack'!$B$11")
+named(wb, "l1HolidayCredit", "'Capital Stack'!$B$13")
 
 # ═════ Sheet 4: Vendor Revenue ═════
 ws = wb.create_sheet("Vendor Revenue")
@@ -679,15 +681,11 @@ for m in range(1, MAX_MONTHS + 1):
         ws.cell(r, OPEX_OFF + j - 1,
                 f"=IF({cl(ACTIVE_OFF+j-1)}{r}=1,monthlyOpexPerLoc*(1+opexEscalatorPct)^{cl(YR_OFF+j-1)}{r},0)")
         # j-Lease = active * (baseRent*(1+baseRentEsc)^yrs + nnn*(1+nnnEsc)^yrs)
-        # L1 holiday zeroes BASE RENT only (NNN always charged) during months
-        # [callMo_1, callMo_1 + l1LeaseHolidayMonths). Holiday clock starts at
-        # lease commencement (= capital call month), not at open.
-        if j == 1:
-            ws.cell(r, LEASE_OFF + j - 1,
-                    f"=IF({cl(ACTIVE_OFF+j-1)}{r}=0,0,monthlyNnnPerLoc*(1+nnnEscalatorPct)^{cl(YR_OFF+j-1)}{r}+IF(AND(A{r}>=callMo_1,A{r}<callMo_1+l1LeaseHolidayMonths),0,monthlyBaseRentPerLoc*(1+baseRentEscalatorPct)^{cl(YR_OFF+j-1)}{r}))")
-        else:
-            ws.cell(r, LEASE_OFF + j - 1,
-                    f"=IF({cl(ACTIVE_OFF+j-1)}{r}=1,monthlyBaseRentPerLoc*(1+baseRentEscalatorPct)^{cl(YR_OFF+j-1)}{r}+monthlyNnnPerLoc*(1+nnnEscalatorPct)^{cl(YR_OFF+j-1)}{r},0)")
+        # L1 lease holiday is applied as an upfront equity credit (see
+        # capital call below), NOT as a lease-line waiver. Lease is charged
+        # in full from open onwards for all locations including L1.
+        ws.cell(r, LEASE_OFF + j - 1,
+                f"=IF({cl(ACTIVE_OFF+j-1)}{r}=1,monthlyBaseRentPerLoc*(1+baseRentEscalatorPct)^{cl(YR_OFF+j-1)}{r}+monthlyNnnPerLoc*(1+nnnEscalatorPct)^{cl(YR_OFF+j-1)}{r},0)")
         # j-DebtSvc: payment if m >= callMo and m < callMo + term and j is in stack
         ws.cell(r, DEBT_OFF + j - 1,
                 f"=IF(AND(locActive_{j}=1,A{r}>=callMo_{j},A{r}<callMo_{j}+loanTerm_{j},A{r}<=holdMonths),levelPmt_{j},0)")
@@ -709,12 +707,14 @@ for m in range(1, MAX_MONTHS + 1):
     ws.cell(r, DISTNOI, f"=IF({cl(NACTIVE)}{r}=0,0,({cl(NDIST)}{r}/{cl(NACTIVE)}{r})*{cl(POSTDEBT)}{r})")
     ws.cell(r, PSHARE,  f"=MAX(0,{cl(DISTNOI)}{r})*profitSharePct")
     ws.cell(r, DIST,    f"=MAX(0,{cl(DISTNOI)}{r}-{cl(PSHARE)}{r})")
-    # Capital call: sum of locations whose call month is m
+    # Capital call: sum of locations whose call month is m. L1 lease holiday
+    # is applied as an upfront equity credit reducing the L1 capital call.
     cc_terms = "+".join(
         f"IF(AND(locActive_{j}=1,A{r}=callMo_{j}),investorEquityPerLoc,0)"
         for j in range(1, NLOC+1)
     )
-    ws.cell(r, CALL,    f"=-({cc_terms})")
+    l1_credit_term = f"IF(AND(locActive_1=1,A{r}=callMo_1),l1HolidayCredit,0)"
+    ws.cell(r, CALL,    f"=-(({cc_terms})-({l1_credit_term}))")
     # Exit: only on the hold-end month
     ws.cell(r, EXITP,   f"=IF(A{r}=holdMonths,exitMultiple*SUMPRODUCT((Month_T12)*({cl(PRECOMP)}2:{cl(PRECOMP)}{MAX_MONTHS+1}))*profitSharePct,0)")
     # Simpler approach for T12: store exit on last row, compute via OFFSET sum
@@ -785,13 +785,14 @@ for i, (label, formula, fmt) in enumerate(rows, start=2):
     ws.cell(i, 2).fill = ACCENT_FILL if "MOIC" in label or "IRR" in label or "CoC" in label else DERIVED_FILL
 
 ws.cell(14, 1, "—— Capital Stack Roll-Up ——").font = SUB
-ws.cell(15, 1, "Investor Equity per Location"); ws.cell(15, 2, "=investorEquityPerLoc"); ws.cell(15, 2).number_format = USD0
-ws.cell(16, 1, "LP per Location"); ws.cell(16, 2, "=lpPerLoc"); ws.cell(16, 2).number_format = USD0
-ws.cell(17, 1, "Total Investor Equity (× numLocations)"); ws.cell(17, 2, "=investorEquityPerLoc*numLocations"); ws.cell(17, 2).number_format = USD0
-ws.cell(18, 1, "Total LP Investment"); ws.cell(18, 2, "=lpPerLoc*numLocations"); ws.cell(18, 2).number_format = USD0
-ws.cell(19, 1, "Total Debt"); ws.cell(19, 2, "=debtUsed*numLocations"); ws.cell(19, 2).number_format = USD0
-ws.cell(20, 1, "Total CapEx"); ws.cell(20, 2, "=totalCapex*numLocations"); ws.cell(20, 2).number_format = USD0
-ws.cell(21, 1, "Total TI (DPEG)"); ws.cell(21, 2, "=tiTotal*numLocations"); ws.cell(21, 2).number_format = USD0
+ws.cell(15, 1, "Investor Equity per Location (gross)"); ws.cell(15, 2, "=investorEquityPerLoc"); ws.cell(15, 2).number_format = USD0
+ws.cell(16, 1, "LP per Location (gross)"); ws.cell(16, 2, "=lpPerLoc"); ws.cell(16, 2).number_format = USD0
+ws.cell(17, 1, "L1 Holiday Credit (one-time, L1 only)"); ws.cell(17, 2, "=l1HolidayCredit"); ws.cell(17, 2).number_format = USD0
+ws.cell(18, 1, "Total Investor Equity (net of credit)"); ws.cell(18, 2, "=investorEquityPerLoc*numLocations-l1HolidayCredit"); ws.cell(18, 2).number_format = USD0
+ws.cell(19, 1, "Total LP Investment (net of credit)"); ws.cell(19, 2, "=lpPerLoc*numLocations-l1HolidayCredit"); ws.cell(19, 2).number_format = USD0
+ws.cell(20, 1, "Total Debt"); ws.cell(20, 2, "=debtUsed*numLocations"); ws.cell(20, 2).number_format = USD0
+ws.cell(21, 1, "Total CapEx"); ws.cell(21, 2, "=totalCapex*numLocations"); ws.cell(21, 2).number_format = USD0
+ws.cell(22, 1, "Total TI (DPEG)"); ws.cell(22, 2, "=tiTotal*numLocations"); ws.cell(22, 2).number_format = USD0
 
 ws.cell(23, 1, "Notes").font = SUB
 ws.cell(24, 1, "Annualized IRR: Excel IRR returns a monthly rate; this cell raises (1+r)^12-1.").font = NOTE_FONT

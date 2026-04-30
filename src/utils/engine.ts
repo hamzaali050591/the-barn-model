@@ -14,7 +14,17 @@ export function capitalStack(inputs: ModelInputs) {
   const debtUsedPerLocation = Math.min(Math.max(0, inputs.debtPerLocation), debtSlot);
   const investorEquityPerLocation = Math.max(0, equitySlot - debtUsedPerLocation);
   const lpInvestment = Math.max(0, investorEquityPerLocation - gpUsed);
-  return { totalCapex, tiTotal, investorEquityPerLocation, lpInvestment, debtUsedPerLocation };
+  // L1 lease holiday is structured as an upfront equity credit (landlord
+  // concession applied to the first capital call, NOT a lease-line waiver).
+  // Credit = monthlyBaseRent × holidayMonths, capped at L1's equity ask.
+  // Credit is a one-time portfolio-level reduction (L1 only); does NOT
+  // multiply with numLocations.
+  const monthlyBaseRent = (inputs.baseRentPSF * inputs.sqft) / 12;
+  const l1HolidayCredit = Math.min(
+    investorEquityPerLocation,
+    monthlyBaseRent * Math.max(0, inputs.l1LeaseHolidayMonths)
+  );
+  return { totalCapex, tiTotal, investorEquityPerLocation, lpInvestment, debtUsedPerLocation, l1HolidayCredit };
 }
 
 // ── Debt amortization (fixed term — may leave a balloon at exit) ──
@@ -181,13 +191,13 @@ export function opexPerLocation(inputs: ModelInputs): number {
 export function runModel(inputs: ModelInputs): ModelOutputs {
   const {
     numLocations, exitMultiple, baseRentPSF, nnnPSF, sqft, profitSharePct,
-    salaryBase, salaryStep, rampMonths, l1LeaseHolidayMonths, holdMonths,
+    salaryBase, salaryStep, rampMonths, holdMonths,
     rentEscalatorPct, opexEscalatorPct, baseRentEscalatorPct, nnnEscalatorPct,
     debtRatePct, debtTermYears,
   } = inputs;
 
   const schedule = inputs.openSchedule.slice(0, numLocations);
-  const { tiTotal, investorEquityPerLocation, lpInvestment, debtUsedPerLocation } = capitalStack(inputs);
+  const { tiTotal, investorEquityPerLocation, lpInvestment, debtUsedPerLocation, l1HolidayCredit } = capitalStack(inputs);
   const { numVendors, monthlyVendorRentPerLocation, escalatingRent, flatRent } = vendorTotals(inputs);
   const monthlyOpexPerLocation = opexPerLocation(inputs);
 
@@ -234,14 +244,7 @@ export function runModel(inputs: ModelInputs): ModelOutputs {
       opex += monthlyOpexPerLocation * opexFactor;
       const baseRentForLoc = monthlyBaseRentPerLocation * baseRentFactor;
       const nnnForLoc = monthlyNnnPerLocation * nnnFactor;
-      let leaseBaseRent = baseRentForLoc;
-      if (om === l1OpenMonth) {
-        const l1CallMonth = Math.max(1, l1OpenMonth - 3);
-        if (m >= l1CallMonth && m < l1CallMonth + l1LeaseHolidayMonths) {
-          leaseBaseRent = 0;
-        }
-      }
-      masterLease += leaseBaseRent + nnnForLoc;
+      masterLease += baseRentForLoc + nnnForLoc;
     }
 
     const preCompEBITDA = revenue - opex - masterLease;
@@ -270,7 +273,12 @@ export function runModel(inputs: ModelInputs): ModelOutputs {
     const distributions = Math.max(0, distributableNOI - profitShare);
 
     const locationsCallingCapital = schedule.filter(om => Math.max(1, om - 3) === m).length;
-    const capitalCall = -locationsCallingCapital * investorEquityPerLocation;
+    const isL1CallMonth = schedule.length > 0 && Math.max(1, schedule[0] - 3) === m;
+    const grossCall = locationsCallingCapital * investorEquityPerLocation;
+    // L1 lease holiday is applied as an upfront credit reducing the L1
+    // capital call (the landlord concession lowers investor equity required).
+    const l1Credit = isL1CallMonth ? l1HolidayCredit : 0;
+    const capitalCall = -(grossCall - l1Credit);
 
     const loanBalance = debtSchedules.reduce((s, ds) => s + ds.balance, 0);
 
@@ -340,7 +348,7 @@ export function runModel(inputs: ModelInputs): ModelOutputs {
   return {
     monthly, totalEquity, totalDistributions, exitProceeds: exitProceedsTotal,
     totalReturns, roi, moic, irr, avgCoC, stabilizedCoC,
-    tiTotal, investorEquityPerLocation, lpInvestment, debtUsedPerLocation,
+    tiTotal, investorEquityPerLocation, lpInvestment, debtUsedPerLocation, l1HolidayCredit,
     monthlyVendorRentPerLocation, monthlyOpexPerLocation, numVendors,
   };
 }

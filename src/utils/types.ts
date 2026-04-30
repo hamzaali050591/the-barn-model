@@ -168,6 +168,7 @@ export interface ModelOutputs {
   investorEquityPerLocation: number;
   lpInvestment: number;
   debtUsedPerLocation: number;
+  l1HolidayCredit: number;
   monthlyVendorRentPerLocation: number;
   monthlyOpexPerLocation: number;
   numVendors: number;
