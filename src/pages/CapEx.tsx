@@ -260,16 +260,6 @@ const cat6ItemsV2: LineItem[] = cat6Items.map(i => ({ ...i }));
 const cat7ItemsV2: LineItem[] = cat7Items.map(i => ({ ...i }));
 const cat8ItemsV2: LineItem[] = cat8Items.map(i => ({ ...i }));
 
-// Cat 9: Architecture/design ($25k) + MEP engineering ($30k) collapsed into
-// one $40k line. Other items unchanged.
-const cat9ItemsV2: LineItem[] = [
-  { num: 54, name: 'Architecture / design + MEP engineering', notes: 'Combined fee covering licensed architect of record (stamped TI drawings for permit submittal, interior design coordination, 2–3 revision rounds) + licensed MEP engineer of record (mechanical, electrical, plumbing, fire protection stamps; load + hydraulic + gas calcs; BMS integration design; coordination with hood vendor and CenterPoint Energy).', cost: 40_000 },
-  { num: 55, name: 'Permits, plan review, fees', notes: 'City of Richmond building permit (1–1.5% of project value), Fort Bend County fees, utility permits (gas upgrade, water), health department permit.', cost: 10_000 },
-  { num: 56, name: 'Construction management', notes: 'Operator self-managed with CM consultant on retainer (~50–80 hours over 4–6 month buildout) for contractor selection, major coordination, change orders, commissioning. Hamza personally handles daily coordination.', cost: 20_000 },
-  { num: 57, name: 'Insurance during buildout', notes: 'Builder’s risk insurance (~1% of hard costs) covering fire/theft/vandalism/weather during construction, general liability during construction, workers comp coordination.', cost: 10_000 },
-  { num: 58, name: 'Contingency (10% of hard costs)', notes: 'Disciplined 10% contingency reserve. Returnable to investors if unused. Covers variance on gas service upgrade (largest single uncertainty pending CenterPoint quote), MEP engineering refinements, and normal construction unknowns.', cost: 149_000 },
-];
-
 const cat2SubsV2: SubCategory[] = [
   { key: '2a', title: 'HVAC, Ventilation & BMS', description: cat2Subs[0].description, items: cat2aItemsV2, subtotal: sum(cat2aItemsV2) },
   { key: '2b', title: 'Kitchen Hood System', description: cat2Subs[1].description, items: cat2bItemsV2, subtotal: sum(cat2bItemsV2) },
@@ -278,6 +268,28 @@ const cat2SubsV2: SubCategory[] = [
   { key: '2e', title: 'Gas (Service Upgrade + Distribution)', description: cat2Subs[4].description, items: cat2eItemsV2, subtotal: sum(cat2eItemsV2) },
   { key: '2f', title: 'Fire Protection', description: cat2Subs[5].description, items: cat2fItemsV2, subtotal: sum(cat2fItemsV2) },
   { key: '2g', title: 'Low-Voltage (Data / AV / Security)', description: cat2Subs[6].description, items: cat2gItemsV2, subtotal: sum(cat2gItemsV2) },
+];
+
+// V2 hard costs (cat 1-8) — needed before cat 9 so contingency is 10% of this.
+const V2_HARD_COSTS =
+  10_000                                                  // Cat 1 (overridden)
+  + cat2SubsV2.reduce((s, sc) => s + sc.subtotal, 0)      // Cat 2
+  + sum(cat3ItemsV2)
+  + sum(cat4ItemsV2)
+  + sum(cat5ItemsV2)
+  + sum(cat6ItemsV2)
+  + sum(cat7ItemsV2)
+  + sum(cat8ItemsV2);
+
+// Cat 9: Architecture/design ($25k) + MEP engineering ($30k) collapsed into
+// one $40k line. Contingency = 10% of V2 hard costs (recomputes if any
+// V2 hard-cost line item changes).
+const cat9ItemsV2: LineItem[] = [
+  { num: 54, name: 'Architecture / design + MEP engineering', notes: 'Combined fee covering licensed architect of record (stamped TI drawings for permit submittal, interior design coordination, 2–3 revision rounds) + licensed MEP engineer of record (mechanical, electrical, plumbing, fire protection stamps; load + hydraulic + gas calcs; BMS integration design; coordination with hood vendor and CenterPoint Energy).', cost: 40_000 },
+  { num: 55, name: 'Permits, plan review, fees', notes: 'City of Richmond building permit (1–1.5% of project value), Fort Bend County fees, utility permits (gas upgrade, water), health department permit.', cost: 10_000 },
+  { num: 56, name: 'Construction management', notes: 'Operator self-managed with CM consultant on retainer (~50–80 hours over 4–6 month buildout) for contractor selection, major coordination, change orders, commissioning. Hamza personally handles daily coordination.', cost: 20_000 },
+  { num: 57, name: 'Insurance during buildout', notes: 'Builder’s risk insurance (~1% of hard costs) covering fire/theft/vandalism/weather during construction, general liability during construction, workers comp coordination.', cost: 10_000 },
+  { num: 58, name: 'Contingency (10% of hard costs)', notes: 'Disciplined 10% contingency reserve on V2 hard costs. Returnable to investors if unused. Covers variance on gas service upgrade (largest single uncertainty pending CenterPoint quote), MEP engineering refinements, and normal construction unknowns.', cost: Math.round(V2_HARD_COSTS * 0.10) },
 ];
 
 const categoriesV2: Category[] = categories.map((c, idx) => {
