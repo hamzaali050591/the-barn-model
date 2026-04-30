@@ -120,13 +120,13 @@ Single shared state via `src/utils/ModelContext.tsx` → `ModelProvider` wraps t
 
 **Richmond vs Portfolio:** `Model.tsx` overrides `numLocations: 1`, `openSchedule: [4]` (L1 opens m=4, capital called m=1), and `holdMonths` is driven by the Hold Period slider inside `RichmondDealTermsPanel`. **Hold Period slider** (both Richmond and Portfolio): range 0–72 mo in 6-mo steps. Sliding to 0 produces an empty cash flow array; KPIs render as "—". The portfolio `InvestorPanel` hides in Richmond mode; the `RichmondDealTermsPanel` takes its 4th-column slot. `OpexPanel` accepts `isRichmond` and hides the Salary Increment slider (inert with 1 location).
 
-**Current default baseline (Apr 29 2026, post-default-rerack):**
-- Richmond 36mo (app default): **IRR 12.62%, MOIC 1.352×, Stab CoC 17.24%**, Exit $1,173,087, Total Distributions $502,703, Total Returns $1,675,790.
-- Portfolio 7×48mo (app default): **IRR 13.17%, MOIC 1.290×, Stab CoC 20.03%**, Exit $7,909,953, Total Distributions $3,278,743, Total Returns $11,188,697.
+**Current default baseline (Apr 30 2026, post-promote-cut to 5%):**
+- Richmond 36mo (app default): **IRR 15.08%, MOIC 1.427×, Stab CoC 18.20%**, Exit $1,238,259, Total Distributions $530,631, Total Returns $1,768,890.
+- Portfolio 7×48mo (app default): **IRR 16.15%, MOIC 1.361×, Stab CoC 21.14%**, Exit $8,349,395, Total Distributions $3,460,896, Total Returns $11,810,291.
 
 Note: **`DEFAULT_INPUTS.holdMonths = 48`** (drives Portfolio); the Richmond Hold Period slider initializes at **36** via `useState<number>(36)` in `Model.tsx`. The split is intentional — a 36-mo hold breaks the default portfolio because `openSchedule[6] = 36` would put L7's open month AT exit. If `holdMonths` is ever lowered for portfolio mode, also compress `openSchedule` so all opens land ≥12 months before exit.
 
-These flow from: 9,180 sf × $170 = $1.561M CapEx; $321k TI; $1.239M investor equity per loc (200k GP + 1.039M LP); $72k/mo total vendor rent (8×$6.5k food + 4×$5k non-food); **$20.8k/mo total Year-0 OpEx** (vendor utils $6.6k + common utils $2.6k + non-utils $11.5k); $27.2k/mo lease (Year 0 = base $26 + NNN $9.50 × 9180 sf / 12); 4% rent + 3% OpEx + 2% base-rent + 2% NNN escalators; $0 debt; 4× exit multiple; 10% promote; 0-mo L1 lease holiday.
+These flow from: 9,180 sf × $170 = $1.561M CapEx; $321k TI; $1.239M investor equity per loc (200k GP + 1.039M LP); $72k/mo total vendor rent (8×$6.5k food + 4×$5k non-food); **$20.8k/mo total Year-0 OpEx** (vendor utils $6.6k + common utils $2.6k + non-utils $11.5k); $27.2k/mo lease (Year 0 = base $26 + NNN $9.50 × 9180 sf / 12); 4% rent + 3% OpEx + 2% base-rent + 2% NNN escalators; $0 debt; 4× exit multiple; **5% promote**; 0-mo L1 lease holiday.
 
 ## Design system
 

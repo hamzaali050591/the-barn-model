@@ -317,7 +317,7 @@ export const DEFAULT_INPUTS: ModelInputs = {
   // Salary & profit share
   salaryBase: 84_000,
   salaryStep: 20_000,
-  profitSharePct: 10,
+  profitSharePct: 5,
 
   // Deal terms
   numLocations: 7,
