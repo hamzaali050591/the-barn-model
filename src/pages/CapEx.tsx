@@ -475,6 +475,78 @@ function GasFlagCallout() {
   );
 }
 
+function V2ChangesSummary() {
+  const cat2aV1 = cat2Subs[0].subtotal;
+  const cat2aV2 = cat2SubsV2[0].subtotal;
+  const cat2dV1 = cat2Subs[3].subtotal;
+  const cat2dV2 = cat2SubsV2[3].subtotal;
+  const cat4V1 = categories[3].subtotal;
+  const cat4V2 = categoriesV2[3].subtotal;
+  const archMepV1 = 25_000 + 30_000;
+  const archMepV2 = 40_000;
+
+  const rows: { category: string; detail: string; v1: number; v2: number }[] = [
+    { category: 'Cat 1 — Demo & Shell Prep', detail: 'Collapsed 7 line items into a single category total; line items kept in dropdown without per-item pricing.', v1: 20_000, v2: 10_000 },
+    { category: 'Cat 2a — HVAC, Vent & BMS', detail: 'RTUs $170K → $150K · MAU $45K → $20K · BMS $25K → $20K · Restroom exhaust $8K → $6K.', v1: cat2aV1, v2: cat2aV2 },
+    { category: 'Cat 2d — Plumbing', detail: 'Subcategory total $129K → $110K; six line items scaled proportionally.', v1: cat2dV1, v2: cat2dV2 },
+    { category: 'Cat 4 — Vendor Stalls', detail: 'Food stalls $40K/stall → $35K/stall ($320K → $280K). Health Bar + Coffee + 2× Dessert kiosks collapsed into one "Non-Food Vendors" line at 4 × $20K = $80K.', v1: cat4V1, v2: cat4V2 },
+    { category: 'Cat 9 — Architecture + MEP Eng', detail: 'Architecture/Design ($25K) and MEP Engineering ($30K) combined into a single $40K fee line.', v1: archMepV1, v2: archMepV2 },
+    { category: 'Contingency', detail: 'Recomputed at 10% of V2 hard costs (was 10% of V1 hard costs).', v1: V1_DATA.contingency, v2: V2_DATA.contingency },
+  ];
+
+  const totalSaved = V1_DATA.totalProjectCost - V2_DATA.totalProjectCost;
+
+  return (
+    <div className="rounded-2xl border border-sage/40 bg-sage/10 p-4 md:p-5">
+      <div className="flex items-start gap-3">
+        <div className="text-sage text-xl leading-none">●</div>
+        <div className="flex-1 min-w-0">
+          <div className="font-bold text-walnut text-sm mb-1">V2 REVISIONS — Post Niyi Meeting (Apr 29, 2026)</div>
+          <p className="text-xs text-walnut-light leading-relaxed mb-3">
+            Refined SOW after walkthrough with Niyi. Six line-item changes shrink the V2 budget by{' '}
+            <span className="font-semibold text-walnut">{fmtDollarFull(totalSaved)}</span> versus V1
+            (<span className="font-semibold text-walnut">{fmtDollarFull(V1_DATA.totalProjectCost)}</span> →{' '}
+            <span className="font-semibold text-walnut">{fmtDollarFull(V2_DATA.totalProjectCost)}</span>).
+          </p>
+          <div className="bg-white/40 rounded-lg overflow-hidden">
+            <div className="hidden md:grid grid-cols-12 gap-2 px-3 py-2 border-b border-walnut/10 text-[10px] font-semibold text-walnut-light uppercase tracking-wider">
+              <div className="col-span-4">Change</div>
+              <div className="col-span-5">Detail</div>
+              <div className="col-span-1 text-right">V1</div>
+              <div className="col-span-1 text-right">V2</div>
+              <div className="col-span-1 text-right">Saved</div>
+            </div>
+            {rows.map((r, i) => {
+              const saved = r.v1 - r.v2;
+              return (
+                <div key={i} className="grid grid-cols-1 md:grid-cols-12 gap-1 md:gap-2 px-3 py-2.5 border-b border-walnut/5 last:border-b-0 text-xs">
+                  <div className="col-span-4 font-semibold text-walnut">{r.category}</div>
+                  <div className="col-span-5 text-walnut-light leading-snug">{r.detail}</div>
+                  <div className="col-span-1 md:text-right text-walnut-light tabular-nums">
+                    <span className="md:hidden text-[10px] uppercase tracking-wider mr-1">V1:</span>{fmtDollarFull(r.v1)}
+                  </div>
+                  <div className="col-span-1 md:text-right text-walnut tabular-nums">
+                    <span className="md:hidden text-[10px] uppercase tracking-wider mr-1">V2:</span>{fmtDollarFull(r.v2)}
+                  </div>
+                  <div className="col-span-1 md:text-right font-bold text-sage tabular-nums">
+                    <span className="md:hidden text-[10px] uppercase tracking-wider mr-1 text-walnut-light">Saved:</span>−{fmtDollarFull(saved)}
+                  </div>
+                </div>
+              );
+            })}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-2 px-3 py-2.5 bg-sage/15 text-sm">
+              <div className="col-span-4 md:col-span-9 font-bold text-walnut uppercase tracking-wider text-xs">Total CapEx Saved (V1 → V2)</div>
+              <div className="col-span-1 md:text-right" />
+              <div className="col-span-1 md:text-right" />
+              <div className="col-span-1 md:text-right font-bold text-sage tabular-nums">−{fmtDollarFull(totalSaved)}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SummaryCard({ data }: { data: CapExData }) {
   return (
     <div className="glass rounded-2xl p-5 md:p-6">
@@ -579,7 +651,7 @@ export default function CapEx() {
         </section>
 
         <section className="mb-6">
-          <GasFlagCallout />
+          {version === 'v1' ? <GasFlagCallout /> : <V2ChangesSummary />}
         </section>
 
         <section className="mb-8">
