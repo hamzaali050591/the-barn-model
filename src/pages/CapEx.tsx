@@ -27,6 +27,7 @@ interface Category {
   items?: LineItem[];
   subcategories?: SubCategory[];
   executionNote?: string;
+  hideItemPrices?: boolean;
   tone: 'honey' | 'sage' | 'terracotta' | 'walnut';
 }
 
@@ -224,24 +225,50 @@ const categories: Category[] = [
   },
 ];
 
-// ── V2 line items ──
-// Initialized as deep clones of V1. Replace any of these with explicit
-// literal arrays to make V2 diverge from V1.
+// ── V2 line items (post Niyi meeting, Apr 29, 2026) ──
+// Items unchanged from V1 stay as deep clones; diverged items use explicit
+// overrides via .map or are written as fresh literals.
 const cat1ItemsV2: LineItem[] = cat1Items.map(i => ({ ...i }));
-const cat2aItemsV2: LineItem[] = cat2aItems.map(i => ({ ...i }));
+
+// 2a: RTUs $170k→$150k, MAU $45k→$20k, BMS $25k→$20k, Restroom exhaust $8k→$6k
+const cat2aItemsV2: LineItem[] = cat2aItems.map((i, idx) => ({
+  ...i,
+  cost: [150_000, 20_000, 20_000, 6_000][idx],
+}));
 const cat2bItemsV2: LineItem[] = cat2bItems.map(i => ({ ...i }));
 const cat2cItemsV2: LineItem[] = cat2cItems.map(i => ({ ...i }));
-const cat2dItemsV2: LineItem[] = cat2dItems.map(i => ({ ...i }));
+
+// 2d: total $129k→$110k, line items scaled proportionally (~0.853×)
+const cat2dItemsV2: LineItem[] = cat2dItems.map((i, idx) => ({
+  ...i,
+  cost: [21_000, 43_000, 17_000, 10_000, 13_000, 6_000][idx],
+}));
 const cat2eItemsV2: LineItem[] = cat2eItems.map(i => ({ ...i }));
 const cat2fItemsV2: LineItem[] = cat2fItems.map(i => ({ ...i }));
 const cat2gItemsV2: LineItem[] = cat2gItems.map(i => ({ ...i }));
 const cat3ItemsV2: LineItem[] = cat3Items.map(i => ({ ...i }));
-const cat4ItemsV2: LineItem[] = cat4Items.map(i => ({ ...i }));
+
+// Cat 4: food stalls $40k/stall→$35k/stall ($320k→$280k); HB+Coffee+2Desserts
+// collapsed into one "Non-Food Vendors" line at 4 × $20k = $80k.
+const cat4ItemsV2: LineItem[] = [
+  { num: 38, name: '8 food stalls — Heavy Warm minus Refrigeration', notes: '$35K per stall × 8. Open-counter facade (warm wood + matte black metal), partial side walls, shared back wall, utility stubs, 8-ft hood zone under shared hood (in Cat 2b), gas manifold with 4 connections, stainless prep counter (6–8 ft), 3-compartment sink, hand sink, floor drain in cooking zone, FRP wall panels behind cooking line, tile cooking-zone floor, paint + trim finish, task + pendant lighting (controls in Cat 2c).', cost: 280_000 },
+  { num: 39, name: 'Non-Food Vendors (4 buildouts × $20K)', notes: 'Combined buildout for the four non-food kiosks (Health Bar, Coffee/Drinks, 2× Dessert). $20K per kiosk × 4. Heavy Warm spec at Health Bar / Coffee (counter facade, prep counter, 3-comp + hand sink, floor drain, tile prep-zone floor, full task/accent lighting, branded customer-facing millwork, sign panel). Lighter spec at Dessert kiosks (open island format, hand sink, sealed concrete floor, basic finished interior, customer-facing millwork base for vendor-supplied display cases, sign panel).', cost: 80_000 },
+  { num: 40, name: 'Unified sign panel system (12 stalls)', notes: 'Matte-black metal frame with integrated LED backlighting above each vendor counter. The Barn provides consistent hardware; vendors provide logo artwork/print insert. Standardized across all 12 for brand visual consistency.', cost: 10_000 },
+];
 const cat5ItemsV2: LineItem[] = cat5Items.map(i => ({ ...i }));
 const cat6ItemsV2: LineItem[] = cat6Items.map(i => ({ ...i }));
 const cat7ItemsV2: LineItem[] = cat7Items.map(i => ({ ...i }));
 const cat8ItemsV2: LineItem[] = cat8Items.map(i => ({ ...i }));
-const cat9ItemsV2: LineItem[] = cat9Items.map(i => ({ ...i }));
+
+// Cat 9: Architecture/design ($25k) + MEP engineering ($30k) collapsed into
+// one $40k line. Other items unchanged.
+const cat9ItemsV2: LineItem[] = [
+  { num: 54, name: 'Architecture / design + MEP engineering', notes: 'Combined fee covering licensed architect of record (stamped TI drawings for permit submittal, interior design coordination, 2–3 revision rounds) + licensed MEP engineer of record (mechanical, electrical, plumbing, fire protection stamps; load + hydraulic + gas calcs; BMS integration design; coordination with hood vendor and CenterPoint Energy).', cost: 40_000 },
+  { num: 55, name: 'Permits, plan review, fees', notes: 'City of Richmond building permit (1–1.5% of project value), Fort Bend County fees, utility permits (gas upgrade, water), health department permit.', cost: 10_000 },
+  { num: 56, name: 'Construction management', notes: 'Operator self-managed with CM consultant on retainer (~50–80 hours over 4–6 month buildout) for contractor selection, major coordination, change orders, commissioning. Hamza personally handles daily coordination.', cost: 20_000 },
+  { num: 57, name: 'Insurance during buildout', notes: 'Builder’s risk insurance (~1% of hard costs) covering fire/theft/vandalism/weather during construction, general liability during construction, workers comp coordination.', cost: 10_000 },
+  { num: 58, name: 'Contingency (10% of hard costs)', notes: 'Disciplined 10% contingency reserve. Returnable to investors if unused. Covers variance on gas service upgrade (largest single uncertainty pending CenterPoint quote), MEP engineering refinements, and normal construction unknowns.', cost: 149_000 },
+];
 
 const cat2SubsV2: SubCategory[] = [
   { key: '2a', title: 'HVAC, Ventilation & BMS', description: cat2Subs[0].description, items: cat2aItemsV2, subtotal: sum(cat2aItemsV2) },
@@ -257,7 +284,13 @@ const categoriesV2: Category[] = categories.map((c, idx) => {
   if (c.num === '2') {
     return { ...c, subcategories: cat2SubsV2, subtotal: cat2SubsV2.reduce((s, sc) => s + sc.subtotal, 0) };
   }
-  const v2Items = [cat1ItemsV2, undefined, cat3ItemsV2, cat4ItemsV2, cat5ItemsV2, cat6ItemsV2, cat7ItemsV2, cat8ItemsV2, cat9ItemsV2][idx];
+  if (c.num === '1') {
+    return { ...c, items: cat1ItemsV2, subtotal: 10_000, hideItemPrices: true };
+  }
+  if (c.num === '4') {
+    return { ...c, items: cat4ItemsV2, subtotal: sum(cat4ItemsV2), executionNote: 'Hitting the $35K per-stall target on food stalls requires standardized kit-of-parts construction across all 8 stalls. One-off custom per-stall would push costs meaningfully higher.' };
+  }
+  const v2Items = [undefined, undefined, cat3ItemsV2, undefined, cat5ItemsV2, cat6ItemsV2, cat7ItemsV2, cat8ItemsV2, cat9ItemsV2][idx];
   return { ...c, items: v2Items, subtotal: sum(v2Items!) };
 });
 
@@ -293,7 +326,7 @@ const toneStyles: Record<Category['tone'], { dot: string; chip: string }> = {
   walnut: { dot: 'bg-walnut/40', chip: 'bg-walnut/10 text-walnut border-walnut/20' },
 };
 
-function LineItemRow({ item }: { item: LineItem }) {
+function LineItemRow({ item, hidePrice }: { item: LineItem; hidePrice?: boolean }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="border-b border-walnut/5 last:border-b-0">
@@ -303,12 +336,12 @@ function LineItemRow({ item }: { item: LineItem }) {
       >
         <span className="text-[10px] font-mono text-walnut-light w-5 shrink-0">{item.num}</span>
         <span className="text-xs text-walnut min-w-0 truncate font-medium">{item.name}</span>
-        <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full bg-honey/20 text-honey transition-transform shrink-0 ${open ? 'rotate-180' : ''}`} aria-hidden>
+        <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full bg-honey/20 text-honey transition-transform shrink-0 ${hidePrice ? 'ml-auto' : ''} ${open ? 'rotate-180' : ''}`} aria-hidden>
           <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
           </svg>
         </span>
-        <span className="ml-auto text-xs font-bold text-walnut tabular-nums shrink-0">{fmtDollarFull(item.cost)}</span>
+        {!hidePrice && <span className="ml-auto text-xs font-bold text-walnut tabular-nums shrink-0">{fmtDollarFull(item.cost)}</span>}
       </button>
       {open && (
         <div className="px-3 pb-3 pl-11 -mt-1">
@@ -365,7 +398,7 @@ function CategoryCard({ cat, totalProjectCost }: { cat: Category; totalProjectCo
 
           {cat.items && (
             <div className="bg-white/40 rounded-lg overflow-hidden">
-              {cat.items.map(item => <LineItemRow key={item.num} item={item} />)}
+              {cat.items.map(item => <LineItemRow key={item.num} item={item} hidePrice={cat.hideItemPrices} />)}
             </div>
           )}
 
