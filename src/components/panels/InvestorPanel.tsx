@@ -76,6 +76,7 @@ export default function InvestorPanel({ inputs, onChange }: Props) {
         />
         <SliderRow
           label="L1 Lease Holiday"
+          info="Free base rent for L1 only (Richmond). Holiday clock starts at lease commencement (= capital call month, 3 months before open) — NOT at open. NNN is always charged (it's a real pass-through cost, not a landlord concession). At default 3-mo buildout, a holiday ≤ 3 mo lands entirely inside the buildout window and has zero cash-flow effect; only months past the 3rd waive base rent during operations."
           value={inputs.l1LeaseHolidayMonths}
           min={0} max={12} step={1}
           format={fmtMo}

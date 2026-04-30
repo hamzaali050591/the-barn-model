@@ -232,11 +232,16 @@ export function runModel(inputs: ModelInputs): ModelOutputs {
       const nnnFactor = Math.pow(nnnEsc, yearsOpen);
       revenue += escalatingRent * rentFactor + flatRent + inputs.nonRentRevenue * rentFactor;
       opex += monthlyOpexPerLocation * opexFactor;
-      let locLease = monthlyBaseRentPerLocation * baseRentFactor + monthlyNnnPerLocation * nnnFactor;
-      if (om === l1OpenMonth && m >= om && m < om + l1LeaseHolidayMonths) {
-        locLease = 0;
+      const baseRentForLoc = monthlyBaseRentPerLocation * baseRentFactor;
+      const nnnForLoc = monthlyNnnPerLocation * nnnFactor;
+      let leaseBaseRent = baseRentForLoc;
+      if (om === l1OpenMonth) {
+        const l1CallMonth = Math.max(1, l1OpenMonth - 3);
+        if (m >= l1CallMonth && m < l1CallMonth + l1LeaseHolidayMonths) {
+          leaseBaseRent = 0;
+        }
       }
-      masterLease += locLease;
+      masterLease += leaseBaseRent + nnnForLoc;
     }
 
     const preCompEBITDA = revenue - opex - masterLease;

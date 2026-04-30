@@ -679,10 +679,12 @@ for m in range(1, MAX_MONTHS + 1):
         ws.cell(r, OPEX_OFF + j - 1,
                 f"=IF({cl(ACTIVE_OFF+j-1)}{r}=1,monthlyOpexPerLoc*(1+opexEscalatorPct)^{cl(YR_OFF+j-1)}{r},0)")
         # j-Lease = active * (baseRent*(1+baseRentEsc)^yrs + nnn*(1+nnnEsc)^yrs)
-        # L1 holiday zeroes the full lease (base + NNN) for the first N months.
+        # L1 holiday zeroes BASE RENT only (NNN always charged) during months
+        # [callMo_1, callMo_1 + l1LeaseHolidayMonths). Holiday clock starts at
+        # lease commencement (= capital call month), not at open.
         if j == 1:
             ws.cell(r, LEASE_OFF + j - 1,
-                    f"=IF({cl(ACTIVE_OFF+j-1)}{r}=0,0,IF(AND(A{r}>=openMo_1,A{r}<openMo_1+l1LeaseHolidayMonths),0,monthlyBaseRentPerLoc*(1+baseRentEscalatorPct)^{cl(YR_OFF+j-1)}{r}+monthlyNnnPerLoc*(1+nnnEscalatorPct)^{cl(YR_OFF+j-1)}{r}))")
+                    f"=IF({cl(ACTIVE_OFF+j-1)}{r}=0,0,monthlyNnnPerLoc*(1+nnnEscalatorPct)^{cl(YR_OFF+j-1)}{r}+IF(AND(A{r}>=callMo_1,A{r}<callMo_1+l1LeaseHolidayMonths),0,monthlyBaseRentPerLoc*(1+baseRentEscalatorPct)^{cl(YR_OFF+j-1)}{r}))")
         else:
             ws.cell(r, LEASE_OFF + j - 1,
                     f"=IF({cl(ACTIVE_OFF+j-1)}{r}=1,monthlyBaseRentPerLoc*(1+baseRentEscalatorPct)^{cl(YR_OFF+j-1)}{r}+monthlyNnnPerLoc*(1+nnnEscalatorPct)^{cl(YR_OFF+j-1)}{r},0)")
