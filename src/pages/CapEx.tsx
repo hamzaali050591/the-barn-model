@@ -547,6 +547,302 @@ function V2ChangesSummary() {
   );
 }
 
+// ── Buildout Execution Timeline ──
+// 28-week / 7-month plan, sequenced as a top-tier GC would actually run it.
+// Critical path: CenterPoint gas upgrade (90–180d lead) → permits → underground →
+// MEP rough-in → rough-in inspection → drywall close → trim → UL 300 → fire
+// marshal + health → vendor move-in → soft open. Bars positioned globally
+// against the 28-week grid so concurrent trades line up vertically.
+
+type Tone = Category['tone'];
+
+interface TimelineTrack {
+  label: string;
+  catRef: string;
+  tone: Tone;
+  startWeek: number;
+  durationWeeks: number;
+  isMilestone?: boolean;
+  note?: string;
+  critical?: boolean;
+}
+interface TimelinePhase {
+  name: string;
+  weekRange: string;
+  startWeek: number;
+  endWeek: number;
+  tracks: TimelineTrack[];
+}
+
+const TIMELINE_WEEKS = 28;
+const TIMELINE_MONTHS = 7;
+
+const TIMELINE_PHASES: TimelinePhase[] = [
+  {
+    name: 'Pre-Construction',
+    weekRange: 'Weeks 1–9',
+    startWeek: 0,
+    endWeek: 9,
+    tracks: [
+      { label: 'A&E + MEP Engineering', catRef: 'Cat 9', tone: 'walnut', startWeek: 0, durationWeeks: 8, note: 'Stamped TI drawings → permit submittal' },
+      { label: 'BMS / Hood Vendor Selection', catRef: 'Cat 2', tone: 'honey', startWeek: 1, durationWeeks: 4 },
+      { label: 'CenterPoint Gas Upgrade — order', catRef: 'Cat 2e', tone: 'terracotta', startWeek: 1, durationWeeks: 17, note: '90–180 day lead — critical path', critical: true },
+      { label: 'Long-Lead Equipment Procurement', catRef: 'Cat 2', tone: 'honey', startWeek: 3, durationWeeks: 11, note: 'RTUs · MAU · Hood canopies' },
+      { label: 'The Barn App — lean v1 build', catRef: 'Cat 7', tone: 'walnut', startWeek: 3, durationWeeks: 23, note: 'AI-accelerated, runs through opening' },
+      { label: 'Building Permits Issued', catRef: 'Milestone', tone: 'sage', startWeek: 8, durationWeeks: 0, isMilestone: true, critical: true },
+    ],
+  },
+  {
+    name: 'Shell Prep & Underground',
+    weekRange: 'Weeks 9–13',
+    startWeek: 8,
+    endWeek: 13,
+    tracks: [
+      { label: 'Demo & Shell Prep', catRef: 'Cat 1', tone: 'walnut', startWeek: 8, durationWeeks: 2 },
+      { label: 'Underground Grease Interceptor', catRef: 'Cat 2d', tone: 'honey', startWeek: 10, durationWeeks: 2, note: 'Must precede slab finish work', critical: true },
+      { label: 'Slab Penetrations + Floor Drains', catRef: 'Cat 2d', tone: 'honey', startWeek: 10, durationWeeks: 3 },
+    ],
+  },
+  {
+    name: 'MEP Rough-In',
+    weekRange: 'Weeks 12–18',
+    startWeek: 11,
+    endWeek: 18,
+    tracks: [
+      { label: 'Electrical Rough-In', catRef: 'Cat 2c', tone: 'honey', startWeek: 11, durationWeeks: 6 },
+      { label: 'HVAC Rough-In + Roof Penetrations', catRef: 'Cat 2a', tone: 'honey', startWeek: 11, durationWeeks: 6, note: 'Coordinate central TPO zone with roofer' },
+      { label: 'Plumbing Above-Slab Distribution', catRef: 'Cat 2d', tone: 'honey', startWeek: 12, durationWeeks: 5 },
+      { label: 'Sprinkler Distribution', catRef: 'Cat 2f', tone: 'honey', startWeek: 12, durationWeeks: 4 },
+      { label: 'Low-Voltage Conduit Pathways', catRef: 'Cat 2g', tone: 'honey', startWeek: 12, durationWeeks: 4 },
+      { label: 'Hood Ductwork + Fans', catRef: 'Cat 2b', tone: 'honey', startWeek: 13, durationWeeks: 4 },
+      { label: 'Gas Distribution + Manifolds', catRef: 'Cat 2e', tone: 'terracotta', startWeek: 14, durationWeeks: 3, note: 'Tie-in after CenterPoint upgrade complete' },
+      { label: 'Restroom Framing + MEP', catRef: 'Cat 3', tone: 'sage', startWeek: 14, durationWeeks: 4 },
+      { label: 'MEP Rough-In Inspection', catRef: 'Milestone', tone: 'sage', startWeek: 17, durationWeeks: 0, isMilestone: true, critical: true },
+    ],
+  },
+  {
+    name: 'Walls, Vendor Stalls & Finishes',
+    weekRange: 'Weeks 18–23',
+    startWeek: 17,
+    endWeek: 23,
+    tracks: [
+      { label: 'Drywall + FRP + Tile Backer', catRef: 'Cat 3 / 4', tone: 'sage', startWeek: 17, durationWeeks: 4 },
+      { label: 'Vendor Stall Framing (Kit-of-Parts)', catRef: 'Cat 4', tone: 'honey', startWeek: 17, durationWeeks: 5, note: '8 food stalls + 4 kiosks · standardized build' },
+      { label: 'Polished Concrete Floor', catRef: 'Cat 5', tone: 'sage', startWeek: 20, durationWeeks: 2 },
+      { label: 'Wall Finishes (Paint + Wood Accent)', catRef: 'Cat 5', tone: 'sage', startWeek: 20, durationWeeks: 3 },
+      { label: 'Ceiling (Truss Seal + Black MEP Paint)', catRef: 'Cat 5', tone: 'sage', startWeek: 20, durationWeeks: 2 },
+      { label: 'Restroom Tile + Fixtures', catRef: 'Cat 3', tone: 'sage', startWeek: 20, durationWeeks: 3 },
+    ],
+  },
+  {
+    name: 'Equipment & Trim',
+    weekRange: 'Weeks 22–26',
+    startWeek: 21,
+    endWeek: 26,
+    tracks: [
+      { label: 'Hood Install + UL 300 Commissioning', catRef: 'Cat 2b', tone: 'terracotta', startWeek: 21, durationWeeks: 3, note: 'Gates fire marshal final', critical: true },
+      { label: 'Plumbing Fixtures + Tankless Water', catRef: 'Cat 2d', tone: 'honey', startWeek: 21, durationWeeks: 3 },
+      { label: 'Lighting Fixtures Install', catRef: 'Cat 5', tone: 'sage', startWeek: 22, durationWeeks: 3 },
+      { label: 'Wi-Fi · Cameras · AV · Speakers', catRef: 'Cat 2g', tone: 'honey', startWeek: 22, durationWeeks: 3 },
+      { label: 'BMS Programming & Commissioning', catRef: 'Cat 2a', tone: 'honey', startWeek: 23, durationWeeks: 3 },
+      { label: 'Vendor Stall Counters + Sign Panels', catRef: 'Cat 4', tone: 'honey', startWeek: 22, durationWeeks: 3 },
+    ],
+  },
+  {
+    name: 'FF&E, Branding & Punch',
+    weekRange: 'Weeks 24–28',
+    startWeek: 23,
+    endWeek: 28,
+    tracks: [
+      { label: 'Seating · Furniture · Feature Wall', catRef: 'Cat 6', tone: 'terracotta', startWeek: 23, durationWeeks: 4 },
+      { label: 'Exterior + Interior Signage', catRef: 'Cat 8', tone: 'terracotta', startWeek: 24, durationWeeks: 3 },
+      { label: 'Greenery & Final Styling', catRef: 'Cat 5 / 6', tone: 'sage', startWeek: 25, durationWeeks: 2 },
+      { label: 'Fire Marshal + Health Final', catRef: 'Milestone', tone: 'sage', startWeek: 26, durationWeeks: 0, isMilestone: true, critical: true },
+      { label: 'Vendor Equipment Move-In', catRef: 'Vendors', tone: 'walnut', startWeek: 26, durationWeeks: 2, note: 'Vendor-supplied refrigeration + cooking gear' },
+      { label: 'Punch & Soft Open', catRef: 'Milestone', tone: 'sage', startWeek: 27, durationWeeks: 0, isMilestone: true, critical: true },
+    ],
+  },
+];
+
+const trackBarBg: Record<Tone, string> = {
+  honey: 'bg-honey',
+  sage: 'bg-sage',
+  terracotta: 'bg-terracotta',
+  walnut: 'bg-walnut/70',
+};
+
+function TrackRow({ track }: { track: TimelineTrack }) {
+  const left = (track.startWeek / TIMELINE_WEEKS) * 100;
+  const width = (track.durationWeeks / TIMELINE_WEEKS) * 100;
+  const bar = trackBarBg[track.tone];
+
+  return (
+    <div className="flex items-stretch py-1 group">
+      <div className="w-56 md:w-64 shrink-0 pr-3 flex items-center gap-2">
+        <span className={`w-1 self-stretch rounded-sm ${trackBarBg[track.tone]} shrink-0`} />
+        <div className="min-w-0 flex-1">
+          <div className="text-xs text-walnut font-medium truncate flex items-center gap-1.5">
+            <span className="truncate">{track.label}</span>
+            {track.critical && (
+              <span className="text-[8px] font-bold uppercase tracking-wider text-terracotta bg-terracotta/15 border border-terracotta/30 rounded px-1 py-px shrink-0">CP</span>
+            )}
+          </div>
+          {track.note && <div className="text-[10px] text-walnut-light truncate">{track.note}</div>}
+        </div>
+        <span className="text-[9px] text-walnut-light font-mono shrink-0 self-start mt-0.5">{track.catRef}</span>
+      </div>
+      <div className="flex-1 relative h-7 rounded">
+        <div className="absolute inset-0 bg-walnut/[0.03] rounded" />
+        {Array.from({ length: TIMELINE_MONTHS - 1 }).map((_, i) => (
+          <div
+            key={i}
+            className="absolute top-0 bottom-0 w-px bg-walnut/8"
+            style={{ left: `${((i + 1) / TIMELINE_MONTHS) * 100}%` }}
+          />
+        ))}
+        {track.isMilestone ? (
+          <div
+            className="absolute top-1/2 z-10"
+            style={{ left: `${left}%`, transform: 'translate(-50%, -50%)' }}
+          >
+            <div className="w-3.5 h-3.5 rotate-45 bg-terracotta border-2 border-cream shadow-sm" />
+          </div>
+        ) : (
+          <div
+            className={`absolute top-1 bottom-1 rounded-md ${bar} shadow-sm transition-all group-hover:brightness-110`}
+            style={{ left: `${left}%`, width: `${width}%` }}
+            title={`${track.label} · W${track.startWeek + 1}–${track.startWeek + track.durationWeeks}`}
+          >
+            {width > 14 && (
+              <span className="absolute inset-0 flex items-center px-2 text-[10px] font-semibold text-cream truncate">
+                {track.durationWeeks} wk
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PhaseHeaderRow({ idx, phase }: { idx: number; phase: TimelinePhase }) {
+  const left = (phase.startWeek / TIMELINE_WEEKS) * 100;
+  const width = ((phase.endWeek - phase.startWeek) / TIMELINE_WEEKS) * 100;
+  return (
+    <div className="flex items-center mt-5 mb-1.5">
+      <div className="w-56 md:w-64 shrink-0 pr-3 flex items-center gap-2">
+        <span className="w-7 h-7 rounded-md bg-walnut text-cream font-bold text-xs flex items-center justify-center shrink-0">
+          {String(idx + 1).padStart(2, '0')}
+        </span>
+        <div className="min-w-0">
+          <div className="font-bold text-walnut text-sm truncate">{phase.name}</div>
+          <div className="text-[10px] text-walnut-light italic">{phase.weekRange}</div>
+        </div>
+      </div>
+      <div className="flex-1 relative h-2">
+        <div
+          className="absolute inset-y-0 bg-honey/20 border-l-2 border-r-2 border-honey/40 rounded"
+          style={{ left: `${left}%`, width: `${width}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function ExecutionTimeline() {
+  return (
+    <>
+      <div className="glass rounded-2xl p-5 md:p-6">
+        <div className="flex items-start justify-between gap-3 mb-2 flex-wrap">
+          <div className="min-w-0">
+            <h2 className="text-lg font-bold text-walnut">Buildout Execution Timeline</h2>
+            <p className="text-xs text-walnut-light mt-1 leading-relaxed">
+              28-week plan across 6 phases · GC sequencing with parallel trades + critical-path gates.
+              Equity call lands ~3 months pre-open per the financial model; physical buildout runs ~7 months end-to-end.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-1.5 text-[10px] shrink-0">
+            <span className="px-2 py-1 rounded border border-walnut/20 bg-walnut/10 text-walnut font-semibold">Cat 1 / 7 / 9</span>
+            <span className="px-2 py-1 rounded border border-honey/30 bg-honey/15 text-walnut font-semibold">Cat 2 MEP / 4</span>
+            <span className="px-2 py-1 rounded border border-sage/30 bg-sage/15 text-walnut font-semibold">Cat 3 / 5 Finishes</span>
+            <span className="px-2 py-1 rounded border border-terracotta/30 bg-terracotta/15 text-walnut font-semibold">Cat 6 / 8 / Critical</span>
+            <span className="px-2 py-1 rounded border border-terracotta/40 bg-terracotta text-cream font-bold">CP = Critical Path</span>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto scroll-fade-x mt-4">
+          <div className="min-w-[820px]">
+            <div className="flex">
+              <div className="w-56 md:w-64 shrink-0" />
+              <div className="flex-1 grid grid-cols-7 border-b border-walnut/15 pb-1.5">
+                {Array.from({ length: TIMELINE_MONTHS }).map((_, i) => (
+                  <div
+                    key={i}
+                    className={`text-center text-[10px] font-semibold uppercase tracking-wider text-walnut-light border-r border-walnut/10 last:border-r-0 ${i === 0 ? 'border-l border-walnut/10' : ''}`}
+                  >
+                    Month {i + 1}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {TIMELINE_PHASES.map((phase, pi) => (
+              <div key={phase.name}>
+                <PhaseHeaderRow idx={pi} phase={phase} />
+                {phase.tracks.map((t, ti) => <TrackRow key={ti} track={t} />)}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <TimelineCriticalPathCard />
+    </>
+  );
+}
+
+function TimelineCriticalPathCard() {
+  const items: { idx: number; title: string; detail: string; critical?: boolean }[] = [
+    { idx: 1, title: 'CenterPoint Gas Upgrade', detail: '90–180 day lead. Order Week 2. Slip the order and the entire MEP rough-in window slides — every other trade waits on tied-in gas.', critical: true },
+    { idx: 2, title: 'Building Permits Issued', detail: 'No physical construction until permits are stamped. Targeting Week 9. Drives demo + slab + MEP start.', critical: true },
+    { idx: 3, title: 'Underground Plumbing', detail: 'Grease interceptor + slab penetrations must be set before any slab finish or stall framing. Misses force concrete cuts later.' },
+    { idx: 4, title: 'Roof Penetration Coordination', detail: 'Hood exhaust + MAU + 4 RTUs all land in the central TPO zone. Lock layout with hood vendor + roofer before MEP rough-in starts.' },
+    { idx: 5, title: 'MEP Rough-In Inspection', detail: 'Gates wall close-up. All 5 trades must finish + pass before drywall covers anything. Failed inspection is the most common multi-week slip.', critical: true },
+    { idx: 6, title: 'UL 300 Hood Commissioning', detail: 'Fire suppression must be commissioned with fire marshal before final occupancy walkthrough. Gates fire marshal sign-off.', critical: true },
+    { idx: 7, title: 'Fire Marshal + Health Final', detail: 'Health department food-service final inspection gates vendor equipment move-in and soft open.', critical: true },
+  ];
+
+  return (
+    <div className="glass rounded-2xl p-5 md:p-6 mt-4">
+      <div className="flex items-start gap-3 mb-3">
+        <div className="text-terracotta text-xl leading-none mt-0.5">▲</div>
+        <div>
+          <h3 className="text-base font-bold text-walnut">Critical Path & Dependency Gates</h3>
+          <p className="text-xs text-walnut-light mt-0.5">Seven gates that drive opening date. Slip one and the whole sequence shifts — these are the items the GC and operator coordinate weekly.</p>
+        </div>
+      </div>
+      <ol className="space-y-2.5">
+        {items.map(it => (
+          <li key={it.idx} className="flex gap-3">
+            <span className={`w-7 h-7 rounded-full ${it.critical ? 'bg-terracotta' : 'bg-walnut'} text-cream font-bold text-xs flex items-center justify-center shrink-0`}>
+              {it.idx}
+            </span>
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-walnut flex items-center gap-1.5 flex-wrap">
+                <span>{it.title}</span>
+                {it.critical && (
+                  <span className="text-[8px] font-bold uppercase tracking-wider text-terracotta bg-terracotta/15 border border-terracotta/30 rounded px-1.5 py-px">Critical Path</span>
+                )}
+              </div>
+              <div className="text-xs text-walnut-light leading-relaxed mt-0.5">{it.detail}</div>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
 function SummaryCard({ data }: { data: CapExData }) {
   return (
     <div className="glass rounded-2xl p-5 md:p-6">
@@ -603,10 +899,12 @@ function SummaryCard({ data }: { data: CapExData }) {
 }
 
 type CapExVersion = 'v1' | 'v2';
+type CapExView = 'budget' | 'timeline';
 
 export default function CapEx() {
   const revealRef = useReveal();
   const [version, setVersion] = useState<CapExVersion>('v1');
+  const [view, setView] = useState<CapExView>('budget');
   const data = version === 'v1' ? V1_DATA : V2_DATA;
 
   return (
@@ -627,21 +925,41 @@ export default function CapEx() {
         </div>
 
         <section className="mb-6">
-          <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-walnut/5 border border-walnut/10">
-            <button
-              onClick={() => setVersion('v1')}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${version === 'v1' ? 'bg-walnut text-cream shadow-sm' : 'text-walnut-light hover:text-walnut'}`}
-            >
-              CapEx V1
-            </button>
-            <div className="flex items-center gap-1.5">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-walnut/5 border border-walnut/10">
               <button
-                onClick={() => setVersion('v2')}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${version === 'v2' ? 'bg-walnut text-cream shadow-sm' : 'text-walnut-light hover:text-walnut'}`}
+                onClick={() => setVersion('v1')}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${version === 'v1' ? 'bg-walnut text-cream shadow-sm' : 'text-walnut-light hover:text-walnut'}`}
               >
-                CapEx V2
+                CapEx V1
               </button>
-              <InfoTooltip content="Updated numbers after meeting with Niyi on Apr 29, 2026." />
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setVersion('v2')}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${version === 'v2' ? 'bg-walnut text-cream shadow-sm' : 'text-walnut-light hover:text-walnut'}`}
+                >
+                  CapEx V2
+                </button>
+                <InfoTooltip content="Updated numbers after meeting with Niyi on Apr 29, 2026." />
+              </div>
+            </div>
+
+            <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-walnut/5 border border-walnut/10">
+              <button
+                onClick={() => setView('budget')}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${view === 'budget' ? 'bg-walnut text-cream shadow-sm' : 'text-walnut-light hover:text-walnut'}`}
+              >
+                Budget
+              </button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setView('timeline')}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${view === 'timeline' ? 'bg-walnut text-cream shadow-sm' : 'text-walnut-light hover:text-walnut'}`}
+                >
+                  Timeline
+                </button>
+                <InfoTooltip content="Visual buildout sequencing — phases, parallel trades, and critical-path gates from a GC's perspective." />
+              </div>
             </div>
           </div>
         </section>
@@ -654,15 +972,21 @@ export default function CapEx() {
           {version === 'v1' ? <GasFlagCallout /> : <V2ChangesSummary />}
         </section>
 
-        <section className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-walnut">Budget by Category</h2>
-            <p className="text-[11px] text-walnut-light italic">Click a category to expand · click a line item for scope notes</p>
-          </div>
-          <div className="space-y-3">
-            {data.categories.map(cat => <CategoryCard key={cat.num} cat={cat} totalProjectCost={data.totalProjectCost} />)}
-          </div>
-        </section>
+        {view === 'budget' ? (
+          <section className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-walnut">Budget by Category</h2>
+              <p className="text-[11px] text-walnut-light italic">Click a category to expand · click a line item for scope notes</p>
+            </div>
+            <div className="space-y-3">
+              {data.categories.map(cat => <CategoryCard key={cat.num} cat={cat} totalProjectCost={data.totalProjectCost} />)}
+            </div>
+          </section>
+        ) : (
+          <section className="mb-8">
+            <ExecutionTimeline />
+          </section>
+        )}
 
         <section className="mb-8">
           <div className="glass rounded-2xl p-5 md:p-6">
