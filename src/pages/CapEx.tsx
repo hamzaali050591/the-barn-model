@@ -548,11 +548,11 @@ function V2ChangesSummary() {
 }
 
 // ── Buildout Execution Timeline ──
-// 28-week / 7-month plan, sequenced as a top-tier GC would actually run it.
-// Critical path: CenterPoint gas upgrade (90–180d lead) → permits → underground →
-// MEP rough-in → rough-in inspection → drywall close → trim → UL 300 → fire
-// marshal + health → vendor move-in → soft open. Bars positioned globally
-// against the 28-week grid so concurrent trades line up vertically.
+// 15-week fast-track plan, sequenced as a top-tier GC would actually run it.
+// Critical path: CenterPoint gas upgrade (90–180d lead, ordered W1) → permits →
+// underground → MEP rough-in → rough-in inspection → drywall close → trim →
+// UL 300 → fire marshal + health → vendor move-in → soft open. Bars positioned
+// globally against the 15-week grid so concurrent trades line up vertically.
 
 type Tone = Category['tone'];
 
@@ -574,92 +574,91 @@ interface TimelinePhase {
   tracks: TimelineTrack[];
 }
 
-const TIMELINE_WEEKS = 28;
-const TIMELINE_MONTHS = 7;
+const TIMELINE_WEEKS = 15;
+const TIMELINE_HEADER_COLS = 5;
 
 const TIMELINE_PHASES: TimelinePhase[] = [
   {
     name: 'Pre-Construction',
-    weekRange: 'Weeks 1–9',
+    weekRange: 'Weeks 1–3',
     startWeek: 0,
-    endWeek: 9,
+    endWeek: 3,
     tracks: [
-      { label: 'A&E + MEP Engineering', catRef: 'Cat 9', tone: 'walnut', startWeek: 0, durationWeeks: 8, note: 'Stamped TI drawings → permit submittal' },
-      { label: 'BMS / Hood Vendor Selection', catRef: 'Cat 2', tone: 'honey', startWeek: 1, durationWeeks: 4 },
-      { label: 'CenterPoint Gas Upgrade — order', catRef: 'Cat 2e', tone: 'terracotta', startWeek: 1, durationWeeks: 17, note: '90–180 day lead — critical path', critical: true },
-      { label: 'Long-Lead Equipment Procurement', catRef: 'Cat 2', tone: 'honey', startWeek: 3, durationWeeks: 11, note: 'RTUs · MAU · Hood canopies' },
-      { label: 'The Barn App — lean v1 build', catRef: 'Cat 7', tone: 'walnut', startWeek: 3, durationWeeks: 23, note: 'AI-accelerated, runs through opening' },
-      { label: 'Building Permits Issued', catRef: 'Milestone', tone: 'sage', startWeek: 8, durationWeeks: 0, isMilestone: true, critical: true },
+      { label: 'A&E + MEP Engineering', catRef: 'Cat 9', tone: 'walnut', startWeek: 0, durationWeeks: 2, note: 'Stamped TI drawings → permit submittal' },
+      { label: 'BMS / Hood Vendor Selection', catRef: 'Cat 2', tone: 'honey', startWeek: 0, durationWeeks: 2 },
+      { label: 'CenterPoint Gas Upgrade — order', catRef: 'Cat 2e', tone: 'terracotta', startWeek: 0, durationWeeks: 9, note: '90–180 day lead — critical path', critical: true },
+      { label: 'Long-Lead Equipment Procurement', catRef: 'Cat 2', tone: 'honey', startWeek: 1, durationWeeks: 6, note: 'RTUs · MAU · Hood canopies' },
+      { label: 'Building Permits Issued', catRef: 'Milestone', tone: 'sage', startWeek: 3, durationWeeks: 0, isMilestone: true, critical: true },
     ],
   },
   {
     name: 'Shell Prep & Underground',
-    weekRange: 'Weeks 9–13',
-    startWeek: 8,
-    endWeek: 13,
+    weekRange: 'Weeks 3–5',
+    startWeek: 2,
+    endWeek: 5,
     tracks: [
-      { label: 'Demo & Shell Prep', catRef: 'Cat 1', tone: 'walnut', startWeek: 8, durationWeeks: 2 },
-      { label: 'Underground Grease Interceptor', catRef: 'Cat 2d', tone: 'honey', startWeek: 10, durationWeeks: 2, note: 'Must precede slab finish work', critical: true },
-      { label: 'Slab Penetrations + Floor Drains', catRef: 'Cat 2d', tone: 'honey', startWeek: 10, durationWeeks: 3 },
+      { label: 'Demo & Shell Prep', catRef: 'Cat 1', tone: 'walnut', startWeek: 2, durationWeeks: 2 },
+      { label: 'Underground Grease Interceptor', catRef: 'Cat 2d', tone: 'honey', startWeek: 3, durationWeeks: 2, note: 'Must precede slab finish work', critical: true },
+      { label: 'Slab Penetrations + Floor Drains', catRef: 'Cat 2d', tone: 'honey', startWeek: 3, durationWeeks: 2 },
     ],
   },
   {
     name: 'MEP Rough-In',
-    weekRange: 'Weeks 12–18',
-    startWeek: 11,
-    endWeek: 18,
+    weekRange: 'Weeks 5–9',
+    startWeek: 4,
+    endWeek: 9,
     tracks: [
-      { label: 'Electrical Rough-In', catRef: 'Cat 2c', tone: 'honey', startWeek: 11, durationWeeks: 6 },
-      { label: 'HVAC Rough-In + Roof Penetrations', catRef: 'Cat 2a', tone: 'honey', startWeek: 11, durationWeeks: 6, note: 'Coordinate central TPO zone with roofer' },
-      { label: 'Plumbing Above-Slab Distribution', catRef: 'Cat 2d', tone: 'honey', startWeek: 12, durationWeeks: 5 },
-      { label: 'Sprinkler Distribution', catRef: 'Cat 2f', tone: 'honey', startWeek: 12, durationWeeks: 4 },
-      { label: 'Low-Voltage Conduit Pathways', catRef: 'Cat 2g', tone: 'honey', startWeek: 12, durationWeeks: 4 },
-      { label: 'Hood Ductwork + Fans', catRef: 'Cat 2b', tone: 'honey', startWeek: 13, durationWeeks: 4 },
-      { label: 'Gas Distribution + Manifolds', catRef: 'Cat 2e', tone: 'terracotta', startWeek: 14, durationWeeks: 3, note: 'Tie-in after CenterPoint upgrade complete' },
-      { label: 'Restroom Framing + MEP', catRef: 'Cat 3', tone: 'sage', startWeek: 14, durationWeeks: 4 },
-      { label: 'MEP Rough-In Inspection', catRef: 'Milestone', tone: 'sage', startWeek: 17, durationWeeks: 0, isMilestone: true, critical: true },
+      { label: 'Electrical Rough-In', catRef: 'Cat 2c', tone: 'honey', startWeek: 4, durationWeeks: 5 },
+      { label: 'HVAC Rough-In + Roof Penetrations', catRef: 'Cat 2a', tone: 'honey', startWeek: 4, durationWeeks: 5, note: 'Coordinate central TPO zone with roofer' },
+      { label: 'Plumbing Above-Slab Distribution', catRef: 'Cat 2d', tone: 'honey', startWeek: 4, durationWeeks: 5 },
+      { label: 'Sprinkler Distribution', catRef: 'Cat 2f', tone: 'honey', startWeek: 5, durationWeeks: 3 },
+      { label: 'Low-Voltage Conduit Pathways', catRef: 'Cat 2g', tone: 'honey', startWeek: 5, durationWeeks: 3 },
+      { label: 'Hood Ductwork + Fans', catRef: 'Cat 2b', tone: 'honey', startWeek: 5, durationWeeks: 4 },
+      { label: 'Gas Distribution + Manifolds', catRef: 'Cat 2e', tone: 'terracotta', startWeek: 6, durationWeeks: 3, note: 'Tie-in after CenterPoint upgrade complete' },
+      { label: 'Restroom Framing + MEP', catRef: 'Cat 3', tone: 'sage', startWeek: 6, durationWeeks: 3 },
+      { label: 'MEP Rough-In Inspection', catRef: 'Milestone', tone: 'sage', startWeek: 9, durationWeeks: 0, isMilestone: true, critical: true },
     ],
   },
   {
     name: 'Walls, Vendor Stalls & Finishes',
-    weekRange: 'Weeks 18–23',
-    startWeek: 17,
-    endWeek: 23,
+    weekRange: 'Weeks 10–12',
+    startWeek: 9,
+    endWeek: 12,
     tracks: [
-      { label: 'Drywall + FRP + Tile Backer', catRef: 'Cat 3 / 4', tone: 'sage', startWeek: 17, durationWeeks: 4 },
-      { label: 'Vendor Stall Framing (Kit-of-Parts)', catRef: 'Cat 4', tone: 'honey', startWeek: 17, durationWeeks: 5, note: '8 food stalls + 4 kiosks · standardized build' },
-      { label: 'Polished Concrete Floor', catRef: 'Cat 5', tone: 'sage', startWeek: 20, durationWeeks: 2 },
-      { label: 'Wall Finishes (Paint + Wood Accent)', catRef: 'Cat 5', tone: 'sage', startWeek: 20, durationWeeks: 3 },
-      { label: 'Ceiling (Truss Seal + Black MEP Paint)', catRef: 'Cat 5', tone: 'sage', startWeek: 20, durationWeeks: 2 },
-      { label: 'Restroom Tile + Fixtures', catRef: 'Cat 3', tone: 'sage', startWeek: 20, durationWeeks: 3 },
+      { label: 'Drywall + FRP + Tile Backer', catRef: 'Cat 3 / 4', tone: 'sage', startWeek: 9, durationWeeks: 2 },
+      { label: 'Vendor Stall Framing (Kit-of-Parts)', catRef: 'Cat 4', tone: 'honey', startWeek: 9, durationWeeks: 3, note: '8 food stalls + 4 kiosks · standardized build' },
+      { label: 'Polished Concrete Floor', catRef: 'Cat 5', tone: 'sage', startWeek: 10, durationWeeks: 2 },
+      { label: 'Wall Finishes (Paint + Wood Accent)', catRef: 'Cat 5', tone: 'sage', startWeek: 10, durationWeeks: 2 },
+      { label: 'Ceiling (Truss Seal + Black MEP Paint)', catRef: 'Cat 5', tone: 'sage', startWeek: 10, durationWeeks: 2 },
+      { label: 'Restroom Tile + Fixtures', catRef: 'Cat 3', tone: 'sage', startWeek: 10, durationWeeks: 2 },
     ],
   },
   {
     name: 'Equipment & Trim',
-    weekRange: 'Weeks 22–26',
-    startWeek: 21,
-    endWeek: 26,
+    weekRange: 'Weeks 12–14',
+    startWeek: 11,
+    endWeek: 14,
     tracks: [
-      { label: 'Hood Install + UL 300 Commissioning', catRef: 'Cat 2b', tone: 'terracotta', startWeek: 21, durationWeeks: 3, note: 'Gates fire marshal final', critical: true },
-      { label: 'Plumbing Fixtures + Tankless Water', catRef: 'Cat 2d', tone: 'honey', startWeek: 21, durationWeeks: 3 },
-      { label: 'Lighting Fixtures Install', catRef: 'Cat 5', tone: 'sage', startWeek: 22, durationWeeks: 3 },
-      { label: 'Wi-Fi · Cameras · AV · Speakers', catRef: 'Cat 2g', tone: 'honey', startWeek: 22, durationWeeks: 3 },
-      { label: 'BMS Programming & Commissioning', catRef: 'Cat 2a', tone: 'honey', startWeek: 23, durationWeeks: 3 },
-      { label: 'Vendor Stall Counters + Sign Panels', catRef: 'Cat 4', tone: 'honey', startWeek: 22, durationWeeks: 3 },
+      { label: 'Hood Install + UL 300 Commissioning', catRef: 'Cat 2b', tone: 'terracotta', startWeek: 11, durationWeeks: 2, note: 'Gates fire marshal final', critical: true },
+      { label: 'Plumbing Fixtures + Tankless Water', catRef: 'Cat 2d', tone: 'honey', startWeek: 11, durationWeeks: 2 },
+      { label: 'Lighting Fixtures Install', catRef: 'Cat 5', tone: 'sage', startWeek: 12, durationWeeks: 2 },
+      { label: 'Wi-Fi · Cameras · AV · Speakers', catRef: 'Cat 2g', tone: 'honey', startWeek: 12, durationWeeks: 2 },
+      { label: 'BMS Programming & Commissioning', catRef: 'Cat 2a', tone: 'honey', startWeek: 12, durationWeeks: 2 },
+      { label: 'Vendor Stall Counters + Sign Panels', catRef: 'Cat 4', tone: 'honey', startWeek: 12, durationWeeks: 2 },
     ],
   },
   {
     name: 'FF&E, Branding & Punch',
-    weekRange: 'Weeks 24–28',
-    startWeek: 23,
-    endWeek: 28,
+    weekRange: 'Weeks 13–15',
+    startWeek: 12,
+    endWeek: 15,
     tracks: [
-      { label: 'Seating · Furniture · Feature Wall', catRef: 'Cat 6', tone: 'terracotta', startWeek: 23, durationWeeks: 4 },
-      { label: 'Exterior + Interior Signage', catRef: 'Cat 8', tone: 'terracotta', startWeek: 24, durationWeeks: 3 },
-      { label: 'Greenery & Final Styling', catRef: 'Cat 5 / 6', tone: 'sage', startWeek: 25, durationWeeks: 2 },
-      { label: 'Fire Marshal + Health Final', catRef: 'Milestone', tone: 'sage', startWeek: 26, durationWeeks: 0, isMilestone: true, critical: true },
-      { label: 'Vendor Equipment Move-In', catRef: 'Vendors', tone: 'walnut', startWeek: 26, durationWeeks: 2, note: 'Vendor-supplied refrigeration + cooking gear' },
-      { label: 'Punch & Soft Open', catRef: 'Milestone', tone: 'sage', startWeek: 27, durationWeeks: 0, isMilestone: true, critical: true },
+      { label: 'Seating · Furniture · Feature Wall', catRef: 'Cat 6', tone: 'terracotta', startWeek: 12, durationWeeks: 3 },
+      { label: 'Exterior + Interior Signage', catRef: 'Cat 8', tone: 'terracotta', startWeek: 13, durationWeeks: 2 },
+      { label: 'Greenery & Final Styling', catRef: 'Cat 5 / 6', tone: 'sage', startWeek: 13, durationWeeks: 2 },
+      { label: 'Fire Marshal + Health Final', catRef: 'Milestone', tone: 'sage', startWeek: 14, durationWeeks: 0, isMilestone: true, critical: true },
+      { label: 'Vendor Equipment Move-In', catRef: 'Vendors', tone: 'walnut', startWeek: 14, durationWeeks: 1, note: 'Vendor-supplied refrigeration + cooking gear' },
+      { label: 'Punch & Soft Open', catRef: 'Milestone', tone: 'sage', startWeek: 15, durationWeeks: 0, isMilestone: true, critical: true },
     ],
   },
 ];
@@ -693,11 +692,11 @@ function TrackRow({ track }: { track: TimelineTrack }) {
       </div>
       <div className="flex-1 relative h-7 rounded">
         <div className="absolute inset-0 bg-walnut/[0.03] rounded" />
-        {Array.from({ length: TIMELINE_MONTHS - 1 }).map((_, i) => (
+        {Array.from({ length: TIMELINE_HEADER_COLS - 1 }).map((_, i) => (
           <div
             key={i}
             className="absolute top-0 bottom-0 w-px bg-walnut/8"
-            style={{ left: `${((i + 1) / TIMELINE_MONTHS) * 100}%` }}
+            style={{ left: `${((i + 1) / TIMELINE_HEADER_COLS) * 100}%` }}
           />
         ))}
         {track.isMilestone ? (
@@ -757,12 +756,12 @@ function ExecutionTimeline() {
           <div className="min-w-0">
             <h2 className="text-lg font-bold text-walnut">Buildout Execution Timeline</h2>
             <p className="text-xs text-walnut-light mt-1 leading-relaxed">
-              28-week plan across 6 phases · GC sequencing with parallel trades + critical-path gates.
-              Equity call lands ~3 months pre-open per the financial model; physical buildout runs ~7 months end-to-end.
+              15-week fast-track buildout across 6 phases · GC sequencing with parallel trades + critical-path gates.
+              Long-lead orders (gas service upgrade, RTUs, hoods) engage Week 1 to land in time for in-suite installation.
             </p>
           </div>
           <div className="flex flex-wrap gap-1.5 text-[10px] shrink-0">
-            <span className="px-2 py-1 rounded border border-walnut/20 bg-walnut/10 text-walnut font-semibold">Cat 1 / 7 / 9</span>
+            <span className="px-2 py-1 rounded border border-walnut/20 bg-walnut/10 text-walnut font-semibold">Cat 1 / 9 / Vendors</span>
             <span className="px-2 py-1 rounded border border-honey/30 bg-honey/15 text-walnut font-semibold">Cat 2 MEP / 4</span>
             <span className="px-2 py-1 rounded border border-sage/30 bg-sage/15 text-walnut font-semibold">Cat 3 / 5 Finishes</span>
             <span className="px-2 py-1 rounded border border-terracotta/30 bg-terracotta/15 text-walnut font-semibold">Cat 6 / 8 / Critical</span>
@@ -774,13 +773,13 @@ function ExecutionTimeline() {
           <div className="min-w-[820px]">
             <div className="flex">
               <div className="w-56 md:w-64 shrink-0" />
-              <div className="flex-1 grid grid-cols-7 border-b border-walnut/15 pb-1.5">
-                {Array.from({ length: TIMELINE_MONTHS }).map((_, i) => (
+              <div className="flex-1 grid grid-cols-5 border-b border-walnut/15 pb-1.5">
+                {Array.from({ length: TIMELINE_HEADER_COLS }).map((_, i) => (
                   <div
                     key={i}
                     className={`text-center text-[10px] font-semibold uppercase tracking-wider text-walnut-light border-r border-walnut/10 last:border-r-0 ${i === 0 ? 'border-l border-walnut/10' : ''}`}
                   >
-                    Month {i + 1}
+                    Wks {i * 3 + 1}–{(i + 1) * 3}
                   </div>
                 ))}
               </div>
