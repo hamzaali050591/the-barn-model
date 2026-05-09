@@ -6,11 +6,17 @@ import { useReveal } from '../utils/useReveal';
 
 const LEASE_SQFT = 9_180;
 
+interface SubLineItem {
+  name: string;
+  notes: string;
+  cost: number;
+}
 interface LineItem {
   num: number;
   name: string;
   notes: string;
   cost: number;
+  subItems?: SubLineItem[];
 }
 interface SubCategory {
   key: string;
@@ -133,9 +139,27 @@ const cat9Items: LineItem[] = [
   { num: 54, name: 'Architecture / design', notes: 'Licensed architect of record producing stamped TI drawings for permit submittal, interior design coordination for material/finish specs, 2–3 revision rounds.', cost: 25_000 },
   { num: 55, name: 'MEP engineering', notes: 'Licensed MEP engineer of record stamping mechanical, electrical, plumbing, fire protection drawings. Includes load calcs, hydraulic calcs, gas sizing, BMS integration design, coordination with hood vendor and CenterPoint Energy. Complex scope warrants upper-mid range.', cost: 30_000 },
   { num: 56, name: 'Permits, plan review, fees', notes: 'City of Richmond building permit (1–1.5% of project value), Fort Bend County fees, utility permits (gas upgrade, water), health department permit.', cost: 10_000 },
-  { num: 57, name: 'Construction management', notes: 'Operator self-managed with CM consultant on retainer (~50–80 hours over 4–6 month buildout) for contractor selection, major coordination, change orders, commissioning. Hamza personally handles daily coordination.', cost: 20_000 },
-  { num: 58, name: 'Insurance during buildout', notes: 'Builder’s risk insurance (~1% of hard costs) covering fire/theft/vandalism/weather during construction, general liability during construction, workers comp coordination.', cost: 10_000 },
-  { num: 59, name: 'Contingency (10% of hard costs)', notes: 'Disciplined 10% contingency reserve on $1,510K hard costs. Returnable to investors if unused. Covers variance on gas service upgrade (largest single uncertainty pending CenterPoint quote), MEP engineering refinements, and normal construction unknowns.', cost: 149_000 },
+  {
+    num: 57,
+    name: 'Pre-development groundwork (operator-led)',
+    notes: 'Operator-led work that took the project from concept to a fully scoped, investor-ready deal — recovered as a fixed cost rather than a markup or sweat-equity claim. Combined with construction management below, this captures the full $40K of operator effort from concept through launch day.',
+    cost: 10_000,
+    subItems: [
+      {
+        name: 'Concept, financial modeling, design & rendering work',
+        notes: 'Market research, full financial model build (web app + xlsx), design draft work + AI-rendered concept imagery, OpEx research and vendor utility modeling, CapEx scope-of-work development, and all underwriting groundwork that produced the investor materials.',
+        cost: 7_000,
+      },
+      {
+        name: 'Initial vendor sourcing & onboarding',
+        notes: 'Identifying candidate food and non-food vendors, in-person meetings and walkthroughs, scoping each vendor\'s buildout requirements, and collecting initial quotes that fed the per-stall CapEx assumptions.',
+        cost: 3_000,
+      },
+    ],
+  },
+  { num: 58, name: 'Construction management', notes: 'Operator self-managed with CM consultant on retainer (~50–80 hours over 4–6 month buildout) for contractor selection, major coordination, change orders, commissioning. Hamza personally handles daily coordination.', cost: 30_000 },
+  { num: 59, name: 'Insurance during buildout', notes: 'Builder’s risk insurance (~1% of hard costs) covering fire/theft/vandalism/weather during construction, general liability during construction, workers comp coordination.', cost: 10_000 },
+  { num: 60, name: 'Contingency (10% of hard costs)', notes: 'Disciplined 10% contingency reserve on $1,510K hard costs. Returnable to investors if unused. Covers variance on gas service upgrade (largest single uncertainty pending CenterPoint quote), MEP engineering refinements, and normal construction unknowns.', cost: 149_000 },
 ];
 
 const cat2Subs: SubCategory[] = [
@@ -218,7 +242,7 @@ const categories: Category[] = [
   {
     num: '9',
     title: 'Soft Costs & Contingency',
-    description: 'Architecture + MEP engineering + permits + construction management + builder’s risk insurance + 10% contingency reserve.',
+    description: 'Architecture + MEP engineering + permits + operator pre-development groundwork + construction management + builder’s risk insurance + 10% contingency reserve.',
     items: cat9Items,
     subtotal: sum(cat9Items),
     tone: 'walnut',
@@ -294,9 +318,27 @@ const V2_HARD_COSTS =
 const cat9ItemsV2: LineItem[] = [
   { num: 54, name: 'Architecture / design + MEP engineering', notes: 'Combined fee covering licensed architect of record (stamped TI drawings for permit submittal, interior design coordination, 2–3 revision rounds) + licensed MEP engineer of record (mechanical, electrical, plumbing, fire protection stamps; load + hydraulic + gas calcs; BMS integration design; coordination with hood vendor and CenterPoint Energy).', cost: 40_000 },
   { num: 55, name: 'Permits, plan review, fees', notes: 'City of Richmond building permit (1–1.5% of project value), Fort Bend County fees, utility permits (gas upgrade, water), health department permit.', cost: 10_000 },
-  { num: 56, name: 'Construction management', notes: 'Operator self-managed with CM consultant on retainer (~50–80 hours over 4–6 month buildout) for contractor selection, major coordination, change orders, commissioning. Hamza personally handles daily coordination.', cost: 20_000 },
-  { num: 57, name: 'Insurance during buildout', notes: 'Builder’s risk insurance (~1% of hard costs) covering fire/theft/vandalism/weather during construction, general liability during construction, workers comp coordination.', cost: 10_000 },
-  { num: 58, name: 'Contingency (8% of hard costs)', notes: 'Disciplined 8% contingency reserve on V2 hard costs. Tightened from V1\'s 10% reserve based on refined SOW after Niyi walkthrough — vendor-stall kit-of-parts standardization and locked-in equipment scoping reduce execution risk. Returnable to investors if unused. Covers residual variance on gas service upgrade (CenterPoint quote pending) and normal construction unknowns.', cost: Math.round(V2_HARD_COSTS * 0.08) },
+  {
+    num: 56,
+    name: 'Pre-development groundwork (operator-led)',
+    notes: 'Operator-led work that took the project from concept to a fully scoped, investor-ready deal — recovered as a fixed cost rather than a markup or sweat-equity claim. Combined with construction management below, this captures the full $40K of operator effort from concept through launch day.',
+    cost: 10_000,
+    subItems: [
+      {
+        name: 'Concept, financial modeling, design & rendering work',
+        notes: 'Market research, full financial model build (web app + xlsx), design draft work + AI-rendered concept imagery, OpEx research and vendor utility modeling, CapEx scope-of-work development, and all underwriting groundwork that produced the investor materials.',
+        cost: 7_000,
+      },
+      {
+        name: 'Initial vendor sourcing & onboarding',
+        notes: 'Identifying candidate food and non-food vendors, in-person meetings and walkthroughs, scoping each vendor\'s buildout requirements, and collecting initial quotes that fed the per-stall CapEx assumptions.',
+        cost: 3_000,
+      },
+    ],
+  },
+  { num: 57, name: 'Construction management', notes: 'Operator self-managed with CM consultant on retainer (~50–80 hours over 4–6 month buildout) for contractor selection, major coordination, change orders, commissioning. Hamza personally handles daily coordination.', cost: 30_000 },
+  { num: 58, name: 'Insurance during buildout', notes: 'Builder’s risk insurance (~1% of hard costs) covering fire/theft/vandalism/weather during construction, general liability during construction, workers comp coordination.', cost: 10_000 },
+  { num: 59, name: 'Contingency (8% of hard costs)', notes: 'Disciplined 8% contingency reserve on V2 hard costs. Tightened from V1\'s 10% reserve based on refined SOW after Niyi walkthrough — vendor-stall kit-of-parts standardization and locked-in equipment scoping reduce execution risk. Returnable to investors if unused. Covers residual variance on gas service upgrade (CenterPoint quote pending) and normal construction unknowns.', cost: Math.round(V2_HARD_COSTS * 0.08) },
 ];
 
 const categoriesV2: Category[] = categories.map((c, idx) => {
@@ -312,7 +354,7 @@ const categoriesV2: Category[] = categories.map((c, idx) => {
   if (c.num === '9') {
     return {
       ...c,
-      description: 'Architecture + MEP engineering (combined) + permits + construction management + builder’s risk insurance + 8% contingency reserve (tightened from V1’s 10% after refined SOW reduced execution risk).',
+      description: 'Architecture + MEP engineering (combined) + permits + operator pre-development groundwork + construction management + builder’s risk insurance + 8% contingency reserve (tightened from V1’s 10% after refined SOW reduced execution risk).',
       items: cat9ItemsV2,
       subtotal: sum(cat9ItemsV2),
     };
@@ -371,8 +413,21 @@ function LineItemRow({ item, hidePrice }: { item: LineItem; hidePrice?: boolean 
         {!hidePrice && <span className="ml-auto text-xs font-bold text-walnut tabular-nums shrink-0">{fmtDollarFull(item.cost)}</span>}
       </button>
       {open && (
-        <div className="px-3 pb-3 pl-11 -mt-1">
+        <div className="px-3 pb-3 pl-11 -mt-1 space-y-2">
           <p className="text-[11px] text-walnut-light leading-relaxed">{item.notes}</p>
+          {item.subItems && item.subItems.length > 0 && (
+            <div className="rounded-lg border border-walnut/10 bg-honey/5 divide-y divide-walnut/5">
+              {item.subItems.map((sub, idx) => (
+                <div key={idx} className="px-3 py-2">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-[11px] font-semibold text-walnut min-w-0 flex-1">{sub.name}</span>
+                    <span className="text-[11px] font-bold text-walnut tabular-nums shrink-0">{fmtDollarFull(sub.cost)}</span>
+                  </div>
+                  <p className="mt-1 text-[10.5px] text-walnut-light leading-relaxed">{sub.notes}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
