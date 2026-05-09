@@ -230,13 +230,19 @@ const categories: Category[] = [
 // overrides via .map or are written as fresh literals.
 const cat1ItemsV2: LineItem[] = cat1Items.map(i => ({ ...i }));
 
-// 2a: RTUs $170k→$150k, MAU $45k→$20k, BMS $25k→$20k, Restroom exhaust $8k→$6k
+// 2a: RTUs $170k→$150k, MAU $45k→$15k, BMS $25k→$20k, Restroom exhaust $8k→$6k
 const cat2aItemsV2: LineItem[] = cat2aItems.map((i, idx) => ({
   ...i,
-  cost: [150_000, 20_000, 20_000, 6_000][idx],
+  cost: [150_000, 15_000, 20_000, 6_000][idx],
 }));
 const cat2bItemsV2: LineItem[] = cat2bItems.map(i => ({ ...i }));
-const cat2cItemsV2: LineItem[] = cat2cItems.map(i => ({ ...i }));
+
+// 2c Electrical: scaled up from V1 total $128k → $140k, line items
+// scaled proportionally (×1.09375) and rounded to nearest $1k.
+const cat2cItemsV2: LineItem[] = cat2cItems.map((i, idx) => ({
+  ...i,
+  cost: [33_000, 16_000, 22_000, 5_000, 44_000, 11_000, 9_000][idx],
+}));
 
 // 2d: total $129k→$110k, line items scaled proportionally (~0.853×)
 const cat2dItemsV2: LineItem[] = cat2dItems.map((i, idx) => ({
@@ -270,7 +276,7 @@ const cat2SubsV2: SubCategory[] = [
   { key: '2g', title: 'Low-Voltage (Data / AV / Security)', description: cat2Subs[6].description, items: cat2gItemsV2, subtotal: sum(cat2gItemsV2) },
 ];
 
-// V2 hard costs (cat 1-8) — needed before cat 9 so contingency is 10% of this.
+// V2 hard costs (cat 1-8) — needed before cat 9 so contingency is 8% of this.
 const V2_HARD_COSTS =
   10_000                                                  // Cat 1 (overridden)
   + cat2SubsV2.reduce((s, sc) => s + sc.subtotal, 0)      // Cat 2
@@ -282,14 +288,15 @@ const V2_HARD_COSTS =
   + sum(cat8ItemsV2);
 
 // Cat 9: Architecture/design ($25k) + MEP engineering ($30k) collapsed into
-// one $40k line. Contingency = 10% of V2 hard costs (recomputes if any
-// V2 hard-cost line item changes).
+// one $40k line. Contingency = 8% of V2 hard costs (tightened from V1's 10%
+// after Niyi walkthrough refined the SOW; recomputes if any V2 hard-cost
+// line item changes).
 const cat9ItemsV2: LineItem[] = [
   { num: 54, name: 'Architecture / design + MEP engineering', notes: 'Combined fee covering licensed architect of record (stamped TI drawings for permit submittal, interior design coordination, 2–3 revision rounds) + licensed MEP engineer of record (mechanical, electrical, plumbing, fire protection stamps; load + hydraulic + gas calcs; BMS integration design; coordination with hood vendor and CenterPoint Energy).', cost: 40_000 },
   { num: 55, name: 'Permits, plan review, fees', notes: 'City of Richmond building permit (1–1.5% of project value), Fort Bend County fees, utility permits (gas upgrade, water), health department permit.', cost: 10_000 },
   { num: 56, name: 'Construction management', notes: 'Operator self-managed with CM consultant on retainer (~50–80 hours over 4–6 month buildout) for contractor selection, major coordination, change orders, commissioning. Hamza personally handles daily coordination.', cost: 20_000 },
   { num: 57, name: 'Insurance during buildout', notes: 'Builder’s risk insurance (~1% of hard costs) covering fire/theft/vandalism/weather during construction, general liability during construction, workers comp coordination.', cost: 10_000 },
-  { num: 58, name: 'Contingency (10% of hard costs)', notes: 'Disciplined 10% contingency reserve on V2 hard costs. Returnable to investors if unused. Covers variance on gas service upgrade (largest single uncertainty pending CenterPoint quote), MEP engineering refinements, and normal construction unknowns.', cost: Math.round(V2_HARD_COSTS * 0.10) },
+  { num: 58, name: 'Contingency (8% of hard costs)', notes: 'Disciplined 8% contingency reserve on V2 hard costs. Tightened from V1\'s 10% reserve based on refined SOW after Niyi walkthrough — vendor-stall kit-of-parts standardization and locked-in equipment scoping reduce execution risk. Returnable to investors if unused. Covers residual variance on gas service upgrade (CenterPoint quote pending) and normal construction unknowns.', cost: Math.round(V2_HARD_COSTS * 0.08) },
 ];
 
 const categoriesV2: Category[] = categories.map((c, idx) => {
@@ -302,7 +309,15 @@ const categoriesV2: Category[] = categories.map((c, idx) => {
   if (c.num === '4') {
     return { ...c, items: cat4ItemsV2, subtotal: sum(cat4ItemsV2), executionNote: 'Hitting the $35K per-stall target on food stalls requires standardized kit-of-parts construction across all 8 stalls. One-off custom per-stall would push costs meaningfully higher.' };
   }
-  const v2Items = [undefined, undefined, cat3ItemsV2, undefined, cat5ItemsV2, cat6ItemsV2, cat7ItemsV2, cat8ItemsV2, cat9ItemsV2][idx];
+  if (c.num === '9') {
+    return {
+      ...c,
+      description: 'Architecture + MEP engineering (combined) + permits + construction management + builder’s risk insurance + 8% contingency reserve (tightened from V1’s 10% after refined SOW reduced execution risk).',
+      items: cat9ItemsV2,
+      subtotal: sum(cat9ItemsV2),
+    };
+  }
+  const v2Items = [undefined, undefined, cat3ItemsV2, undefined, cat5ItemsV2, cat6ItemsV2, cat7ItemsV2, cat8ItemsV2][idx];
   return { ...c, items: v2Items, subtotal: sum(v2Items!) };
 });
 
@@ -478,6 +493,8 @@ function GasFlagCallout() {
 function V2ChangesSummary() {
   const cat2aV1 = cat2Subs[0].subtotal;
   const cat2aV2 = cat2SubsV2[0].subtotal;
+  const cat2cV1 = cat2Subs[2].subtotal;
+  const cat2cV2 = cat2SubsV2[2].subtotal;
   const cat2dV1 = cat2Subs[3].subtotal;
   const cat2dV2 = cat2SubsV2[3].subtotal;
   const cat4V1 = categories[3].subtotal;
@@ -487,11 +504,12 @@ function V2ChangesSummary() {
 
   const rows: { category: string; detail: string; v1: number; v2: number }[] = [
     { category: 'Cat 1 — Demo & Shell Prep', detail: 'Collapsed 7 line items into a single category total; line items kept in dropdown without per-item pricing.', v1: 20_000, v2: 10_000 },
-    { category: 'Cat 2a — HVAC, Vent & BMS', detail: 'RTUs $170K → $150K · MAU $45K → $20K · BMS $25K → $20K · Restroom exhaust $8K → $6K.', v1: cat2aV1, v2: cat2aV2 },
+    { category: 'Cat 2a — HVAC, Vent & BMS', detail: 'RTUs $170K → $150K · MAU $45K → $15K · BMS $25K → $20K · Restroom exhaust $8K → $6K.', v1: cat2aV1, v2: cat2aV2 },
+    { category: 'Cat 2c — Electrical', detail: 'Subcategory total $128K → $140K to capture refined electrical scope; seven line items scaled proportionally (×1.094) and rounded to nearest $1K.', v1: cat2cV1, v2: cat2cV2 },
     { category: 'Cat 2d — Plumbing', detail: 'Subcategory total $129K → $110K; six line items scaled proportionally.', v1: cat2dV1, v2: cat2dV2 },
     { category: 'Cat 4 — Vendor Stalls', detail: 'Food stalls $40K/stall → $35K/stall ($320K → $280K). Health Bar + Coffee + 2× Dessert kiosks collapsed into one "Non-Food Vendors" line at 4 × $20K = $80K.', v1: cat4V1, v2: cat4V2 },
     { category: 'Cat 9 — Architecture + MEP Eng', detail: 'Architecture/Design ($25K) and MEP Engineering ($30K) combined into a single $40K fee line.', v1: archMepV1, v2: archMepV2 },
-    { category: 'Contingency', detail: 'Recomputed at 10% of V2 hard costs (was 10% of V1 hard costs).', v1: V1_DATA.contingency, v2: V2_DATA.contingency },
+    { category: 'Contingency', detail: 'Tightened from 10% to 8% of hard costs after refined SOW reduced execution risk (kit-of-parts vendor stalls + locked equipment scoping).', v1: V1_DATA.contingency, v2: V2_DATA.contingency },
   ];
 
   const totalSaved = V1_DATA.totalProjectCost - V2_DATA.totalProjectCost;
@@ -503,7 +521,7 @@ function V2ChangesSummary() {
         <div className="flex-1 min-w-0">
           <div className="font-bold text-walnut text-sm mb-1">V2 REVISIONS — Post Niyi Meeting (Apr 29, 2026)</div>
           <p className="text-xs text-walnut-light leading-relaxed mb-3">
-            Refined SOW after walkthrough with Niyi. Six line-item changes shrink the V2 budget by{' '}
+            Refined SOW after walkthrough with Niyi. Seven line-item changes shrink the V2 budget by{' '}
             <span className="font-semibold text-walnut">{fmtDollarFull(totalSaved)}</span> versus V1
             (<span className="font-semibold text-walnut">{fmtDollarFull(V1_DATA.totalProjectCost)}</span> →{' '}
             <span className="font-semibold text-walnut">{fmtDollarFull(V2_DATA.totalProjectCost)}</span>).
@@ -548,11 +566,15 @@ function V2ChangesSummary() {
 }
 
 // ── Buildout Execution Timeline ──
-// 15-week fast-track plan, sequenced as a top-tier GC would actually run it.
-// Critical path: CenterPoint gas upgrade (90–180d lead, ordered W1) → permits →
-// underground → MEP rough-in → rough-in inspection → drywall close → trim →
-// UL 300 → fire marshal + health → vendor move-in → soft open. Bars positioned
-// globally against the 15-week grid so concurrent trades line up vertically.
+// 22-week end-to-end plan structured around three macro phases:
+//   1. Architectural Drawings — 4 weeks (W1–4)
+//   2. Permitting             — 8 weeks (W5–12)
+//   3. Construction           — 10 weeks (W13–22)
+// Critical path: CenterPoint gas upgrade (90–180d lead, ordered W1) →
+// drawings stamped → permits issued → underground → MEP rough-in → rough-in
+// inspection → drywall close → UL 300 → fire marshal + health → soft open.
+// Bars positioned globally against the 22-week grid so concurrent trades line
+// up vertically.
 
 type Tone = Category['tone'];
 
@@ -574,91 +596,63 @@ interface TimelinePhase {
   tracks: TimelineTrack[];
 }
 
-const TIMELINE_WEEKS = 15;
-const TIMELINE_HEADER_COLS = 5;
+const TIMELINE_WEEKS = 22;
+const TIMELINE_HEADER_COLS = 11;
 
 const TIMELINE_PHASES: TimelinePhase[] = [
   {
-    name: 'Pre-Construction',
-    weekRange: 'Weeks 1–3',
+    name: 'Architectural Drawings',
+    weekRange: 'Weeks 1–4 · 4 weeks',
     startWeek: 0,
-    endWeek: 3,
+    endWeek: 4,
     tracks: [
-      { label: 'A&E + MEP Engineering', catRef: 'Cat 9', tone: 'walnut', startWeek: 0, durationWeeks: 2, note: 'Stamped TI drawings → permit submittal' },
-      { label: 'BMS / Hood Vendor Selection', catRef: 'Cat 2', tone: 'honey', startWeek: 0, durationWeeks: 2 },
-      { label: 'CenterPoint Gas Upgrade — order', catRef: 'Cat 2e', tone: 'terracotta', startWeek: 0, durationWeeks: 9, note: '90–180 day lead — critical path', critical: true },
-      { label: 'Long-Lead Equipment Procurement', catRef: 'Cat 2', tone: 'honey', startWeek: 1, durationWeeks: 6, note: 'RTUs · MAU · Hood canopies' },
-      { label: 'Building Permits Issued', catRef: 'Milestone', tone: 'sage', startWeek: 3, durationWeeks: 0, isMilestone: true, critical: true },
+      { label: 'A&E + MEP Engineering', catRef: 'Cat 9', tone: 'walnut', startWeek: 0, durationWeeks: 4, note: 'Stamped TI drawings · interior + MEP integration' },
+      { label: 'BMS / Hood Vendor Selection', catRef: 'Cat 2', tone: 'honey', startWeek: 0, durationWeeks: 3, note: 'Locks loads + hood layout for permit set' },
+      { label: 'CenterPoint Gas Upgrade — order', catRef: 'Cat 2e', tone: 'terracotta', startWeek: 0, durationWeeks: 16, note: '90–180 day lead — engages Week 1', critical: true },
+      { label: 'Long-Lead Equipment Specs Locked', catRef: 'Cat 2', tone: 'honey', startWeek: 2, durationWeeks: 2, note: 'RTUs · MAU · Hood canopies' },
+      { label: 'Drawings Stamped & Submitted', catRef: 'Milestone', tone: 'sage', startWeek: 4, durationWeeks: 0, isMilestone: true, critical: true },
     ],
   },
   {
-    name: 'Shell Prep & Underground',
-    weekRange: 'Weeks 3–5',
-    startWeek: 2,
-    endWeek: 5,
-    tracks: [
-      { label: 'Demo & Shell Prep', catRef: 'Cat 1', tone: 'walnut', startWeek: 2, durationWeeks: 2 },
-      { label: 'Underground Grease Interceptor', catRef: 'Cat 2d', tone: 'honey', startWeek: 3, durationWeeks: 2, note: 'Must precede slab finish work', critical: true },
-      { label: 'Slab Penetrations + Floor Drains', catRef: 'Cat 2d', tone: 'honey', startWeek: 3, durationWeeks: 2 },
-    ],
-  },
-  {
-    name: 'MEP Rough-In',
-    weekRange: 'Weeks 5–9',
+    name: 'Permitting',
+    weekRange: 'Weeks 5–12 · 8 weeks',
     startWeek: 4,
-    endWeek: 9,
-    tracks: [
-      { label: 'Electrical Rough-In', catRef: 'Cat 2c', tone: 'honey', startWeek: 4, durationWeeks: 5 },
-      { label: 'HVAC Rough-In + Roof Penetrations', catRef: 'Cat 2a', tone: 'honey', startWeek: 4, durationWeeks: 5, note: 'Coordinate central TPO zone with roofer' },
-      { label: 'Plumbing Above-Slab Distribution', catRef: 'Cat 2d', tone: 'honey', startWeek: 4, durationWeeks: 5 },
-      { label: 'Sprinkler Distribution', catRef: 'Cat 2f', tone: 'honey', startWeek: 5, durationWeeks: 3 },
-      { label: 'Low-Voltage Conduit Pathways', catRef: 'Cat 2g', tone: 'honey', startWeek: 5, durationWeeks: 3 },
-      { label: 'Hood Ductwork + Fans', catRef: 'Cat 2b', tone: 'honey', startWeek: 5, durationWeeks: 4 },
-      { label: 'Gas Distribution + Manifolds', catRef: 'Cat 2e', tone: 'terracotta', startWeek: 6, durationWeeks: 3, note: 'Tie-in after CenterPoint upgrade complete' },
-      { label: 'Restroom Framing + MEP', catRef: 'Cat 3', tone: 'sage', startWeek: 6, durationWeeks: 3 },
-      { label: 'MEP Rough-In Inspection', catRef: 'Milestone', tone: 'sage', startWeek: 9, durationWeeks: 0, isMilestone: true, critical: true },
-    ],
-  },
-  {
-    name: 'Walls, Vendor Stalls & Finishes',
-    weekRange: 'Weeks 10–12',
-    startWeek: 9,
     endWeek: 12,
     tracks: [
-      { label: 'Drywall + FRP + Tile Backer', catRef: 'Cat 3 / 4', tone: 'sage', startWeek: 9, durationWeeks: 2 },
-      { label: 'Vendor Stall Framing (Kit-of-Parts)', catRef: 'Cat 4', tone: 'honey', startWeek: 9, durationWeeks: 3, note: '8 food stalls + 4 kiosks · standardized build' },
-      { label: 'Polished Concrete Floor', catRef: 'Cat 5', tone: 'sage', startWeek: 10, durationWeeks: 2 },
-      { label: 'Wall Finishes (Paint + Wood Accent)', catRef: 'Cat 5', tone: 'sage', startWeek: 10, durationWeeks: 2 },
-      { label: 'Ceiling (Truss Seal + Black MEP Paint)', catRef: 'Cat 5', tone: 'sage', startWeek: 10, durationWeeks: 2 },
-      { label: 'Restroom Tile + Fixtures', catRef: 'Cat 3', tone: 'sage', startWeek: 10, durationWeeks: 2 },
+      { label: 'City of Richmond Building Permit Review', catRef: 'Cat 9', tone: 'walnut', startWeek: 4, durationWeeks: 8, note: 'Plan review · responses · approval', critical: true },
+      { label: 'Fort Bend & Utility Permits', catRef: 'Cat 9', tone: 'walnut', startWeek: 4, durationWeeks: 7, note: 'Gas · water · sanitary' },
+      { label: 'Health Department Plan Review', catRef: 'Cat 9', tone: 'walnut', startWeek: 4, durationWeeks: 7 },
+      { label: 'Long-Lead Equipment Procurement', catRef: 'Cat 2', tone: 'honey', startWeek: 4, durationWeeks: 8, note: 'RTUs · MAU · Hoods en route to site' },
+      { label: 'Vendor Coordination & Mobilization Prep', catRef: 'Cat 4', tone: 'honey', startWeek: 8, durationWeeks: 4 },
+      { label: 'Building Permits Issued', catRef: 'Milestone', tone: 'sage', startWeek: 12, durationWeeks: 0, isMilestone: true, critical: true },
     ],
   },
   {
-    name: 'Equipment & Trim',
-    weekRange: 'Weeks 12–14',
-    startWeek: 11,
-    endWeek: 14,
-    tracks: [
-      { label: 'Hood Install + UL 300 Commissioning', catRef: 'Cat 2b', tone: 'terracotta', startWeek: 11, durationWeeks: 2, note: 'Gates fire marshal final', critical: true },
-      { label: 'Plumbing Fixtures + Tankless Water', catRef: 'Cat 2d', tone: 'honey', startWeek: 11, durationWeeks: 2 },
-      { label: 'Lighting Fixtures Install', catRef: 'Cat 5', tone: 'sage', startWeek: 12, durationWeeks: 2 },
-      { label: 'Wi-Fi · Cameras · AV · Speakers', catRef: 'Cat 2g', tone: 'honey', startWeek: 12, durationWeeks: 2 },
-      { label: 'BMS Programming & Commissioning', catRef: 'Cat 2a', tone: 'honey', startWeek: 12, durationWeeks: 2 },
-      { label: 'Vendor Stall Counters + Sign Panels', catRef: 'Cat 4', tone: 'honey', startWeek: 12, durationWeeks: 2 },
-    ],
-  },
-  {
-    name: 'FF&E, Branding & Punch',
-    weekRange: 'Weeks 13–15',
+    name: 'Construction',
+    weekRange: 'Weeks 13–22 · 10 weeks',
     startWeek: 12,
-    endWeek: 15,
+    endWeek: 22,
     tracks: [
-      { label: 'Seating · Furniture · Feature Wall', catRef: 'Cat 6', tone: 'terracotta', startWeek: 12, durationWeeks: 3 },
-      { label: 'Exterior + Interior Signage', catRef: 'Cat 8', tone: 'terracotta', startWeek: 13, durationWeeks: 2 },
-      { label: 'Greenery & Final Styling', catRef: 'Cat 5 / 6', tone: 'sage', startWeek: 13, durationWeeks: 2 },
-      { label: 'Fire Marshal + Health Final', catRef: 'Milestone', tone: 'sage', startWeek: 14, durationWeeks: 0, isMilestone: true, critical: true },
-      { label: 'Vendor Equipment Move-In', catRef: 'Vendors', tone: 'walnut', startWeek: 14, durationWeeks: 1, note: 'Vendor-supplied refrigeration + cooking gear' },
-      { label: 'Punch & Soft Open', catRef: 'Milestone', tone: 'sage', startWeek: 15, durationWeeks: 0, isMilestone: true, critical: true },
+      { label: 'Demo & Shell Prep', catRef: 'Cat 1', tone: 'walnut', startWeek: 12, durationWeeks: 2 },
+      { label: 'Underground Grease + Slab Penetrations', catRef: 'Cat 2d', tone: 'honey', startWeek: 12, durationWeeks: 2, note: 'Must precede slab finish work', critical: true },
+      { label: 'Electrical Rough-In', catRef: 'Cat 2c', tone: 'honey', startWeek: 14, durationWeeks: 3 },
+      { label: 'HVAC Rough-In + Roof Penetrations', catRef: 'Cat 2a', tone: 'honey', startWeek: 14, durationWeeks: 3, note: 'Central TPO zone coordination' },
+      { label: 'Plumbing Above-Slab Distribution', catRef: 'Cat 2d', tone: 'honey', startWeek: 14, durationWeeks: 3 },
+      { label: 'Sprinkler + Fire Alarm', catRef: 'Cat 2f', tone: 'honey', startWeek: 14, durationWeeks: 3 },
+      { label: 'Hood Ductwork + Fans', catRef: 'Cat 2b', tone: 'honey', startWeek: 14, durationWeeks: 3 },
+      { label: 'Low-Voltage Conduit Pathways', catRef: 'Cat 2g', tone: 'honey', startWeek: 15, durationWeeks: 2 },
+      { label: 'Gas Distribution + Manifolds', catRef: 'Cat 2e', tone: 'terracotta', startWeek: 15, durationWeeks: 2, note: 'Tie-in after CenterPoint upgrade complete' },
+      { label: 'Restroom Framing + MEP', catRef: 'Cat 3', tone: 'sage', startWeek: 14, durationWeeks: 3 },
+      { label: 'MEP Rough-In Inspection', catRef: 'Milestone', tone: 'sage', startWeek: 17, durationWeeks: 0, isMilestone: true, critical: true },
+      { label: 'Drywall + FRP + Vendor Stall Framing', catRef: 'Cat 3 / 4', tone: 'sage', startWeek: 17, durationWeeks: 2, note: '8 food stalls + 4 kiosks · kit-of-parts' },
+      { label: 'Polished Concrete + Wall Finishes', catRef: 'Cat 5', tone: 'sage', startWeek: 18, durationWeeks: 2 },
+      { label: 'Restroom Tile + Fixtures', catRef: 'Cat 3', tone: 'sage', startWeek: 18, durationWeeks: 2 },
+      { label: 'Hood Install + UL 300 Commissioning', catRef: 'Cat 2b', tone: 'terracotta', startWeek: 19, durationWeeks: 2, note: 'Gates fire marshal final', critical: true },
+      { label: 'Lighting · Wi-Fi · BMS · Vendor Counters', catRef: 'Cat 2 / 4 / 5', tone: 'honey', startWeek: 19, durationWeeks: 2 },
+      { label: 'Seating · Feature Wall · Signage', catRef: 'Cat 6 / 8', tone: 'terracotta', startWeek: 20, durationWeeks: 2 },
+      { label: 'Fire Marshal + Health Final', catRef: 'Milestone', tone: 'sage', startWeek: 21, durationWeeks: 0, isMilestone: true, critical: true },
+      { label: 'Vendor Equipment Move-In', catRef: 'Vendors', tone: 'walnut', startWeek: 21, durationWeeks: 1, note: 'Vendor-supplied refrigeration + cooking gear' },
+      { label: 'Punch & Soft Open', catRef: 'Milestone', tone: 'sage', startWeek: 22, durationWeeks: 0, isMilestone: true, critical: true },
     ],
   },
 ];
@@ -748,16 +742,49 @@ function PhaseHeaderRow({ idx, phase }: { idx: number; phase: TimelinePhase }) {
   );
 }
 
+function TimelineSummaryCard() {
+  const rows: { weeks: string; phase: string; detail: string }[] = [
+    { weeks: '4 weeks', phase: 'Architectural Drawings', detail: 'A&E + MEP engineering · stamped TI set · long-lead equipment specs locked · CenterPoint gas upgrade ordered Week 1' },
+    { weeks: '8 weeks', phase: 'Permitting', detail: 'City of Richmond, Fort Bend, utility, and health department plan review through issuance · long-lead equipment procurement runs in parallel' },
+    { weeks: '10 weeks', phase: 'Construction', detail: 'Demo · underground · MEP rough-in · drywall close · finishes · UL 300 commissioning · fire marshal + health final · soft open' },
+  ];
+  return (
+    <div className="rounded-2xl border border-honey/30 bg-honey/8 p-4 md:p-5 mb-4">
+      <div className="flex items-start gap-3">
+        <div className="text-honey text-xl leading-none mt-0.5">●</div>
+        <div className="flex-1 min-w-0">
+          <div className="font-bold text-walnut text-sm mb-1">Buildout Summary — 22 Weeks End-to-End</div>
+          <p className="text-xs text-walnut-light leading-relaxed mb-3">
+            Three macro phases. Drawings drive permits, permits gate construction. Long-lead equipment (gas upgrade, RTUs, MAU, hoods) is engaged Week 1 so it lands in time for in-suite installation during the construction phase.
+          </p>
+          <ul className="space-y-1.5">
+            {rows.map((r, i) => (
+              <li key={i} className="flex flex-col md:flex-row md:items-baseline gap-1 md:gap-3 text-xs">
+                <div className="flex items-baseline gap-2 md:w-56 shrink-0">
+                  <span className="px-2 py-0.5 rounded bg-walnut text-cream font-bold text-[10px] uppercase tracking-wider tabular-nums shrink-0">{r.weeks}</span>
+                  <span className="font-semibold text-walnut">{r.phase}</span>
+                </div>
+                <span className="text-walnut-light leading-relaxed">{r.detail}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ExecutionTimeline() {
   return (
     <>
+      <TimelineSummaryCard />
       <div className="glass rounded-2xl p-5 md:p-6">
         <div className="flex items-start justify-between gap-3 mb-2 flex-wrap">
           <div className="min-w-0">
             <h2 className="text-lg font-bold text-walnut">Buildout Execution Timeline</h2>
             <p className="text-xs text-walnut-light mt-1 leading-relaxed">
-              15-week fast-track buildout across 6 phases · GC sequencing with parallel trades + critical-path gates.
-              Long-lead orders (gas service upgrade, RTUs, hoods) engage Week 1 to land in time for in-suite installation.
+              22 weeks across 3 macro phases · drawings (4w) → permitting (8w) → construction (10w) ·
+              GC sequencing with parallel trades + critical-path gates inside construction.
             </p>
           </div>
           <div className="flex flex-wrap gap-1.5 text-[10px] shrink-0">
@@ -770,16 +797,16 @@ function ExecutionTimeline() {
         </div>
 
         <div className="overflow-x-auto scroll-fade-x mt-4">
-          <div className="min-w-[820px]">
+          <div className="min-w-[1080px]">
             <div className="flex">
               <div className="w-56 md:w-64 shrink-0" />
-              <div className="flex-1 grid grid-cols-5 border-b border-walnut/15 pb-1.5">
+              <div className="flex-1 grid grid-cols-11 border-b border-walnut/15 pb-1.5">
                 {Array.from({ length: TIMELINE_HEADER_COLS }).map((_, i) => (
                   <div
                     key={i}
                     className={`text-center text-[10px] font-semibold uppercase tracking-wider text-walnut-light border-r border-walnut/10 last:border-r-0 ${i === 0 ? 'border-l border-walnut/10' : ''}`}
                   >
-                    Wks {i * 3 + 1}–{(i + 1) * 3}
+                    W{i * 2 + 1}–{(i + 1) * 2}
                   </div>
                 ))}
               </div>
@@ -802,13 +829,14 @@ function ExecutionTimeline() {
 
 function TimelineCriticalPathCard() {
   const items: { idx: number; title: string; detail: string; critical?: boolean }[] = [
-    { idx: 1, title: 'CenterPoint Gas Upgrade', detail: '90–180 day lead. Order Week 2. Slip the order and the entire MEP rough-in window slides — every other trade waits on tied-in gas.', critical: true },
-    { idx: 2, title: 'Building Permits Issued', detail: 'No physical construction until permits are stamped. Targeting Week 9. Drives demo + slab + MEP start.', critical: true },
-    { idx: 3, title: 'Underground Plumbing', detail: 'Grease interceptor + slab penetrations must be set before any slab finish or stall framing. Misses force concrete cuts later.' },
-    { idx: 4, title: 'Roof Penetration Coordination', detail: 'Hood exhaust + MAU + 4 RTUs all land in the central TPO zone. Lock layout with hood vendor + roofer before MEP rough-in starts.' },
-    { idx: 5, title: 'MEP Rough-In Inspection', detail: 'Gates wall close-up. All 5 trades must finish + pass before drywall covers anything. Failed inspection is the most common multi-week slip.', critical: true },
-    { idx: 6, title: 'UL 300 Hood Commissioning', detail: 'Fire suppression must be commissioned with fire marshal before final occupancy walkthrough. Gates fire marshal sign-off.', critical: true },
-    { idx: 7, title: 'Fire Marshal + Health Final', detail: 'Health department food-service final inspection gates vendor equipment move-in and soft open.', critical: true },
+    { idx: 1, title: 'CenterPoint Gas Upgrade', detail: '90–180 day lead. Ordered Week 1, lands ~Week 16 for tie-in during MEP rough-in. Slip the order and gas distribution waits — every cooking trade depends on it.', critical: true },
+    { idx: 2, title: 'Drawings Stamped & Submitted', detail: 'A&E + MEP set must be stamped by Week 4 to enter the 8-week city review window on schedule. Late drawings push every downstream gate.', critical: true },
+    { idx: 3, title: 'Building Permits Issued', detail: 'No physical construction until permits are stamped. Targeting Week 12. Drives demo + slab + MEP start in Week 13.', critical: true },
+    { idx: 4, title: 'Underground Plumbing', detail: 'Grease interceptor + slab penetrations must be set in Weeks 13–14 before any slab finish or stall framing. Misses force concrete cuts later.' },
+    { idx: 5, title: 'Roof Penetration Coordination', detail: 'Hood exhaust + MAU + 4 RTUs all land in the central TPO zone. Lock layout with hood vendor + roofer during permitting (Weeks 5–12) so MEP rough-in can start immediately at Week 13.' },
+    { idx: 6, title: 'MEP Rough-In Inspection', detail: 'Targeting Week 17. Gates wall close-up — all 5 trades must finish + pass before drywall covers anything. Failed inspection is the most common multi-week slip.', critical: true },
+    { idx: 7, title: 'UL 300 Hood Commissioning', detail: 'Weeks 19–20. Fire suppression must be commissioned with fire marshal before final occupancy walkthrough. Gates fire marshal sign-off.', critical: true },
+    { idx: 8, title: 'Fire Marshal + Health Final', detail: 'Week 21–22. Health department food-service final inspection gates vendor equipment move-in and soft open at Week 22.', critical: true },
   ];
 
   return (
@@ -843,6 +871,7 @@ function TimelineCriticalPathCard() {
 }
 
 function SummaryCard({ data }: { data: CapExData }) {
+  const contingencyPct = Math.round((data.contingency / data.hardCosts) * 100);
   return (
     <div className="glass rounded-2xl p-5 md:p-6">
       <h2 className="text-lg font-bold text-walnut mb-4">Project Cost Summary</h2>
@@ -859,7 +888,7 @@ function SummaryCard({ data }: { data: CapExData }) {
               <span className="font-semibold text-walnut tabular-nums">{fmtDollarFull(data.softCosts)}</span>
             </div>
             <div className="flex justify-between py-1.5 border-b border-walnut/5">
-              <span className="text-walnut-light">Contingency (10% of Hard Costs)</span>
+              <span className="text-walnut-light">Contingency ({contingencyPct}% of Hard Costs)</span>
               <span className="font-semibold text-walnut tabular-nums">{fmtDollarFull(data.contingency)}</span>
             </div>
             <div className="flex justify-between py-2 mt-1 bg-walnut text-cream rounded-md px-3">
