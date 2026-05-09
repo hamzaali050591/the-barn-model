@@ -996,9 +996,11 @@ export default function CapEx() {
           <SummaryCard data={data} />
         </section>
 
-        <section className="mb-6">
-          {version === 'v1' ? <GasFlagCallout /> : <V2ChangesSummary />}
-        </section>
+        {view === 'budget' && (
+          <section className="mb-6">
+            {version === 'v1' ? <GasFlagCallout /> : <V2ChangesSummary />}
+          </section>
+        )}
 
         {view === 'budget' ? (
           <section className="mb-8">
