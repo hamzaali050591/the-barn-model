@@ -253,3 +253,326 @@ section {
 @media (min-width: 768px) {
   .scroll-fade-x::after { display: none; }
 }
+
+/* ─────────────────────────────────────────────────────────────────
+   VENDOR-SITE DESIGN SYSTEM (May 2026)
+   Editorial typography, staggered reveals, interactive surfaces.
+   ───────────────────────────────────────────────────────────────── */
+
+/* ── Variant reveal animations ── */
+.reveal-ready .reveal-l {
+  opacity: 0;
+  transform: translateX(-32px);
+  transition: opacity 0.7s cubic-bezier(0.23, 1, 0.32, 1),
+              transform 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.reveal-ready .reveal-r {
+  opacity: 0;
+  transform: translateX(32px);
+  transition: opacity 0.7s cubic-bezier(0.23, 1, 0.32, 1),
+              transform 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.reveal-ready .reveal-scale {
+  opacity: 0;
+  transform: scale(0.94);
+  transition: opacity 0.7s cubic-bezier(0.23, 1, 0.32, 1),
+              transform 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.reveal-ready .reveal-l.visible,
+.reveal-ready .reveal-r.visible,
+.reveal-ready .reveal-scale.visible {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+}
+
+/* ── Staggered child reveals — apply to a grid container ── */
+.reveal-ready .stagger > *,
+.reveal-ready .stagger-on-view.visible > * {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.6s cubic-bezier(0.23, 1, 0.32, 1),
+              transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.reveal-ready .stagger.visible > *,
+.reveal-ready .stagger-on-view.visible > * {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-ready .stagger.visible > *:nth-child(1),
+.reveal-ready .stagger-on-view.visible > *:nth-child(1) { transition-delay: 60ms; }
+.reveal-ready .stagger.visible > *:nth-child(2),
+.reveal-ready .stagger-on-view.visible > *:nth-child(2) { transition-delay: 130ms; }
+.reveal-ready .stagger.visible > *:nth-child(3),
+.reveal-ready .stagger-on-view.visible > *:nth-child(3) { transition-delay: 200ms; }
+.reveal-ready .stagger.visible > *:nth-child(4),
+.reveal-ready .stagger-on-view.visible > *:nth-child(4) { transition-delay: 270ms; }
+.reveal-ready .stagger.visible > *:nth-child(5),
+.reveal-ready .stagger-on-view.visible > *:nth-child(5) { transition-delay: 340ms; }
+.reveal-ready .stagger.visible > *:nth-child(6),
+.reveal-ready .stagger-on-view.visible > *:nth-child(6) { transition-delay: 410ms; }
+.reveal-ready .stagger.visible > *:nth-child(7),
+.reveal-ready .stagger-on-view.visible > *:nth-child(7) { transition-delay: 480ms; }
+.reveal-ready .stagger.visible > *:nth-child(8),
+.reveal-ready .stagger-on-view.visible > *:nth-child(8) { transition-delay: 550ms; }
+
+/* ── Editorial chip (eyebrow text above page titles) ── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.875rem;
+  border-radius: 9999px;
+  background: rgba(196, 154, 108, 0.12);
+  border: 1px solid rgba(196, 154, 108, 0.28);
+  color: var(--color-honey);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.chip::before {
+  content: '';
+  width: 4px;
+  height: 4px;
+  border-radius: 9999px;
+  background: var(--color-honey);
+  box-shadow: 0 0 0 3px rgba(196, 154, 108, 0.2);
+}
+
+/* ── Editorial section heading marker ── */
+.section-mark {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+.section-mark::before {
+  content: '';
+  width: 28px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-honey), rgba(196, 154, 108, 0));
+  border-radius: 2px;
+  display: inline-block;
+  transform: translateY(-6px);
+}
+
+/* ── Buttons ── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  border-radius: 0.875rem;
+  background: var(--color-walnut);
+  color: var(--color-cream);
+  font-weight: 600;
+  font-size: 0.875rem;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  border: 0;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(92, 64, 51, 0.18),
+              inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: all 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--color-honey) 0%, var(--color-terracotta) 100%);
+  opacity: 0;
+  transition: opacity 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.btn-primary > * { position: relative; z-index: 1; }
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(196, 154, 108, 0.32),
+              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  color: white;
+}
+.btn-primary:hover::before { opacity: 1; }
+.btn-primary:active { transform: translateY(0); }
+.btn-primary svg { transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1); }
+.btn-primary:hover svg { transform: translateX(2px); }
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  border-radius: 0.875rem;
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--color-walnut);
+  font-weight: 600;
+  font-size: 0.875rem;
+  border: 1px solid rgba(92, 64, 51, 0.18);
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: all 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.btn-secondary:hover {
+  transform: translateY(-2px);
+  background: rgba(196, 154, 108, 0.1);
+  border-color: rgba(196, 154, 108, 0.45);
+  box-shadow: 0 8px 22px rgba(92, 64, 51, 0.1);
+}
+.btn-secondary svg { transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1); }
+.btn-secondary:hover svg { transform: translateY(1px); }
+
+/* ── Interactive surface: glass card that responds to cursor ── */
+.lift-card {
+  position: relative;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  --mx: 50%;
+  --my: 50%;
+}
+.lift-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(380px circle at var(--mx) var(--my),
+              rgba(196, 154, 108, 0.12), transparent 45%);
+  opacity: 0;
+  transition: opacity 0.45s cubic-bezier(0.23, 1, 0.32, 1);
+  pointer-events: none;
+}
+.lift-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(92, 64, 51, 0.12),
+              0 4px 12px rgba(196, 154, 108, 0.18);
+  border-color: rgba(196, 154, 108, 0.32);
+}
+.lift-card:hover::after { opacity: 1; }
+
+/* ── Image zoom-on-hover (for renderings + photo-essay) ── */
+.img-zoom { overflow: hidden; }
+.img-zoom img {
+  transition: transform 1.2s cubic-bezier(0.23, 1, 0.32, 1);
+  will-change: transform;
+}
+.img-zoom:hover img { transform: scale(1.04); }
+
+/* ── Stage tracker (numbered eyebrow on photo essay) ── */
+.stage-track {
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  color: var(--color-honey);
+  font-weight: 600;
+}
+
+/* ── Hero Ken-Burns slow zoom for landing pages ── */
+@keyframes kenBurns {
+  0% { transform: scale(1.04) translate(0, 0); }
+  100% { transform: scale(1.12) translate(-1%, -1%); }
+}
+.ken-burns {
+  animation: kenBurns 18s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+/* ── Soft pulse for chips / status dots ── */
+@keyframes softPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(196, 154, 108, 0.45); }
+  50% { box-shadow: 0 0 0 8px rgba(196, 154, 108, 0); }
+}
+.pulse-honey { animation: softPulse 2.6s ease-in-out infinite; }
+
+/* ── Decorative section divider (a thin rule with a centered diamond) ── */
+.divider-mark {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: rgba(92, 64, 51, 0.25);
+}
+.divider-mark::before,
+.divider-mark::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg,
+              rgba(196, 154, 108, 0) 0%,
+              rgba(196, 154, 108, 0.4) 50%,
+              rgba(196, 154, 108, 0) 100%);
+}
+.divider-mark .diamond {
+  width: 6px;
+  height: 6px;
+  background: var(--color-honey);
+  transform: rotate(45deg);
+  border-radius: 1px;
+}
+
+/* ── Editorial display type ── */
+.display-title {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  color: var(--color-walnut);
+}
+
+/* ── Respect reduced motion preferences ── */
+@media (prefers-reduced-motion: reduce) {
+  .ken-burns, .pulse-honey, .float-anim {
+    animation: none !important;
+  }
+  .reveal-ready .reveal,
+  .reveal-ready .reveal-l,
+  .reveal-ready .reveal-r,
+  .reveal-ready .reveal-scale {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* ── Touch devices: disable hover-based transforms ──
+   On touch screens, hover states fire on tap and feel buggy.
+   Strip the lift + gleam so cards stay still until tapped. */
+@media (hover: none) {
+  .lift-card:hover {
+    transform: none;
+    box-shadow: 0 4px 24px rgba(92, 64, 51, 0.06),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+  .lift-card:hover::after { opacity: 0; }
+  .glass:hover {
+    transform: none;
+    background: rgba(255, 255, 255, 0.45);
+    box-shadow: 0 4px 24px rgba(92, 64, 51, 0.06),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
+  .img-zoom:hover img { transform: none; }
+  .hover-lift:hover { transform: none; box-shadow: none; }
+  .glass-dark:hover {
+    transform: none;
+    background: rgba(92, 64, 51, 0.15);
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+}
+
+/* ── Mobile-only adjustments ── */
+@media (max-width: 640px) {
+  /* Tighter scroll behavior — phones overscroll less */
+  body { scroll-behavior: auto; }
+
+  /* Disable Ken-Burns on small screens — pixels too few to notice, costs battery */
+  .ken-burns { animation: none !important; }
+
+  /* Pull buttons a touch more compact on phones */
+  .btn-primary, .btn-secondary {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.8125rem;
+  }
+}
+
+/* ── Use system safe-area on iPhone notch / Dynamic Island ── */
+@supports (padding: env(safe-area-inset-top)) {
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}

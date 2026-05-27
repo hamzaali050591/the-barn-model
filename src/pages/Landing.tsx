@@ -109,6 +109,21 @@ export default function Landing() {
             A curated, tech-enabled food hall designed to be the community gathering place
             for Richmond and Fort Bend County.
           </p>
+
+          {/* Subtle vendor portal CTA */}
+          <div className="fade-up fade-up-d4 mt-8 flex items-center justify-center gap-3 text-cream/30">
+            <span className="block w-12 h-px bg-cream/15" />
+            <button
+              onClick={() => navigate('/vendors')}
+              className="group inline-flex items-center gap-2 text-[11px] tracking-[0.18em] uppercase font-semibold text-cream/60 hover:text-honey transition-colors duration-300 cursor-pointer"
+            >
+              <span>For Prospective Vendors</span>
+              <svg className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+              </svg>
+            </button>
+            <span className="block w-12 h-px bg-cream/15" />
+          </div>
         </div>
       </div>
 

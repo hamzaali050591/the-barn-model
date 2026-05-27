@@ -9,6 +9,14 @@ import Renderings from './pages/Renderings';
 import OpexVendorUtilities from './pages/OpexVendorUtilities';
 import OpexCommonUtilities from './pages/OpexCommonUtilities';
 import OpexNonUtility from './pages/OpexNonUtility';
+import VendorLanding from './pages/vendor/VendorLanding';
+import VendorAbout from './pages/vendor/VendorAbout';
+import VendorVibe from './pages/vendor/VendorVibe';
+import VendorStall from './pages/vendor/VendorStall';
+import VendorTerms from './pages/vendor/VendorTerms';
+import VendorCuration from './pages/vendor/VendorCuration';
+import VendorRichmond from './pages/vendor/VendorRichmond';
+import VendorApply from './pages/vendor/VendorApply';
 import ScrollToTop from './components/ScrollToTop';
 import { ModelProvider } from './utils/ModelContext';
 
@@ -27,6 +35,14 @@ function App() {
         <Route path="/opex" element={<Opex />} />
         <Route path="/layout" element={<Layout />} />
         <Route path="/renderings" element={<Renderings />} />
+        <Route path="/vendors" element={<VendorLanding />} />
+        <Route path="/vendors/about" element={<VendorAbout />} />
+        <Route path="/vendors/vibe" element={<VendorVibe />} />
+        <Route path="/vendors/stall" element={<VendorStall />} />
+        <Route path="/vendors/terms" element={<VendorTerms />} />
+        <Route path="/vendors/curation" element={<VendorCuration />} />
+        <Route path="/vendors/richmond" element={<VendorRichmond />} />
+        <Route path="/vendors/apply" element={<VendorApply />} />
       </Routes>
     </ModelProvider>
   );
