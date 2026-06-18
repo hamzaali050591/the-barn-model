@@ -7,6 +7,7 @@ interface Props {
 
 const links = [
   { path: '/subs', label: 'Overview' },
+  { path: '/subs/space', label: 'The Space' },
   { path: '/subs/utility-loads', label: 'Utility Loads' },
 ];
 

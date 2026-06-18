@@ -18,6 +18,7 @@ import VendorCuration from './pages/vendor/VendorCuration';
 import VendorRichmond from './pages/vendor/VendorRichmond';
 import VendorApply from './pages/vendor/VendorApply';
 import SubsLanding from './pages/subs/SubsLanding';
+import SubsSpace from './pages/subs/SubsSpace';
 import SubsScope from './pages/subs/SubsScope';
 import SubsUtilities from './pages/subs/SubsUtilities';
 import ScrollToTop from './components/ScrollToTop';
@@ -47,6 +48,7 @@ function App() {
         <Route path="/vendors/richmond" element={<VendorRichmond />} />
         <Route path="/vendors/apply" element={<VendorApply />} />
         <Route path="/subs" element={<SubsLanding />} />
+        <Route path="/subs/space" element={<SubsSpace />} />
         <Route path="/subs/utility-loads" element={<SubsUtilities />} />
         <Route path="/subs/:slug" element={<SubsScope />} />
       </Routes>
