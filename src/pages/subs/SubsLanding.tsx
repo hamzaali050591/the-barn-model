@@ -31,8 +31,8 @@ export default function SubsLanding() {
           </h1>
           <p className="text-cream/80 text-base md:text-lg mt-4 max-w-2xl leading-relaxed">
             We&rsquo;re building out a ~9,180 sq ft curated food hall on Level 2 of Building F at
-            Marcel Harvest Green in Richmond, TX — a single open hall with 8 food stalls, 4 kiosks,
-            and seating for 200 under exposed wood trusses. Below are the trade scopes of work
+            Marcel Harvest Green — 18806 W Airport Blvd, Richmond, TX 77406 — a single open hall
+            with 8 food stalls, 4 kiosks, and seating for 200 under exposed wood trusses. Below are the trade scopes of work
             we&rsquo;re seeking bids on. Each is a high-level scope for discussion — figures are
             yours to quote.
           </p>

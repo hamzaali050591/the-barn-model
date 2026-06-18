@@ -80,9 +80,16 @@ export default function SubsSpace() {
         <div className="mb-10">
           <span className="chip mb-4">The Space</span>
           <h1 className="text-3xl md:text-4xl font-bold text-walnut">The Space</h1>
+          <p className="flex items-center gap-2 text-honey font-semibold text-sm md:text-base mt-3">
+            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+            </svg>
+            Building F, Level 2 · Marcel Harvest Green · 18806 W Airport Blvd, Richmond, TX 77406
+          </p>
           <p className="text-walnut-light text-sm md:text-base mt-3 max-w-2xl leading-relaxed">
             The building, the shell we&rsquo;re building into, and our V1 layout plan — context for
-            every trade scope. Bldg F, Level 2 (Left Zone), Marcel Harvest Green, Richmond, TX.
+            every trade scope. The Barn — Richmond occupies the left zone of Level 2.
           </p>
           <div className="flex gap-2 mt-3 flex-wrap text-[10px]">
             <span className="px-2 py-0.5 rounded-full border border-honey/30 bg-honey/15 text-walnut font-semibold">~9,180 SF suite (V1 left zone)</span>
