@@ -17,6 +17,9 @@ import VendorTerms from './pages/vendor/VendorTerms';
 import VendorCuration from './pages/vendor/VendorCuration';
 import VendorRichmond from './pages/vendor/VendorRichmond';
 import VendorApply from './pages/vendor/VendorApply';
+import SubsLanding from './pages/subs/SubsLanding';
+import SubsScope from './pages/subs/SubsScope';
+import SubsUtilities from './pages/subs/SubsUtilities';
 import ScrollToTop from './components/ScrollToTop';
 import { ModelProvider } from './utils/ModelContext';
 
@@ -43,6 +46,9 @@ function App() {
         <Route path="/vendors/curation" element={<VendorCuration />} />
         <Route path="/vendors/richmond" element={<VendorRichmond />} />
         <Route path="/vendors/apply" element={<VendorApply />} />
+        <Route path="/subs" element={<SubsLanding />} />
+        <Route path="/subs/utility-loads" element={<SubsUtilities />} />
+        <Route path="/subs/:slug" element={<SubsScope />} />
       </Routes>
     </ModelProvider>
   );
