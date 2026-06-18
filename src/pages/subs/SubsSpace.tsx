@@ -96,6 +96,25 @@ export default function SubsSpace() {
             <span className="px-2 py-0.5 rounded-full border border-sage/30 bg-sage/15 text-walnut font-semibold">Exposed wood trusses</span>
             <span className="px-2 py-0.5 rounded-full border border-terracotta/30 bg-terracotta/15 text-walnut font-semibold">Storefront glazing on all 4 sides</span>
           </div>
+
+          <a
+            href="/subs/plans-and-specs-bldg-f.pdf"
+            download
+            className="group mt-6 flex items-center gap-4 rounded-2xl bg-walnut hover:bg-walnut-light transition-colors px-5 py-4 md:px-6 md:py-5 text-cream shadow-lg shadow-walnut/20 w-full sm:w-auto sm:max-w-xl"
+          >
+            <span className="shrink-0 w-12 h-12 rounded-xl bg-honey/25 text-honey flex items-center justify-center group-hover:bg-honey/35 transition-colors">
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+            </span>
+            <span className="min-w-0">
+              <span className="block font-bold text-base md:text-lg leading-tight">Download Plans &amp; Specs</span>
+              <span className="block text-xs md:text-sm text-cream/70 mt-0.5">Building F full plan &amp; spec set (PDF, ~65 MB)</span>
+            </span>
+            <svg className="w-5 h-5 ml-auto text-cream/60 group-hover:text-honey transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+            </svg>
+          </a>
         </div>
 
         <div className="space-y-12 md:space-y-16">
